@@ -124,6 +124,7 @@
   .log li .v.in{color:var(--in)}
   .log li .st{font-size:12px;color:var(--ink-2);text-align:right}
   .log li .st.err{color:var(--warn)}
+  .log li .st .x{margin-left:8px;width:32px;height:32px;border-radius:8px;background:var(--key);color:var(--warn);font-size:14px;font-weight:700;vertical-align:middle}
   .rules li{grid-template-columns:1fr auto}
   .rules li .m{grid-column:1}
   .rules li .del{color:var(--warn);font-size:14px;font-weight:600;grid-row:1/3;align-self:center}
@@ -133,7 +134,7 @@
 <body>
 <div class="app" id="main">
   <div class="top">
-    <button class="ic" id="btnSettings" aria-label="Impostazioni">⚙︎</button>
+    <button class="ic" id="btnSettings" aria-label="Impostazioni">⚙️︎</button>
     <h1>Nuovo movimento</h1>
     <button class="ic badge" id="btnLog" aria-label="Inviati"><span>☰</span><span class="n" id="logN" hidden>0</span></button>
   </div>
@@ -222,10 +223,11 @@
   <div class="field">
     <label>Formato data inviato a Excel</label>
     <div class="chips" id="dateFmt">
-      <button data-f="it">01/09/2026</button>
+      <button data-f="serial">Numero seriale (consigliato)</button>
       <button data-f="iso">2026-09-01</button>
-      <button data-f="serial">Numero seriale</button>
+      <button data-f="it">01/09/2026</button>
     </div>
+    <p style="margin-top:8px">Il numero seriale è il modo in cui Excel conta le date: arriva sempre corretto, senza scambi giorno/mese. Usa gli altri solo se la colonna in Excel non ha il formato data.</p>
   </div>
   <div class="field">
     <label for="wa">Numero WhatsApp a cui inviare le righe (con prefisso, es. 39333…)</label>
@@ -289,7 +291,7 @@ const SEED_RULES=[
   {id:"spesa",desc:"Spesa",cat:"Spesa",conto:"BNL",type:"interval",days:14,hint:"ogni 2 settimane"}
 ];
 
-let S={ hook:"", dateFmt:"it", defConto:"Trade",
+let S={ hook:"", dateFmt:"serial", defConto:"Trade",
   dict:{ "caffè rebelot di stefan":{desc:"CAFFÈ REBELOT DI STEFAN",cat:"Ristorante",conto:"Trade",imp:7,n:1},
          "gruppo pellegrini":{desc:"Gruppo Pellegrini",cat:"Ristorante",conto:"Trade",imp:7,n:1} },
   catN:{}, log:[], hist:[], muted:[] };
@@ -306,6 +308,7 @@ async function writeStore(v){
 }
 async function load(){
   try{ const v=await readStore(); if(v){ S={...S,...JSON.parse(v)}; } }catch(e){}
+  if(!S.v2){ if(S.dateFmt==="it") S.dateFmt="serial"; S.v2=true; save(); }
   F.conto=S.defConto;
 }
 let saveT;
@@ -319,8 +322,8 @@ function amtNum(){ return F.amt? parseFloat(F.amt.replace(",","."))||0 : 0; }
 function pad2(n){ return String(n).padStart(2,"0"); }
 function today(){ const d=new Date(); d.setHours(12,0,0,0); return d; }
 function selDate(){ if(F.dCustom) return new Date(F.dCustom+"T12:00:00"); const d=today(); d.setDate(d.getDate()-F.dOff); return d; }
-function dateIT(d){ return `${pad2(d.getDate())}/${pad2(d.getMonth()+1)}/${d.getFullYear()}`; }
-function dateISO(d){ return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; }
+function dateIT(d){ return ${pad2(d.getDate())}/${pad2(d.getMonth()+1)}/${d.getFullYear()}; }
+function dateISO(d){ return ${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}; }
 function dateSerial(d){ return Math.round((Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())-Date.UTC(1899,11,30))/86400000); }
 function fromISO(s){ return new Date(s+"T12:00:00"); }
 function daysBetween(a,b){ return Math.round((b-a)/86400000); }
@@ -337,10 +340,10 @@ function detect(entries){ // entries: [{d:"YYYY-MM-DD"}] -> pattern or null
   const dates=days.map(fromISO); const iv=[]; for(let i=1;i<dates.length;i++) iv.push(daysBetween(dates[i-1],dates[i]));
   const med=median(iv);
   const dows=dates.map(d=>d.getDay()); const topDow=[...new Set(dows)].map(x=>[x,dows.filter(y=>y===x).length]).sort((a,b)=>b[1]-a[1])[0];
-  if(topDow[1]/dows.length>=.75&&med>=5&&med<=9) return {type:"weekly",dow:topDow[0],hint:`ogni ${DOW[topDow[0]]}`};
+  if(topDow[1]/dows.length>=.75&&med>=5&&med<=9) return {type:"weekly",dow:topDow[0],hint:ogni ${DOW[topDow[0]]}};
   const doms=dates.map(d=>d.getDate()); const mdom=median(doms);
-  if(med>=25&&med<=35&&doms.filter(x=>Math.abs(x-mdom)<=3).length/doms.length>=.75){ const from=Math.max(1,Math.round(mdom)-2); return {type:"monthly",from,hint:from>=25?"a fine mese":`verso il ${Math.round(mdom)} del mese`}; }
-  if(med>=5&&iv.filter(x=>Math.abs(x-med)<=med*.35).length/iv.length>=.7){ const days=Math.round(med); return {type:"interval",days,hint:`ogni ${days} giorni circa`}; }
+  if(med>=25&&med<=35&&doms.filter(x=>Math.abs(x-mdom)<=3).length/doms.length>=.75){ const from=Math.max(1,Math.round(mdom)-2); return {type:"monthly",from,hint:from>=25?"a fine mese":verso il ${Math.round(mdom)} del mese}; }
+  if(med>=5&&iv.filter(x=>Math.abs(x-med)<=med*.35).length/iv.length>=.7){ const days=Math.round(med); return {type:"interval",days,hint:ogni ${days} giorni circa}; }
   return null;
 }
 function allRules(){
@@ -380,7 +383,7 @@ function dueNow(){ const now=today(); return allRules().filter(r=>isDue(r,now));
 function render(){
   const num=$("num"); const n=amtNum();
   num.className="num"+(F.sign>0?" in":"");
-  num.innerHTML=(F.amt?`<span>${F.sign<0?"−":"+"}${F.amt}</span>`:`<span class="ph">0,00</span>`)+`<span class="eur">€</span>`;
+  num.innerHTML=(F.amt?<span>${F.sign<0?"−":"+"}${F.amt}</span>:<span class="ph">0,00</span>)+<span class="eur">€</span>;
   $("amountHint").textContent=F.amt?"Importo (tocca per modificare)":"Tocca per inserire l'importo";
   $("segOut").className=F.sign<0?"on":""; $("segIn").className=F.sign>0?"on in":"";
   renderDue(); renderSugg(); renderCats(); renderConti();
@@ -394,8 +397,8 @@ function render(){
 function renderDue(){
   const now=today(); $("dueDate").textContent="tocca per compilare";
   const items=dueNow(); const box=$("due");
-  if(!items.length){ box.innerHTML=`<div class="none">Nessun suggerimento per oggi. Qui compaiono le spese ricorrenti nel giorno previsto, finché non le registri.</div>`; return; }
-  box.innerHTML=items.map((r,i)=>`<button data-i="${i}"><b>${r.desc}</b><small>${r.imp?`<em>${fmtIT(r.imp)} €</em> · `:""}${r.hint}</small></button>`).join("");
+  if(!items.length){ box.innerHTML=<div class="none">Nessun suggerimento per oggi. Qui compaiono le spese ricorrenti nel giorno previsto, finché non le registri.</div>; return; }
+  box.innerHTML=items.map((r,i)=><button data-i="${i}"><b>${r.desc}</b><small>${r.imp?<em>${fmtIT(r.imp)} €</em> · :""}${r.hint}</small></button>).join("");
   box.querySelectorAll("button").forEach(b=>b.onclick=()=>{ const r=items[+b.dataset.i]; applyEntry({desc:r.desc,cat:r.cat,conto:r.conto,imp:r.imp},true); if(!r.imp) openPad(); });
 }
 function applyEntry(e,withAmt){
@@ -408,7 +411,7 @@ function renderSugg(){
   const q=norm(F.desc); const box=$("sugg");
   if(q.length<2){ box.innerHTML=""; return; }
   const hits=Object.values(S.dict).filter(e=>norm(e.desc).includes(q)&&norm(e.desc)!==q).sort((a,b)=>b.n-a.n).slice(0,6);
-  box.innerHTML=hits.map((e,i)=>`<button data-i="${i}">${e.desc}<small>${e.cat}</small></button>`).join("");
+  box.innerHTML=hits.map((e,i)=><button data-i="${i}">${e.desc}<small>${e.cat}</small></button>).join("");
   box.querySelectorAll("button").forEach(b=>b.onclick=()=>applyEntry(hits[+b.dataset.i],true));
 }
 function renderCats(){
@@ -416,13 +419,13 @@ function renderCats(){
   const sorted=[...CATS].sort((a,b)=>(S.catN[b]||0)-(S.catN[a]||0));
   let show=F.showAllCat?sorted:sorted.slice(0,8);
   if(F.cat&&!show.includes(F.cat)) show=[F.cat,...show];
-  box.innerHTML=show.map(c=>`<button class="${c===F.cat?"on":""}" data-c="${c}">${c}</button>`).join("")+`<button class="more">${F.showAllCat?"meno":"tutte"}</button>`;
+  box.innerHTML=show.map(c=><button class="${c===F.cat?"on":""}" data-c="${c}">${c}</button>).join("")+<button class="more">${F.showAllCat?"meno":"tutte"}</button>;
   box.querySelectorAll("button[data-c]").forEach(b=>b.onclick=()=>{ F.cat=b.dataset.c; F.sign=IN_CATS.has(F.cat)?1:-1; haptic(); render(); });
   box.querySelector(".more").onclick=()=>{ F.showAllCat=!F.showAllCat; render(); };
 }
 function renderConti(){
   const box=$("conto");
-  box.innerHTML=CONTI.map(c=>`<button class="${c===F.conto?"on":""}" data-c="${c}">${c}</button>`).join("");
+  box.innerHTML=CONTI.map(c=><button class="${c===F.conto?"on":""}" data-c="${c}">${c}</button>).join("");
   box.querySelectorAll("button").forEach(b=>b.onclick=()=>{ F.conto=b.dataset.c; haptic(); render(); });
 }
 
@@ -496,7 +499,7 @@ function applySpeech(text){
   else toast("Compilato: "+got.join(", ")+". Controlla e invia");
   if(!F.amt) openPad();
 }
-const MIC_SVG=`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2.5" width="6" height="11" rx="3" fill="currentColor" stroke="none"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0"/><path d="M12 18v3.5"/><path d="M8.5 21.5h7"/></svg>`, STOP_SVG=`<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="3"/></svg>`;
+const MIC_SVG=<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2.5" width="6" height="11" rx="3" fill="currentColor" stroke="none"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0"/><path d="M12 18v3.5"/><path d="M8.5 21.5h7"/></svg>, STOP_SVG=<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="3"/></svg>;
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition; let rec=null;
 $("mic").onclick=()=>{
   if(rec){ rec.stop(); return; }
@@ -527,7 +530,7 @@ function resetForm(){ F.amt=""; F.desc=""; $("desc").value=""; $("desc").placeho
 
 async function send(){
   const r=currentRow();
-  if(!S.hook){ toast("Manca l'indirizzo Zapier: aggiungilo in ⚙︎",true); return; }
+  if(!S.hook){ toast("Manca l'indirizzo Zapier: aggiungilo in ⚙️︎",true); return; }
   const p=new URLSearchParams({Data:S.dateFmt==="iso"?r.DataISO:S.dateFmt==="serial"?String(r.DataSeriale):r.Data, Descrizione:r.Descrizione, Categoria:r.Categoria, Conto:r.Conto, Importo:String(r.Importo), ImportoIT:r.ImportoIT});
   $("btnSend").disabled=true; $("btnSend").textContent="Invio…";
   let ok=true;
@@ -535,7 +538,7 @@ async function send(){
   $("btnSend").textContent="Invia a Excel";
   S.log.unshift({...r,ts:Date.now(),ok}); S.log=S.log.slice(0,60);
   learn(r); save();
-  toast(ok?`Inviato: ${r.Descrizione} ${r.ImportoIT} €`:"Invio non riuscito: riga salvata in elenco",!ok);
+  toast(ok?Inviato: ${r.Descrizione} ${r.ImportoIT} €:"Invio non riuscito: riga salvata in elenco",!ok);
   resetForm();
 }
 async function copyText(t,msg){
@@ -553,7 +556,7 @@ $("desc").onfocus=closePad;
 $("dateChips").onclick=e=>{ const b=e.target.closest("button"); if(!b) return; F.dOff=+b.dataset.d; F.dCustom=""; $("dateIn").value=""; render(); };
 $("dateIn").onchange=e=>{ F.dCustom=e.target.value; render(); };
 $("btnSend").onclick=send;
-function waUrl(text){ const n=(S.wa||"").replace(/\D/g,""); return (n?`https://wa.me/${n}`:`https://wa.me/`)+"?text="+encodeURIComponent(text); }
+function waUrl(text){ const n=(S.wa||"").replace(/\D/g,""); return (n?https://wa.me/${n}:https://wa.me/)+"?text="+encodeURIComponent(text); }
 function waOpen(text){ const w=window.open(waUrl(text),"_blank"); if(!w) window.location.href=waUrl(text); }
 $("btnWa").onclick=e=>{ if($("btnSend").disabled){ e.preventDefault(); toast("Compila importo, descrizione, categoria e conto",true); return; }
   const r=currentRow(); e.currentTarget.href=waUrl(tsv(r)); learn(r); S.log.unshift({...r,ts:Date.now(),ok:true,wa:true}); save(); setTimeout(resetForm,300); };
@@ -565,20 +568,21 @@ $("btnSettings").onclick=()=>{ renderSettings(); $("sheetSettings").classList.ad
 
 function renderLog(){
   const ul=$("logList");
-  ul.innerHTML=S.log.length?S.log.map(r=>`<li><b>${r.Descrizione}</b><span class="v ${r.Importo>0?"in":""}">${r.ImportoIT} €</span><span class="m">${r.Data} · ${r.Categoria} · ${r.Conto}</span><span class="st ${r.ok?"":"err"}">${r.wa?"WhatsApp":r.copied?"copiata":r.ok?"inviata":"non inviata"}</span></li>`).join(""):`<li><span class="m">Ancora nessun movimento.</span></li>`;
+  ul.innerHTML=S.log.length?S.log.map((r,i)=><li><b>${r.Descrizione}</b><span class="v ${r.Importo>0?"in":""}">${r.ImportoIT} €</span><span class="m">${r.Data} · ${r.Categoria} · ${r.Conto}</span><span class="st ${r.ok?"":"err"}">${r.wa?"WhatsApp":r.copied?"copiata":r.ok?"inviata":"non inviata"} <button class="x" data-i="${i}" aria-label="Rimuovi dall'elenco">✕</button></span></li>).join(""):<li><span class="m">Ancora nessun movimento.</span></li>;
+  ul.querySelectorAll(".x").forEach(b=>b.onclick=()=>{ S.log.splice(+b.dataset.i,1); save(); renderLog(); render(); toast("Rimossa dall'elenco (in Excel resta)"); });
 }
-$("btnCopyAll").onclick=()=>{ if(!S.log.length) return; copyText(S.log.slice().reverse().map(tsv).join("\n"),`${S.log.length} righe copiate`); };
+$("btnCopyAll").onclick=()=>{ if(!S.log.length) return; copyText(S.log.slice().reverse().map(tsv).join("\n"),${S.log.length} righe copiate); };
 $("btnWaAll").onclick=()=>{ if(!S.log.length) return; waOpen(S.log.slice().reverse().map(tsv).join("\n")); };
 $("btnClearLog").onclick=()=>{ if(confirm("Svuotare l'elenco degli inviati?")){ S.log=[]; save(); renderLog(); render(); } };
 
 function renderSettings(){
   $("hook").value=S.hook; $("wa").value=S.wa||"";
   $("dateFmt").querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.f===S.dateFmt));
-  $("defConto").innerHTML=CONTI.map(c=>`<button class="${c===S.defConto?"on":""}" data-c="${c}">${c}</button>`).join("");
+  $("defConto").innerHTML=CONTI.map(c=><button class="${c===S.defConto?"on":""}" data-c="${c}">${c}</button>).join("");
   $("defConto").querySelectorAll("button").forEach(b=>b.onclick=()=>{ S.defConto=b.dataset.c; save(); renderSettings(); });
-  $("memInfo").textContent=`${Object.keys(S.dict).length} descrizioni · ${S.hist.length} registrazioni con data · ${S.log.length} righe in elenco`;
+  $("memInfo").textContent=${Object.keys(S.dict).length} descrizioni · ${S.hist.length} registrazioni con data · ${S.log.length} righe in elenco;
   const rules=allRules(); const ul=$("rulesList");
-  ul.innerHTML=rules.map(r=>{ const l=lastOf(histFor(r)); return `<li><b>${r.desc}</b><button class="del" data-id="${r.id}">✕</button><span class="m">${r.hint}${r.learned?" · scoperta dall'app":""}${l?" · ultima: "+dateIT(fromISO(l.d)):""}</span></li>`; }).join("")+(S.muted.length?`<li><span class="m">${S.muted.length} nascoste · <button class="del" data-id="__all">ripristina</button></span></li>`:"");
+  ul.innerHTML=rules.map(r=>{ const l=lastOf(histFor(r)); return <li><b>${r.desc}</b><button class="del" data-id="${r.id}">✕</button><span class="m">${r.hint}${r.learned?" · scoperta dall'app":""}${l?" · ultima: "+dateIT(fromISO(l.d)):""}</span></li>; }).join("")+(S.muted.length?<li><span class="m">${S.muted.length} nascoste · <button class="del" data-id="__all">ripristina</button></span></li>:"");
   ul.querySelectorAll(".del").forEach(b=>b.onclick=()=>{ if(b.dataset.id==="__all") S.muted=[]; else S.muted.push(b.dataset.id); save(); renderSettings(); render(); });
 }
 $("wa").onchange=e=>{ S.wa=e.target.value.replace(/\D/g,""); save(); toast(S.wa?"Numero salvato":"Numero rimosso"); };
@@ -587,18 +591,18 @@ $("dateFmt").onclick=e=>{ const b=e.target.closest("button"); if(!b) return; S.d
 $("btnImport").onclick=()=>{
   const lines=$("imp").value.split(/\r?\n/).map(l=>l.trim()).filter(Boolean); let ok=0;
   for(const l of lines){ let c=l.split("\t").map(s=>s.trim()); let d=null;
-    if(/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(c[0])){ const [dd,mm,yy]=c[0].split("/"); d=`${yy}-${pad2(mm)}-${pad2(dd)}`; c=c.slice(1); }
+    if(/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(c[0])){ const [dd,mm,yy]=c[0].split("/"); d=${yy}-${pad2(mm)}-${pad2(dd)}; c=c.slice(1); }
     else if(/^\d{4}-\d{2}-\d{2}$/.test(c[0])){ d=c[0]; c=c.slice(1); }
     if(c.length<3) continue; const [desc,cat,conto,imp]=c; if(!CATS.includes(cat)||!CONTI.includes(conto)) continue;
     let v=null; if(imp){ v=Math.abs(parseFloat(imp.replace(/[€\s]/g,"").replace(/\.(?=\d{3})/g,"").replace(",","."))); if(!v) v=null; }
     const k=norm(desc); const e=S.dict[k]||{desc,n:0}; e.cat=cat; e.conto=conto; if(v) e.imp=v; e.n++; S.dict[k]=e; S.catN[cat]=(S.catN[cat]||0)+1;
     if(d) S.hist.push({k,desc,cat,conto,imp:v||0,d}); ok++; }
   S.hist.sort((a,b)=>a.d<b.d?-1:1); S.hist=S.hist.slice(-600);
-  save(); $("imp").value=""; renderSettings(); render(); toast(ok?`${ok} righe importate`:"Nessuna riga valida: servono almeno Descrizione, Categoria, Conto",!ok);
+  save(); $("imp").value=""; renderSettings(); render(); toast(ok?${ok} righe importate:"Nessuna riga valida: servono almeno Descrizione, Categoria, Conto",!ok);
 };
 $("btnExport").onclick=()=>copyText(JSON.stringify(S),"Backup copiato negli appunti");
 $("btnImportBak").onclick=()=>{ try{ const v=JSON.parse($("bak").value.trim()); if(!v||!v.dict) throw 0; const keepHook=S.hook; S={...S,...v}; if(!S.hook) S.hook=keepHook; save(); $("bak").value=""; renderSettings(); resetForm(); toast("Backup importato"); }catch(e){ toast("Backup non valido: incolla il testo copiato con \"Copia backup\"",true); } };
-$("btnReset").onclick=()=>{ if(confirm("Azzerare memoria, ricorrenze e impostazioni?")){ S={hook:"",dateFmt:"it",defConto:"Trade",dict:{},catN:{},log:[],hist:[],muted:[]}; save(); renderSettings(); resetForm(); } };
+$("btnReset").onclick=()=>{ if(confirm("Azzerare memoria, ricorrenze e impostazioni?")){ S={hook:"",dateFmt:"serial",defConto:"Trade",dict:{},catN:{},log:[],hist:[],muted:[],v2:true}; save(); renderSettings(); resetForm(); } };
 
 load().then(render);
 </script>
