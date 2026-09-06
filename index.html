@@ -14,7 +14,7 @@
     --key:#DFE9F3; --key-press:#C3D4E6; --go:#1F6FD0; --go-press:#175AAB; --go-soft:#DCEBFB;
     --out:#16283A; --in:#1F6FD0; --warn:#C24A2C; --chip-on:#1F6FD0; --navy:#123A6B; --navy-2:#A9C3E6; --r:14px;
   }
-  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
   html,body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.35 -apple-system,"SF Pro Text",system-ui,sans-serif;-webkit-font-smoothing:antialiased;overscroll-behavior:none}
   button{font:inherit;color:inherit;border:0;background:none;padding:0;margin:0;cursor:pointer}
   input,textarea{font:inherit;color:inherit}
@@ -321,6 +321,10 @@
     <div><button class="btn" id="btnExport">Copia backup</button><button class="btn" id="btnImportBak">Importa backup</button><button class="btn danger" id="btnReset">Azzera tutto</button></div>
   </div>
 
+  <div class="field">
+    <label>Versione app</label>
+    <p><b>v6</b> · zoom disattivato, pendenze carte per mese, Riepilogo via relay. Se non leggi "v6" qui, il telefono sta mostrando una versione vecchia.</p>
+  </div>
   <div class="field">
     <label>Dettatura</label>
     <p>Tocca il pulsante del microfono e parla, ad esempio: <i>"Esselunga ottantacinque e trenta, spesa, BNL"</i> oppure <i>"pizzeria ventidue euro ieri"</i>. L'app estrae importo, descrizione, categoria, conto e data; tu controlli e premi Invia. Se il microfono non si attiva, usa quello della tastiera nel campo Descrizione: il testo dettato viene interpretato allo stesso modo.</p>
@@ -723,9 +727,11 @@ function calc(){
   const catInfo={}; for(const c of C.cats) catInfo[c.name]=c;
   const tipoOf=cat=>(catInfo[cat]||{}).tipo||"Spesa";
   const sum=f=>rows.reduce((a,r)=>f(r)?a+r.imp:a,0);
-  // carte: spese già addebitate (il 15 del mese successivo) e ancora da addebitare
-  const cards=C.accounts.filter(a=>a.addebita).map(c=>{ let settled=0; for(let m=0;m<12;m++){ const addebito=new Date(yearNow,m+1,15); if(now>=addebito) settled+=sum(r=>r.conto===c.name&&r.d.startsWith(`${yearNow}-${pad2(m+1)}`)); }
-    const total=sum(r=>r.conto===c.name); return {...c,settled,daAddebitare:total-settled}; });
+  // carte: spese già addebitate (il 15 del mese successivo) e pendenze divise per mese
+  const cards=C.accounts.filter(a=>a.addebita).map(c=>{ let settled=0; const pend=[];
+    for(let m=0;m<12;m++){ const spend=sum(r=>r.conto===c.name&&r.d.startsWith(`${yearNow}-${pad2(m+1)}`)); const addebito=new Date(yearNow,m+1,15);
+      if(now>=addebito) settled+=spend; else if(Math.abs(spend)>0.004) pend.push({mese:MESI[m],due:addebito,amount:spend}); }
+    const total=sum(r=>r.conto===c.name); return {...c,settled,pend,daAddebitare:total-settled}; });
   // saldi conto = saldo iniziale + movimenti + addebiti già passati delle carte collegate
   const liquid=C.accounts.filter(a=>!a.addebita).map(a=>({...a,saldo:a.saldo0+sum(r=>r.conto===a.name)+cards.filter(c=>c.addebita===a.name).reduce((x,c)=>x+c.settled,0)}));
   const liquidita=liquid.reduce((a,x)=>a+x.saldo,0);
@@ -799,7 +805,7 @@ function renderRp(){
     h+=`<ul class="rows" style="margin-top:10px">${M.byCat.map(c=>`<li><span>${c.emoji?c.emoji+" ":""}${esc(c.name)}<small>budget ${fmt0(c.budget)} €</small><div class="bar"><i class="${c.budget&&c.speso>c.budget?"over":""}" style="width:${c.budget?Math.min(100,c.speso/c.budget*100):0}%"></i></div></span><b>${fmtIT(c.speso)} €</b></li>`).join("")}</ul>`; }
   h+=`</div>`;
   // saldi
-  h+=`<div class="card"><h3>Saldo per conto</h3><ul class="rows">${D.saldi.map(a=>`<li><span>${esc(a.name)}</span><b>${fmtIT(a.saldo)} €</b></li>`).join("")}<li class="tot"><span>Totale liquidità</span><b>${fmtIT(D.liquidita)} €</b></li>${D.carte.map(c=>`<li><span>${esc(c.name)}<small>carta · addebito su ${esc(c.addebita)} il 15 del mese dopo</small></span><b>${fmtIT(c.daAddebitare)} €</b></li>`).join("")}</ul></div>`;
+  h+=`<div class="card"><h3>Saldo per conto</h3><ul class="rows">${D.saldi.map(a=>`<li><span>${esc(a.name)}</span><b>${fmtIT(a.saldo)} €</b></li>`).join("")}<li class="tot"><span>Totale liquidità</span><b>${fmtIT(D.liquidita)} €</b></li>${D.carte.map(c=>c.pend.length?c.pend.map(p=>`<li><span>${esc(c.name)} · spese di ${p.mese.toLowerCase()}<small>addebito su ${esc(c.addebita)} il ${dateIT(p.due)}</small></span><b>${fmtIT(p.amount)} €</b></li>`).join(""):`<li><span>${esc(c.name)}<small>nessuna spesa da addebitare</small></span><b>0,00 €</b></li>`).join("")}</ul></div>`;
   // investimenti
   h+=`<div class="card"><h3>Investimenti e asset<small>${D.assetDate?"al "+dateIT(fromISO(D.assetDate)):""}</small></h3><ul class="rows">${D.assets.map(a=>`<li><span>${esc(a.name)}${a.qty!=null?`<small>${a.qty.toLocaleString("it-IT",{maximumFractionDigits:4})} × ${fmtIT(a.price)} €</small>`:""}</span><b>${fmtIT(a.value)} €</b></li>`).join("")}<li class="tot"><span>Totale asset</span><b>${fmtIT(D.assetTot)} €</b></li></ul><p style="font-size:12.5px;color:#5A6C80;margin:8px 0 0">Quantità e prezzi sono quelli inseriti nel foglio Patrimonio: aggiornali lì per vedere il valore corrente.</p></div>`;
   // confronto mesi
