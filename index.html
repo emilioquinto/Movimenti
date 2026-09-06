@@ -129,6 +129,13 @@
   .rules li{grid-template-columns:1fr auto}
   .rules li .m{grid-column:1}
   .rules li .del{color:var(--warn);font-size:14px;font-weight:600;grid-row:1/3;align-self:center}
+  .pacrow{background:var(--paper);border-radius:var(--r);padding:10px 14px;margin-bottom:10px}
+  .pacrow b{display:block;font-size:15px;margin-bottom:2px}
+  .pacrow small{color:var(--ink-2);font-size:12.5px}
+  .pacrow .in2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+  .pacrow .in2 label{font-size:12px;color:var(--ink-2);display:block;margin-bottom:3px}
+  .pacrow .in2 input{width:100%;border:0;background:var(--key);border-radius:10px;padding:10px 12px;font-size:17px;font-weight:600;outline:0}
+  .live{color:#0B8A4B;font-weight:600}
 
   /* ---- Riepilogo ---- */
   .rp .hero{background:var(--navy);color:#fff;border-radius:18px;padding:14px 16px;margin-bottom:10px}
@@ -261,6 +268,17 @@
   <div id="rpBody"></div>
 </div>
 
+<!-- ============ PAC ============ -->
+<div class="sheet" id="sheetPac">
+  <div class="top"><h2>Aggiorna da Trade</h2><button class="close" data-close="sheetPac">Chiudi</button></div>
+  <p>Fai lo screenshot del portafoglio su Trade, apri la foto, tieni premuto sul testo → Seleziona tutto → Copia. Poi incolla qui sotto.</p>
+  <div class="field">
+    <textarea id="pacTxt" placeholder="Incolla qui il testo dello screenshot…" style="min-height:130px"></textarea>
+  </div>
+  <button class="go" id="btnPacRead" style="width:100%">Leggi</button>
+  <div id="pacPreview" style="margin-top:12px"></div>
+</div>
+
 <!-- ============ INVIATI ============ -->
 <div class="sheet" id="sheetLog">
   <div class="top"><h2>Inviati</h2><button class="close" data-close="sheetLog">Chiudi</button></div>
@@ -282,6 +300,10 @@
     <input type="text" id="share" placeholder="https://movimenti.tuonome.workers.dev/?k=…" autocapitalize="off" autocorrect="off">
     <p style="margin-top:8px">L'indirizzo del relay Cloudflare, con la chiave ?k= in fondo. Serve solo per leggere.</p>
     <div><button class="btn" id="btnTestShare">Prova collegamento</button></div>
+  </div>
+  <div class="field">
+    <label for="pac">Webhook PAC (Make) per aggiornare le quantità nel foglio Patrimonio</label>
+    <input type="text" id="pac" placeholder="https://hook.eu1.make.com/… (secondo scenario)" autocapitalize="off" autocorrect="off">
   </div>
   <div class="field">
     <label>Formato data inviato a Excel</label>
@@ -323,7 +345,7 @@
 
   <div class="field">
     <label>Versione app</label>
-    <p><b>v6</b> · zoom disattivato, pendenze carte per mese, Riepilogo via relay. Se non leggi "v6" qui, il telefono sta mostrando una versione vecchia.</p>
+    <p><b>v9</b> · "Aggiorna da Trade" + border collie che insegue la pallina. Se non leggi "v9" qui, versione vecchia.</p>
   </div>
   <div class="field">
     <label>Dettatura</label>
@@ -352,12 +374,12 @@ const SEED_RULES=[
   {id:"spesa",desc:"Spesa",cat:"Spesa",conto:"BNL",type:"interval",days:14,hint:"ogni 2 settimane"}
 ];
 
-let S={ hook:"", share:"", wa:"", dateFmt:"serial", defConto:"Trade",
+let S={ hook:"", share:"", pac:"", wa:"", dateFmt:"serial", defConto:"Trade",
   dict:{ "caffè rebelot di stefan":{desc:"CAFFÈ REBELOT DI STEFAN",cat:"Ristorante",conto:"Trade",imp:7,n:1},
          "gruppo pellegrini":{desc:"Gruppo Pellegrini",cat:"Ristorante",conto:"Trade",imp:7,n:1} },
   catN:{}, log:[], hist:[], muted:[], cache:null, v2:true };
 let F={amt:"",sign:-1,desc:"",cat:"",conto:"",dOff:0,dCustom:"",showAllCat:false};
-let R={month:null, loading:false};
+let R={month:null, loading:false, prices:null};
 
 // ---------- storage ----------
 async function readStore(){
@@ -642,7 +664,7 @@ $("btnWaAll").onclick=()=>{ if(!S.log.length) return; waOpen(S.log.slice().rever
 $("btnClearLog").onclick=()=>{ if(confirm("Svuotare l'elenco degli inviati?")){ S.log=[]; save(); renderLog(); render(); } };
 
 function renderSettings(){
-  $("hook").value=S.hook; $("share").value=S.share||""; $("wa").value=S.wa||"";
+  $("hook").value=S.hook; $("share").value=S.share||""; $("pac").value=S.pac||""; $("wa").value=S.wa||"";
   $("dateFmt").querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.f===S.dateFmt));
   $("defConto").innerHTML=CONTI.map(c=>`<button class="${c===S.defConto?"on":""}" data-c="${c}">${c}</button>`).join("");
   $("defConto").querySelectorAll("button").forEach(b=>b.onclick=()=>{ S.defConto=b.dataset.c; save(); renderSettings(); });
@@ -653,6 +675,7 @@ function renderSettings(){
   ul.querySelectorAll(".del").forEach(b=>b.onclick=()=>{ if(b.dataset.id==="__all") S.muted=[]; else S.muted.push(b.dataset.id); save(); renderSettings(); render(); });
 }
 $("hook").onchange=e=>{ S.hook=e.target.value.trim(); save(); toast(S.hook?"Indirizzo salvato":"Indirizzo rimosso"); };
+$("pac").onchange=e=>{ S.pac=e.target.value.trim(); save(); toast(S.pac?"Webhook PAC salvato":"Webhook PAC rimosso"); };
 $("share").onchange=e=>{ S.share=e.target.value.trim(); save(); toast(S.share?"Link salvato":"Link rimosso"); };
 $("wa").onchange=e=>{ S.wa=e.target.value.replace(/\D/g,""); save(); toast(S.wa?"Numero salvato":"Numero rimosso"); };
 $("dateFmt").onclick=e=>{ const b=e.target.closest("button"); if(!b) return; S.dateFmt=b.dataset.f; save(); renderSettings(); };
@@ -670,8 +693,8 @@ $("btnImport").onclick=()=>{
   save(); $("imp").value=""; renderSettings(); render(); toast(ok?`${ok} righe importate`:"Nessuna riga valida: servono almeno Descrizione, Categoria, Conto",!ok);
 };
 $("btnExport").onclick=()=>{ const {cache,...rest}=S; copyText(JSON.stringify(rest),"Backup copiato negli appunti"); };
-$("btnImportBak").onclick=()=>{ try{ const v=JSON.parse($("bak").value.trim()); if(!v||!v.dict) throw 0; const keepHook=S.hook, keepShare=S.share, keepCache=S.cache; S={...S,...v}; if(!S.hook) S.hook=keepHook; if(!S.share) S.share=keepShare; S.cache=keepCache; save(); $("bak").value=""; renderSettings(); resetForm(); toast("Backup importato"); }catch(e){ toast("Backup non valido: incolla il testo copiato con \"Copia backup\"",true); } };
-$("btnReset").onclick=()=>{ if(confirm("Azzerare memoria, ricorrenze e impostazioni?")){ S={hook:"",share:"",wa:"",dateFmt:"serial",defConto:"Trade",dict:{},catN:{},log:[],hist:[],muted:[],cache:null,v2:true}; save(); renderSettings(); resetForm(); } };
+$("btnImportBak").onclick=()=>{ try{ const v=JSON.parse($("bak").value.trim()); if(!v||!v.dict) throw 0; const keepHook=S.hook, keepShare=S.share, keepCache=S.cache; S={...S,...v}; if(!S.hook) S.hook=keepHook; if(!S.share) S.share=keepShare;  S.cache=keepCache; save(); $("bak").value=""; renderSettings(); resetForm(); toast("Backup importato"); }catch(e){ toast("Backup non valido: incolla il testo copiato con \"Copia backup\"",true); } };
+$("btnReset").onclick=()=>{ if(confirm("Azzerare memoria, ricorrenze e impostazioni?")){ S={hook:"",share:"",pac:"",wa:"",dateFmt:"serial",defConto:"Trade",dict:{},catN:{},log:[],hist:[],muted:[],cache:null,v2:true}; save(); renderSettings(); resetForm(); } };
 
 // ================= LETTURA EXCEL =================
 function loadXLSX(){ return window.XLSX?Promise.resolve():new Promise((res,rej)=>{ const s=document.createElement("script"); s.src=XLSX_CDN; s.onload=res; s.onerror=()=>rej(new Error("Libreria Excel non scaricata: controlla la connessione")); document.head.appendChild(s); }); }
@@ -712,11 +735,14 @@ function parseWorkbook(buf){
   const storico=[]; for(let r=58;r<=200;r++){ const d=cellDate(gv("B"+r)); const v=gv("C"+r); if(!d||typeof v!=="number") { if(r>60&&!gv("B"+r)) break; continue; } storico.push({d,v}); }
   return {ts:Date.now(),rows,cats,accounts,assets,assetDate,storico};
 }
+async function fetchPrices(){
+  try{ const u=S.share+(S.share.includes("?")?"&":"?")+"q=prices"; const r=await fetch(u,{cache:"no-store"}); if(!r.ok) return; const j=await r.json(); if(j&&typeof j==="object") R.prices=j.prices||j; }catch(e){}
+}
 let lastRefresh=0;
 async function refreshExcel(force){
   if(!S.share) throw new Error("Manca l'indirizzo del relay: aggiungilo in ⚙︎");
   if(!force&&Date.now()-lastRefresh<60000) return;
-  await loadXLSX(); const buf=await fetchWorkbook(); const data=parseWorkbook(buf);
+  await loadXLSX(); const [buf]=await Promise.all([fetchWorkbook(),fetchPrices()]); const data=parseWorkbook(buf);
   S.cache=data; lastRefresh=Date.now(); save(); render();
 }
 
@@ -737,12 +763,14 @@ function calc(){
   const liquidita=liquid.reduce((a,x)=>a+x.saldo,0);
   const carte=cards;
   const carteTot=carte.reduce((a,x)=>a+x.daAddebitare,0);
-  const assetTot=C.assets.reduce((a,x)=>a+x.value,0);
+  let livePrices=false;
+  const assets=C.assets.map(a=>{ const lp=R.prices&&R.prices[a.name]; if(typeof lp==="number"&&lp>0){ livePrices=true; const value=a.qty!=null?a.qty*lp:(a.price!=null?a.value/a.price*lp:a.value); return {...a,price:lp,value:Math.round(value*100)/100,live:true}; } return a; });
+  const assetTot=assets.reduce((a,x)=>a+x.value,0);
   const patrimonio=liquidita+carteTot+assetTot;
   const inizioAnno=(C.storico.find(s=>s.d===`${yearNow}-01-01`)||{}).v;
-  const etf=C.assets.filter(a=>/etf|ftse|msci/i.test(a.name)).reduce((a,x)=>a+x.value,0);
-  const crypto=C.assets.filter(a=>/bitcoin|btc|cronos|cro|crypto|eth/i.test(a.name)).reduce((a,x)=>a+x.value,0);
-  const pensione=C.assets.filter(a=>/pension/i.test(a.name)).reduce((a,x)=>a+x.value,0);
+  const etf=assets.filter(a=>/etf|ftse|msci/i.test(a.name)).reduce((a,x)=>a+x.value,0);
+  const crypto=assets.filter(a=>/bitcoin|btc|cronos|cro|crypto|eth/i.test(a.name)).reduce((a,x)=>a+x.value,0);
+  const pensione=assets.filter(a=>/pension/i.test(a.name)).reduce((a,x)=>a+x.value,0);
   // mese
   const month=m=>{ const pre=m; const inM=r=>r.d.startsWith(pre);
     const entrate=sum(r=>inM(r)&&tipoOf(r.cat)==="Entrata"); const spese=-sum(r=>inM(r)&&tipoOf(r.cat)==="Spesa"); const investiti=-sum(r=>inM(r)&&tipoOf(r.cat)==="Investimento");
@@ -750,7 +778,7 @@ function calc(){
     const byCat=C.cats.filter(c=>c.tipo==="Spesa").map(c=>({name:c.name,emoji:c.emoji,budget:c.budget,speso:-sum(r=>inM(r)&&r.cat===c.name)})).filter(c=>c.speso>0.005).sort((a,b)=>b.speso-a.speso);
     return {entrate,spese,investiti,varLiq,risparmio,tasso:entrate?risparmio/entrate:0,byCat}; };
   const months=[...new Set(rows.map(r=>r.d.slice(0,7)))].sort();
-  return {saldi:liquid,carte,liquidita,carteTot,assetTot,patrimonio,inizioAnno,etf,crypto,pensione,assets:C.assets,assetDate:C.assetDate,storico:C.storico,month,months,ts:C.ts};
+  return {saldi:liquid,carte,liquidita,carteTot,assetTot,patrimonio,inizioAnno,etf,crypto,pensione,assets,livePrices,assetDate:C.assetDate,storico:C.storico,month,months,ts:C.ts};
 }
 
 // ---------- Riepilogo UI ----------
@@ -790,7 +818,7 @@ function renderRp(){
   if(!R.month) R.month=D.months.length?D.months[D.months.length-1]:dateISO(today()).slice(0,7);
   const M=D.month(R.month); const ytd=D.inizioAnno!=null?D.patrimonio-D.inizioAnno:null;
   const when=new Date(D.ts); const ago=Math.round((Date.now()-D.ts)/60000);
-  let h=`<div class="hero"><div class="lbl">Patrimonio oggi${D.assetDate?` · prezzi asset al ${dateIT(fromISO(D.assetDate))}`:""}</div><div class="big">${fmtIT(D.patrimonio)} €</div>`;
+  let h=`<div class="hero"><div class="lbl">Patrimonio oggi${D.livePrices?` · <span class="live">prezzi live</span>`:(D.assetDate?` · prezzi asset al ${dateIT(fromISO(D.assetDate))}`:"")}</div><div class="big">${fmtIT(D.patrimonio)} €</div>`;
   if(ytd!=null) h+=`<div class="ytd">Da inizio anno <em class="${ytd<0?"neg":""}">${ytd>=0?"+":"−"}${fmtIT(Math.abs(ytd))} €</em></div>`;
   h+=`<div class="grid3"><div><small>Liquidità</small><b>${fmt0(D.liquidita)} €</b></div><div><small>Carte da addebitare</small><b>${fmt0(D.carteTot)} €</b></div><div><small>Asset</small><b>${fmt0(D.assetTot)} €</b></div></div></div>`;
   h+=`<div class="sync">${R.loading?"Aggiornamento in corso…":`Letto da Excel ${ago<1?"adesso":ago<60?ago+" min fa":"alle "+pad2(when.getHours())+":"+pad2(when.getMinutes())+" del "+shortDate(when)}`}<button id="rpRefresh">Aggiorna</button></div>`;
@@ -807,7 +835,7 @@ function renderRp(){
   // saldi
   h+=`<div class="card"><h3>Saldo per conto</h3><ul class="rows">${D.saldi.map(a=>`<li><span>${esc(a.name)}</span><b>${fmtIT(a.saldo)} €</b></li>`).join("")}<li class="tot"><span>Totale liquidità</span><b>${fmtIT(D.liquidita)} €</b></li>${D.carte.map(c=>c.pend.length?c.pend.map(p=>`<li><span>${esc(c.name)} · spese di ${p.mese.toLowerCase()}<small>addebito su ${esc(c.addebita)} il ${dateIT(p.due)}</small></span><b>${fmtIT(p.amount)} €</b></li>`).join(""):`<li><span>${esc(c.name)}<small>nessuna spesa da addebitare</small></span><b>0,00 €</b></li>`).join("")}</ul></div>`;
   // investimenti
-  h+=`<div class="card"><h3>Investimenti e asset<small>${D.assetDate?"al "+dateIT(fromISO(D.assetDate)):""}</small></h3><ul class="rows">${D.assets.map(a=>`<li><span>${esc(a.name)}${a.qty!=null?`<small>${a.qty.toLocaleString("it-IT",{maximumFractionDigits:4})} × ${fmtIT(a.price)} €</small>`:""}</span><b>${fmtIT(a.value)} €</b></li>`).join("")}<li class="tot"><span>Totale asset</span><b>${fmtIT(D.assetTot)} €</b></li></ul><p style="font-size:12.5px;color:#5A6C80;margin:8px 0 0">Quantità e prezzi sono quelli inseriti nel foglio Patrimonio: aggiornali lì per vedere il valore corrente.</p></div>`;
+  h+=`<div class="card"><h3>Investimenti e asset<small>${D.livePrices?`<span class="live">prezzi live</span>`:(D.assetDate?"al "+dateIT(fromISO(D.assetDate)):"")}</small></h3><ul class="rows">${D.assets.map(a=>`<li><span>${esc(a.name)}${a.qty!=null?`<small>${a.qty.toLocaleString("it-IT",{maximumFractionDigits:4})} × ${fmtIT(a.price)} €${a.live?" · live":""}</small>`:""}</span><b>${fmtIT(a.value)} €</b></li>`).join("")}<li class="tot"><span>Totale asset</span><b>${fmtIT(D.assetTot)} €</b></li></ul><button class="btn" id="btnPacOpen" style="margin-top:10px">📥 Aggiorna da Trade (incolla screenshot)</button></div>`;
   // confronto mesi
   const yearNow=today().getFullYear(); const ms=D.months.filter(m=>m.startsWith(String(yearNow))).slice(-12);
   const series=ms.map(m=>{ const x=D.month(m); return {label:MESI_S[+m.slice(5,7)-1],a:x.entrate,b:x.spese}; });
@@ -817,6 +845,7 @@ function renderRp(){
   if(st.length>=2) h+=`<div class="card"><h3>Andamento patrimonio<small>inizio mese</small></h3>${lineSVG(st)}</div>`;
   body.innerHTML=h;
   $("rpRefresh").onclick=()=>doRefresh(true);
+  const bp=$("btnPacOpen"); if(bp) bp.onclick=openPac;
   $("mPrev").onclick=()=>{ R.month=shiftMonth(R.month,-1); renderRp(); };
   $("mNext").onclick=()=>{ R.month=shiftMonth(R.month,1); renderRp(); };
 }
@@ -826,8 +855,59 @@ async function doRefresh(force){
   R.loading=false; renderRp();
 }
 function openRp(){ $("sheetRp").classList.add("open"); renderRp(); if(S.share) doRefresh(false); }
+function etfAssets(){ const C=S.cache; if(!C) return []; return C.assets.map((a,i)=>({...a,i})).filter(a=>a.qty!=null); }
+let pacParsed=null;
+function openPac(){
+  if(!etfAssets().length){ toast("Prima aggiorna il Riepilogo: servono gli asset dal file",true); return; }
+  $("pacTxt").value=""; $("pacPreview").innerHTML=""; pacParsed=null;
+  $("sheetPac").classList.add("open");
+  navigator.clipboard?.readText?.().then(t=>{ if(t&&/pezzi/i.test(t)){ $("pacTxt").value=t; parsePac(); } }).catch(()=>{});
+}
+function numDE(x){ return parseFloat(String(x).replace(/\./g,"").replace(",",".")); }
+function parsePac(){
+  const t=" "+$("pacTxt").value.replace(/\s+/g," ")+" ";
+  const assets=etfAssets();
+  // quantità: numeri seguiti da "pezzi", in ordine di lettura
+  const qties=[...t.matchAll(/([\d.]+,\d+)\s*pezzi/gi)].map(m=>numDE(m[1]));
+  // ordine dei titoli: posizione del nome (o dell'ISIN) nel testo
+  const found=assets.map(a=>{ const ix=t.toLowerCase().indexOf(norm(a.name)); return {a,ix}; }).filter(x=>x.ix>=0).sort((x,y)=>x.ix-y.ix);
+  // numeri candidati (prezzi e valori), escluse le quantità e le date
+  const nums=[...t.matchAll(/(?<![\d.,])\d{1,3}(?:\.\d{3})*,\d{2}(?![\d,])/g)].map(m=>numDE(m[0]));
+  const dm=t.match(/(\d{2})\.(\d{2})\.(\d{4})/);
+  const aggISO=dm?`${dm[3]}-${dm[2]}-${dm[1]}`:dateISO(today());
+  const rows=[];
+  found.forEach((f,i)=>{ const q=qties[i]; if(!q) return;
+    let best=null;
+    for(const pz of nums) for(const v of nums){ if(pz===v) continue; const err=Math.abs(q*pz-v)/Math.max(1,v); if(err<0.01&&(!best||err<best.err)) best={pz,v,err}; }
+    if(best) rows.push({asset:f.a,q,p:best.pz,v:best.v});
+  });
+  pacParsed=rows.length?{rows,aggISO}:null;
+  const box=$("pacPreview");
+  if(!pacParsed){ box.innerHTML=`<p style="color:var(--warn);font-weight:600">Non ho riconosciuto i titoli: controlla di aver copiato tutto il testo, quote comprese ("pezzi").</p>`; return; }
+  box.innerHTML=`<ul class="rows">${rows.map(r=>{ const dq=r.q-r.asset.qty; return `<li><span>${esc(r.asset.name)}<small>${r.q.toLocaleString("it-IT",{maximumFractionDigits:6})} quote (${dq>=0?"+":""}${dq.toLocaleString("it-IT",{maximumFractionDigits:6})}) × ${fmtIT(r.p)} €</small></span><b>${fmtIT(r.v)} €</b></li>`; }).join("")}<li class="tot"><span>Totale ETF · al ${dateIT(fromISO(aggISO))}</span><b>${fmtIT(rows.reduce((a,r)=>a+r.v,0))} €</b></li></ul>
+  <button class="go" id="btnPacSend" style="width:100%;margin-top:10px">Aggiorna Patrimonio</button>
+  <p style="margin-top:8px">Scrive quote e prezzi nel foglio Patrimonio${S.pac?"":" — <b style='color:var(--warn)'>manca il webhook PAC in ⚙︎</b>"}. Il movimento del PAC (−importo, Investimento) registralo come sempre dai suggerimenti.</p>`;
+  $("btnPacSend").onclick=sendPac;
+}
+$("btnPacRead").onclick=parsePac;
+$("pacTxt").addEventListener("input",()=>{ if(/pezzi/i.test($("pacTxt").value)) parsePac(); });
+async function sendPac(){
+  if(!pacParsed) return;
+  if(!S.pac){ toast("Manca il webhook PAC in ⚙︎",true); return; }
+  const btn=$("btnPacSend"); btn.disabled=true; btn.textContent="Invio…";
+  const pp=new URLSearchParams({Agg:String(dateSerial(fromISO(pacParsed.aggISO)))});
+  pacParsed.rows.forEach(r=>{ const n=r.asset.i+1; pp.set("N"+n,r.asset.name); pp.set("Q"+n,r.q.toFixed(6)); pp.set("P"+n,r.p.toFixed(4)); });
+  let ok=true;
+  try{ await fetch(S.pac+(S.pac.includes("?")?"&":"?")+pp.toString(),{method:"POST",mode:"no-cors"}); }catch(e){ ok=false; }
+  btn.disabled=false; btn.textContent="Aggiorna Patrimonio";
+  $("sheetPac").classList.remove("open");
+  toast(ok?"Patrimonio in aggiornamento: tra qualche secondo ricarico i dati":"Invio non riuscito, riprova",!ok);
+  setTimeout(()=>doRefresh(true),5000);
+}
 // trascina in giù per aggiornare
 (()=>{ const sh=$("sheetRp"); let y0=null; sh.addEventListener("touchstart",e=>{ y0=sh.scrollTop<=0?e.touches[0].clientY:null; },{passive:true}); sh.addEventListener("touchend",e=>{ if(y0!=null&&e.changedTouches[0].clientY-y0>90) doRefresh(true); y0=null; },{passive:true}); })();
+
+
 
 load().then(()=>{ render(); if(S.share&&S.cache&&Date.now()-S.cache.ts>4*3600e3) refreshExcel(false).catch(()=>{}); });
 </script>
