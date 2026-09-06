@@ -278,9 +278,9 @@
     <input type="text" id="hook" placeholder="https://hook.eu1.make.com/…" autocapitalize="off" autocorrect="off">
   </div>
   <div class="field">
-    <label for="share">Link di condivisione OneDrive per leggere Excel (Riepilogo)</label>
-    <input type="text" id="share" placeholder="https://1drv.ms/x/…" autocapitalize="off" autocorrect="off">
-    <p style="margin-top:8px">Link "Chiunque abbia il collegamento · Può visualizzare" del file Finanze2026.xlsx. Serve solo per leggere.</p>
+    <label for="share">Indirizzo del relay per leggere Excel (Riepilogo)</label>
+    <input type="text" id="share" placeholder="https://movimenti.tuonome.workers.dev/?k=…" autocapitalize="off" autocorrect="off">
+    <p style="margin-top:8px">L'indirizzo del relay Cloudflare, con la chiave ?k= in fondo. Serve solo per leggere.</p>
     <div><button class="btn" id="btnTestShare">Prova collegamento</button></div>
   </div>
   <div class="field">
@@ -677,11 +677,12 @@ function shareUrls(link){
 }
 async function fetchWorkbook(){
   let lastErr="";
-  for(const u of shareUrls(S.share)){
-    try{ const r=await fetch(u,{cache:"no-store"}); if(!r.ok){ lastErr=`OneDrive ha risposto ${r.status}`; continue; }
+  const urls=/1drv\.ms|onedrive\.live\.com/.test(S.share)?shareUrls(S.share):[S.share];
+  for(const u of urls){
+    try{ const r=await fetch(u,{cache:"no-store"}); if(!r.ok){ let t=""; try{ t=(await r.text()).slice(0,160); }catch(e){} lastErr=r.status===403?"Chiave ?k= errata":`Il relay ha risposto ${r.status}${t?": "+t:""}`; continue; }
       const buf=await r.arrayBuffer(); const b=new Uint8Array(buf.slice(0,2));
-      if(b[0]===0x50&&b[1]===0x4B) return buf; lastErr="Il link non restituisce il file Excel (forse non è un link 'chiunque può visualizzare')"; }
-    catch(e){ lastErr="Il browser ha bloccato il download dal link"; }
+      if(b[0]===0x50&&b[1]===0x4B) return buf; lastErr="L'indirizzo non restituisce il file Excel: controlla il relay e la chiave ?k="; }
+    catch(e){ lastErr="Impossibile raggiungere il relay (indirizzo errato o offline)"; }
   }
   throw new Error(lastErr||"Download non riuscito");
 }
@@ -709,7 +710,7 @@ function parseWorkbook(buf){
 }
 let lastRefresh=0;
 async function refreshExcel(force){
-  if(!S.share) throw new Error("Manca il link OneDrive: aggiungilo in ⚙︎");
+  if(!S.share) throw new Error("Manca l'indirizzo del relay: aggiungilo in ⚙︎");
   if(!force&&Date.now()-lastRefresh<60000) return;
   await loadXLSX(); const buf=await fetchWorkbook(); const data=parseWorkbook(buf);
   S.cache=data; lastRefresh=Date.now(); save(); render();
@@ -779,7 +780,7 @@ function lineSVG(points){ // [{d,v}]
 }
 function renderRp(){
   const body=$("rpBody"); const D=calc();
-  if(!D){ body.innerHTML=`<div class="card"><div class="empty"><b>${R.loading?"Sto leggendo Excel…":"Nessun dato ancora"}</b>${R.loading?"":(S.share?"Trascina in giù o tocca Aggiorna per leggere il file.":"In ⚙︎ incolla il link di condivisione OneDrive di Finanze2026.xlsx, poi torna qui.")}</div></div>`; return; }
+  if(!D){ body.innerHTML=`<div class="card"><div class="empty"><b>${R.loading?"Sto leggendo Excel…":"Nessun dato ancora"}</b>${R.loading?"":(S.share?"Trascina in giù o tocca Aggiorna per leggere il file.":"In ⚙︎ incolla l'indirizzo del relay, poi torna qui.")}</div></div>`; return; }
   if(!R.month) R.month=D.months.length?D.months[D.months.length-1]:dateISO(today()).slice(0,7);
   const M=D.month(R.month); const ytd=D.inizioAnno!=null?D.patrimonio-D.inizioAnno:null;
   const when=new Date(D.ts); const ago=Math.round((Date.now()-D.ts)/60000);
