@@ -25,6 +25,7 @@
   .top .ic{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:20px;color:var(--ink-2)}
   .top .ic.badge{position:relative}
   .top .ic .n{position:absolute;top:4px;right:4px;background:var(--go);color:#fff;font-size:11px;font-weight:700;min-width:18px;height:18px;border-radius:9px;display:grid;place-items:center;padding:0 5px}
+  .top .grp{display:flex}
 
   .fast{background:var(--navy);color:#fff;border-radius:18px;padding:12px 12px 12px;margin:0 -4px 6px}
   .due{padding:0 0 10px}
@@ -39,6 +40,15 @@
   .due .list button small em{font-style:normal;color:#fff;font-weight:600}
   .due .none{color:var(--navy-2);font-size:14px;padding:2px 0}
   .manual{font-size:13px;color:var(--ink-2);text-align:center;margin:4px 0 8px}
+
+  .dictate{display:flex;align-items:center;gap:12px;width:100%;background:#fff;color:var(--navy);border-radius:var(--r);padding:10px 12px;text-align:left;min-height:64px}
+  .dictate .mic{flex:0 0 auto;width:44px;height:44px;border-radius:12px;background:var(--navy);color:#fff;display:grid;place-items:center}
+  .dictate .txt b{display:block;font-size:16px;font-weight:700}
+  .dictate .txt small{display:block;font-size:13px;color:var(--ink-2);margin-top:2px;line-height:1.3}
+  .dictate.rec{background:var(--warn);color:#fff}
+  .dictate.rec .mic{background:rgba(255,255,255,.2);animation:pulse 1s infinite}
+  .dictate.rec .txt small{color:rgba(255,255,255,.85)}
+  @keyframes pulse{50%{opacity:.6}}
 
   .amount{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--paper);border-radius:var(--r);padding:12px 16px;margin-bottom:10px;border:2px solid transparent}
   .amount.open{border-color:var(--go)}
@@ -57,14 +67,6 @@
   .field label{display:block;font-size:13px;color:var(--ink-2);margin-bottom:6px}
   .field input[type=text]{width:100%;border:0;outline:0;background:transparent;font-size:19px;font-weight:600;padding:4px 0}
   .field input[type=text]::placeholder{color:#9FB0C3;font-weight:500}
-  .dictate{display:flex;align-items:center;gap:12px;width:100%;background:#fff;color:var(--navy);border-radius:var(--r);padding:10px 12px;text-align:left;min-height:64px}
-  .dictate .mic{flex:0 0 auto;width:44px;height:44px;border-radius:12px;background:var(--navy);color:#fff;display:grid;place-items:center}
-  .dictate .txt b{display:block;font-size:16px;font-weight:700}
-  .dictate .txt small{display:block;font-size:13px;color:var(--ink-2);margin-top:2px;line-height:1.3}
-  .dictate.rec{background:var(--warn);color:#fff}
-  .dictate.rec .mic{background:rgba(255,255,255,.2);animation:pulse 1s infinite}
-  .dictate.rec .txt small{color:rgba(255,255,255,.85)}
-  @keyframes pulse{50%{opacity:.6}}
   .sugg{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin-top:6px}
   .sugg::-webkit-scrollbar{display:none}
   .sugg button{flex:0 0 auto;background:var(--key);border-radius:999px;padding:8px 12px;font-size:14px;font-weight:600;min-height:38px}
@@ -83,13 +85,12 @@
   .field.inline .chips button,.field.inline .chips label{white-space:nowrap}
 
   .actions{display:grid;grid-template-columns:1fr auto auto;gap:8px;margin-top:auto}
-  .copy{height:64px;display:flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;padding:0 14px}
-  .copy.wa{color:#fff;background:#1FA855;font-size:15px;font-weight:700}
-  .copy.wa.off{background:#B9D9C6}
   .go{background:var(--go);color:#fff;border-radius:var(--r);font-size:20px;font-weight:700;height:64px}
   .go:active{background:var(--go-press)}
   .go:disabled{background:#A9C4E4;color:#F0F5FB}
-  .copy{background:var(--paper);border-radius:var(--r);font-size:15px;font-weight:600;padding:0 18px;color:var(--ink-2)}
+  .copy{background:var(--paper);border-radius:var(--r);font-size:15px;font-weight:600;color:var(--ink-2);height:64px;display:flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;padding:0 14px}
+  .copy.wa{color:#fff;background:#1FA855;font-size:15px;font-weight:700}
+  .copy.wa.off{background:#B9D9C6}
 
   .padwrap{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--bg);box-shadow:0 -6px 24px rgba(0,0,0,.12);padding:10px 14px calc(env(safe-area-inset-bottom) + 12px);transform:translateY(105%);transition:transform .22s}
   .padwrap.open{transform:none}
@@ -106,7 +107,7 @@
   .toast.show{opacity:1;transform:translateX(-50%)}
   .toast.warn{background:var(--warn)}
 
-  .sheet{position:fixed;inset:0;background:var(--bg);z-index:40;display:none;flex-direction:column;padding:calc(env(safe-area-inset-top) + 10px) 14px calc(env(safe-area-inset-bottom) + 12px);overflow-y:auto}
+  .sheet{position:fixed;inset:0;background:var(--bg);z-index:40;display:none;flex-direction:column;padding:calc(env(safe-area-inset-top) + 10px) 14px calc(env(safe-area-inset-bottom) + 12px);overflow-y:auto;-webkit-overflow-scrolling:touch}
   .sheet.open{display:flex}
   .sheet .top{margin-bottom:12px}
   .sheet h2{font-size:20px;margin:0}
@@ -128,6 +129,52 @@
   .rules li{grid-template-columns:1fr auto}
   .rules li .m{grid-column:1}
   .rules li .del{color:var(--warn);font-size:14px;font-weight:600;grid-row:1/3;align-self:center}
+
+  /* ---- Riepilogo ---- */
+  .rp .hero{background:var(--navy);color:#fff;border-radius:18px;padding:14px 16px;margin-bottom:10px}
+  .rp .hero .lbl{font-size:13px;color:var(--navy-2)}
+  .rp .hero .big{font-family:ui-rounded,"SF Pro Rounded",-apple-system,system-ui,sans-serif;font-size:36px;font-weight:700;letter-spacing:-.02em;margin:2px 0 4px}
+  .rp .hero .ytd{font-size:14px;color:#fff}
+  .rp .hero .ytd em{font-style:normal;font-weight:700;color:#8BE0B5}
+  .rp .hero .ytd em.neg{color:#F6A28C}
+  .rp .hero .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px}
+  .rp .hero .grid3 div{background:rgba(255,255,255,.1);border-radius:10px;padding:8px 10px}
+  .rp .hero .grid3 small{display:block;font-size:12px;color:var(--navy-2)}
+  .rp .hero .grid3 b{font-size:15px;font-weight:700}
+  .rp .sync{font-size:12.5px;color:var(--ink-2);text-align:center;margin:0 0 10px}
+  .rp .sync button{color:var(--go);font-weight:600;text-decoration:underline;text-underline-offset:3px;margin-left:6px}
+  .rp .card{background:var(--paper);border-radius:var(--r);padding:12px 14px;margin-bottom:10px}
+  .rp .card h3{font-size:15px;margin:0 0 8px;font-weight:700}
+  .rp .card h3 small{font-weight:500;color:var(--ink-2);margin-left:6px;font-size:13px}
+  .rp .mnav{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+  .rp .mnav b{font-size:17px}
+  .rp .mnav button{width:44px;height:40px;border-radius:10px;background:var(--key);font-size:18px;font-weight:700}
+  .rp .kpi{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .rp .kpi div{background:var(--bg);border-radius:10px;padding:8px 10px}
+  .rp .kpi small{display:block;font-size:12px;color:var(--ink-2)}
+  .rp .kpi b{font-size:17px;font-family:ui-rounded,-apple-system,system-ui,sans-serif}
+  .rp .donutwrap{display:flex;align-items:center;gap:12px}
+  .rp .donutwrap svg{flex:0 0 150px}
+  .rp .legend{list-style:none;margin:0;padding:0;flex:1;min-width:0}
+  .rp .legend li{display:grid;grid-template-columns:12px 1fr auto;gap:8px;align-items:center;font-size:14px;padding:3px 0}
+  .rp .legend li i{width:12px;height:12px;border-radius:3px;display:block}
+  .rp .legend li span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rp .legend li b{font-family:ui-rounded,-apple-system,system-ui,sans-serif;font-weight:600}
+  .rp .legend li small{color:var(--ink-2);margin-left:4px}
+  .rp .rows{list-style:none;margin:0;padding:0}
+  .rp .rows li{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--line);font-size:15px}
+  .rp .rows li:last-child{border-bottom:0}
+  .rp .rows li b{font-family:ui-rounded,-apple-system,system-ui,sans-serif;font-weight:600}
+  .rp .rows li small{color:var(--ink-2);font-size:12.5px;display:block}
+  .rp .rows li.tot{font-weight:700;border-top:2px solid var(--line)}
+  .rp .bar{height:6px;background:var(--key);border-radius:3px;margin-top:4px;overflow:hidden}
+  .rp .bar i{display:block;height:100%;background:var(--go);border-radius:3px}
+  .rp .bar i.over{background:var(--warn)}
+  .rp .empty{color:var(--ink-2);font-size:14px;text-align:center;padding:24px 8px;line-height:1.5}
+  .rp .empty b{display:block;color:var(--ink);margin-bottom:6px}
+  .rp .chart{width:100%;height:auto;display:block}
+  .rp .lg{display:flex;gap:14px;font-size:12.5px;color:var(--ink-2);margin-top:6px}
+  .rp .lg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
   @media (prefers-reduced-motion:reduce){.toast,.padwrap{transition:none}.dictate.rec .mic{animation:none}}
 </style>
 </head>
@@ -136,7 +183,10 @@
   <div class="top">
     <button class="ic" id="btnSettings" aria-label="Impostazioni">⚙︎</button>
     <h1>Nuovo movimento</h1>
-    <button class="ic badge" id="btnLog" aria-label="Inviati"><span>☰</span><span class="n" id="logN" hidden>0</span></button>
+    <div class="grp">
+      <button class="ic" id="btnRp" aria-label="Riepilogo"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></button>
+      <button class="ic badge" id="btnLog" aria-label="Inviati"><span>☰</span><span class="n" id="logN" hidden>0</span></button>
+    </div>
   </div>
 
   <section class="fast">
@@ -144,11 +194,10 @@
       <div class="h"><b>Suggerimenti precompilati</b><span id="dueDate"></span></div>
       <div class="list" id="due"></div>
     </div>
-
-  <button class="dictate" id="mic">
-    <span class="mic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2.5" width="6" height="11" rx="3" fill="currentColor" stroke="none"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0"/><path d="M12 18v3.5"/><path d="M8.5 21.5h7"/></svg></span>
-    <span class="txt"><b id="micTitle">Detta il movimento</b><small id="micSub">Di' tutto in una frase: «Esselunga 85 e 30, spesa, BNL»</small></span>
-  </button>
+    <button class="dictate" id="mic">
+      <span class="mic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2.5" width="6" height="11" rx="3" fill="currentColor" stroke="none"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0"/><path d="M12 18v3.5"/><path d="M8.5 21.5h7"/></svg></span>
+      <span class="txt"><b id="micTitle">Detta il movimento</b><small id="micSub">Di' tutto in una frase: «Esselunga 85 e 30, spesa, BNL»</small></span>
+    </button>
   </section>
 
   <div class="manual">Oppure compila a mano</div>
@@ -206,6 +255,13 @@
   </div>
 </div></div>
 
+<!-- ============ RIEPILOGO ============ -->
+<div class="sheet rp" id="sheetRp">
+  <div class="top"><h2>Riepilogo</h2><button class="close" data-close="sheetRp">Chiudi</button></div>
+  <div id="rpBody"></div>
+</div>
+
+<!-- ============ INVIATI ============ -->
 <div class="sheet" id="sheetLog">
   <div class="top"><h2>Inviati</h2><button class="close" data-close="sheetLog">Chiudi</button></div>
   <p>Ultimi movimenti registrati da qui. Se il collegamento a Excel non funziona: "Copia tutto" per incollarle in Movimenti, oppure "Tutto su WhatsApp" per mandarle in chat.</p>
@@ -213,12 +269,19 @@
   <ul class="log" id="logList" style="margin-top:12px"></ul>
 </div>
 
+<!-- ============ IMPOSTAZIONI ============ -->
 <div class="sheet" id="sheetSettings">
   <div class="top"><h2>Impostazioni</h2><button class="close" data-close="sheetSettings">Chiudi</button></div>
 
   <div class="field">
-    <label for="hook">Indirizzo webhook Zapier</label>
-    <input type="text" id="hook" placeholder="https://hooks.zapier.com/hooks/catch/…" autocapitalize="off" autocorrect="off">
+    <label for="hook">Indirizzo webhook (Make) per scrivere in Excel</label>
+    <input type="text" id="hook" placeholder="https://hook.eu1.make.com/…" autocapitalize="off" autocorrect="off">
+  </div>
+  <div class="field">
+    <label for="share">Link di condivisione OneDrive per leggere Excel (Riepilogo)</label>
+    <input type="text" id="share" placeholder="https://1drv.ms/x/…" autocapitalize="off" autocorrect="off">
+    <p style="margin-top:8px">Link "Chiunque abbia il collegamento · Può visualizzare" del file Finanze2026.xlsx. Serve solo per leggere.</p>
+    <div><button class="btn" id="btnTestShare">Prova collegamento</button></div>
   </div>
   <div class="field">
     <label>Formato data inviato a Excel</label>
@@ -227,26 +290,25 @@
       <button data-f="iso">2026-09-01</button>
       <button data-f="it">01/09/2026</button>
     </div>
-    <p style="margin-top:8px">Il numero seriale è il modo in cui Excel conta le date: arriva sempre corretto, senza scambi giorno/mese. Usa gli altri solo se la colonna in Excel non ha il formato data.</p>
-  </div>
-  <div class="field">
-    <label for="wa">Numero WhatsApp a cui inviare le righe (con prefisso, es. 39333…)</label>
-    <input type="text" id="wa" placeholder="Lascia vuoto per scegliere la chat ogni volta" inputmode="numeric">
   </div>
   <div class="field">
     <label>Conto predefinito</label>
     <div class="chips" id="defConto"></div>
   </div>
+  <div class="field">
+    <label for="wa">Numero WhatsApp a cui inviare le righe (con prefisso, es. 39333…)</label>
+    <input type="text" id="wa" placeholder="Lascia vuoto per scegliere la chat ogni volta" inputmode="numeric">
+  </div>
 
   <div class="field">
     <label>Ricorrenze riconosciute</label>
-    <p>Le prime cinque sono impostate a mano; le altre le scopre l'app dopo almeno tre registrazioni della stessa voce. Tocca ✕ per non proporre più una voce.</p>
+    <p>Le prime cinque sono impostate a mano; le altre le scopre l'app dopo almeno tre registrazioni della stessa voce (anche lette da Excel). Tocca ✕ per non proporre più una voce.</p>
     <ul class="log rules" id="rulesList"></ul>
   </div>
 
   <div class="field">
-    <label for="imp">Importa storico (insegna ricorrenze e suggerimenti)</label>
-    <p>Incolla righe da Movimenti con le colonne Data, Descrizione, Categoria, Conto, Importo separate da tab (la Data è facoltativa ma serve a scoprire le ricorrenze).</p>
+    <label for="imp">Importa storico manualmente</label>
+    <p>Non serve se il link OneDrive funziona: i suggerimenti si allenano da soli sui movimenti letti da Excel. Altrimenti incolla righe con Data, Descrizione, Categoria, Conto, Importo separate da tab.</p>
     <textarea id="imp" placeholder="31/08/2026	CAFFÈ REBELOT DI STEFAN	Ristorante	Trade	-7,00"></textarea>
     <div><button class="btn" id="btnImport">Importa</button></div>
   </div>
@@ -263,14 +325,6 @@
     <label>Dettatura</label>
     <p>Tocca il pulsante del microfono e parla, ad esempio: <i>"Esselunga ottantacinque e trenta, spesa, BNL"</i> oppure <i>"pizzeria ventidue euro ieri"</i>. L'app estrae importo, descrizione, categoria, conto e data; tu controlli e premi Invia. Se il microfono non si attiva, usa quello della tastiera nel campo Descrizione: il testo dettato viene interpretato allo stesso modo.</p>
   </div>
-
-  <div class="field">
-    <label>Come collegare Zapier</label>
-    <p>1. Nuovo Zap → trigger <b>Webhooks by Zapier · Catch Hook</b>. Copia l'URL qui sopra.<br>
-       2. Invia un movimento di prova da questa app, poi in Zapier premi "Test trigger".<br>
-       3. Azione <b>Microsoft Excel · Add Row to Table</b> → file Finanze2026.xlsx su OneDrive, foglio Movimenti, tabella dei movimenti. Abbina Data, Descrizione, Categoria, Conto, Importo.<br>
-       4. Pubblica lo Zap.</p>
-  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -280,9 +334,12 @@ const CATS=["Casa","Spesa","Ristorante","Mediche","Bambino","Cane","Sport","Dive
 const IN_CATS=new Set(["Stipendio Emi","Stipendio Ele","Regali +","Interessi conto deposito"]);
 const CONTI=["Trade","BNL","Allianz","Contanti","Amex","Visa","BPER","PayPal"];
 const DOW=["domenica","lunedì","martedì","mercoledì","giovedì","venerdì","sabato"];
+const MESI=["Gennaio","Febbraio","Marzo","Aprile","Maggio","Giugno","Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre"];
+const MESI_S=["Gen","Feb","Mar","Apr","Mag","Giu","Lug","Ago","Set","Ott","Nov","Dic"];
 const KEY="movimenti:state";
+const XLSX_CDN="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
+const PALETTE=["#1F6FD0","#F2A93B","#2BB673","#E4572E","#8E5BD9","#17A2B8","#D6469A","#7C8C9E","#A3C644","#C77B36","#5A6C80","#3DBFD8"];
 
-// Regole impostate a mano (adattano importo e intervallo in base a ciò che registri)
 const SEED_RULES=[
   {id:"stip_emi",desc:"Stipendio Emi",cat:"Stipendio Emi",conto:"BNL",type:"monthly",from:25,hint:"a fine mese"},
   {id:"mutuo",desc:"Mutuo",cat:"Mutuo",conto:"BNL",type:"monthly",from:25,hint:"a fine mese"},
@@ -291,11 +348,12 @@ const SEED_RULES=[
   {id:"spesa",desc:"Spesa",cat:"Spesa",conto:"BNL",type:"interval",days:14,hint:"ogni 2 settimane"}
 ];
 
-let S={ hook:"", dateFmt:"serial", defConto:"Trade",
+let S={ hook:"", share:"", wa:"", dateFmt:"serial", defConto:"Trade",
   dict:{ "caffè rebelot di stefan":{desc:"CAFFÈ REBELOT DI STEFAN",cat:"Ristorante",conto:"Trade",imp:7,n:1},
          "gruppo pellegrini":{desc:"Gruppo Pellegrini",cat:"Ristorante",conto:"Trade",imp:7,n:1} },
-  catN:{}, log:[], hist:[], muted:[] };
+  catN:{}, log:[], hist:[], muted:[], cache:null, v2:true };
 let F={amt:"",sign:-1,desc:"",cat:"",conto:"",dOff:0,dCustom:"",showAllCat:false};
+let R={month:null, loading:false};
 
 // ---------- storage ----------
 async function readStore(){
@@ -316,8 +374,9 @@ function save(){ clearTimeout(saveT); saveT=setTimeout(()=>writeStore(JSON.strin
 
 // ---------- helpers ----------
 const $=id=>document.getElementById(id);
-function toast(msg,warn){ const t=$("toast"); t.textContent=msg; t.className="toast show"+(warn?" warn":""); clearTimeout(t._t); t._t=setTimeout(()=>t.className="toast",2400); }
+function toast(msg,warn){ const t=$("toast"); t.textContent=msg; t.className="toast show"+(warn?" warn":""); clearTimeout(t._t); t._t=setTimeout(()=>t.className="toast",2600); }
 function fmtIT(n){ return n.toLocaleString("it-IT",{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function fmt0(n){ return n.toLocaleString("it-IT",{minimumFractionDigits:0,maximumFractionDigits:0}); }
 function amtNum(){ return F.amt? parseFloat(F.amt.replace(",","."))||0 : 0; }
 function pad2(n){ return String(n).padStart(2,"0"); }
 function today(){ const d=new Date(); d.setHours(12,0,0,0); return d; }
@@ -325,17 +384,33 @@ function selDate(){ if(F.dCustom) return new Date(F.dCustom+"T12:00:00"); const 
 function dateIT(d){ return `${pad2(d.getDate())}/${pad2(d.getMonth()+1)}/${d.getFullYear()}`; }
 function dateISO(d){ return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; }
 function dateSerial(d){ return Math.round((Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())-Date.UTC(1899,11,30))/86400000); }
+function serialISO(n){ const ms=Date.UTC(1899,11,30)+Math.round(n)*86400000; const d=new Date(ms); return `${d.getUTCFullYear()}-${pad2(d.getUTCMonth()+1)}-${pad2(d.getUTCDate())}`; }
 function fromISO(s){ return new Date(s+"T12:00:00"); }
 function daysBetween(a,b){ return Math.round((b-a)/86400000); }
-function norm(s){ return s.trim().toLowerCase().replace(/\s+/g," "); }
+function norm(s){ return String(s||"").trim().toLowerCase().replace(/\s+/g," "); }
 function haptic(){ if(navigator.vibrate) navigator.vibrate(8); }
 function shortDate(d){ return d.toLocaleDateString("it-IT",{day:"numeric",month:"short"}); }
+function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
 
-// ---------- pattern engine ----------
+// ---------- dizionario unificato (locale + Excel) ----------
+function allHist(){ // storico completo: righe Excel + righe locali non ancora in Excel
+  const rows=(S.cache&&S.cache.rows)||[]; const seen=new Set(); const out=[];
+  for(const r of rows){ const k=norm(r.desc); seen.add(r.d+"|"+k+"|"+Math.abs(r.imp).toFixed(2)); out.push({k,desc:r.desc,cat:r.cat,conto:r.conto,imp:Math.abs(r.imp),d:r.d}); }
+  for(const h of S.hist){ const key=h.d+"|"+h.k+"|"+(+h.imp).toFixed(2); if(!seen.has(key)) out.push(h); }
+  return out;
+}
+function allDict(){
+  const d={}; for(const h of allHist()){ const e=d[h.k]||{desc:h.desc,n:0}; e.cat=h.cat; e.conto=h.conto; e.imp=h.imp; e.n++; e.desc=h.desc; d[h.k]=e; }
+  for(const k in S.dict){ if(!d[k]) d[k]=S.dict[k]; }
+  return d;
+}
+function catCounts(){ const c={...S.catN}; for(const h of allHist()) c[h.cat]=(c[h.cat]||0)+1; return c; }
+
+// ---------- motore ricorrenze ----------
 function median(a){ const s=[...a].sort((x,y)=>x-y); const m=Math.floor(s.length/2); return s.length%2?s[m]:(s[m-1]+s[m])/2; }
-function histFor(match){ return S.hist.filter(h=>match.key?h.k===match.key:h.cat===match.cat); }
+function histFor(match,H){ H=H||allHist(); return H.filter(h=>match.key?h.k===match.key:h.cat===match.cat); }
 function lastOf(h){ return h.length?h.reduce((a,b)=>a.d>b.d?a:b):null; }
-function detect(entries){ // entries: [{d:"YYYY-MM-DD"}] -> pattern or null
+function detect(entries){
   const days=[...new Set(entries.map(e=>e.d))].sort(); if(days.length<3) return null;
   const dates=days.map(fromISO); const iv=[]; for(let i=1;i<dates.length;i++) iv.push(daysBetween(dates[i-1],dates[i]));
   const med=median(iv);
@@ -347,41 +422,36 @@ function detect(entries){ // entries: [{d:"YYYY-MM-DD"}] -> pattern or null
   return null;
 }
 function allRules(){
-  const rules=[];
-  for(const r of SEED_RULES){ if(S.muted.includes(r.id)) continue; const h=histFor(r); const rule={...r,seed:true};
+  const H=allHist(); const rules=[];
+  for(const r of SEED_RULES){ if(S.muted.includes(r.id)) continue; const h=histFor(r,H); const rule={...r,seed:true};
     if(r.type==="interval"&&h.length>=3){ const p=detect(h); if(p&&p.type==="interval"){ rule.days=p.days; rule.hint=p.hint; } }
-    const l=lastOf(h); if(l){ rule.imp=l.imp; rule.conto=l.conto; rule.desc=l.desc; if(r.key) rule.desc=r.desc; }
+    const l=lastOf(h); if(l){ rule.imp=l.imp; rule.conto=l.conto; rule.desc=r.key?r.desc:l.desc; }
     rules.push(rule); }
   const covered=new Set(SEED_RULES.map(r=>r.key||("cat:"+r.cat)));
-  const byKey={}; for(const h of S.hist){ (byKey[h.k]=byKey[h.k]||[]).push(h); }
+  const byKey={}; for(const h of H){ (byKey[h.k]=byKey[h.k]||[]).push(h); }
   for(const k in byKey){ const h=byKey[k]; if(covered.has(k)||covered.has("cat:"+h[0].cat)||S.muted.includes(k)) continue;
     const p=detect(h); if(!p) continue; const l=lastOf(h);
     rules.push({id:k,key:k,desc:l.desc,cat:l.cat,conto:l.conto,imp:l.imp,...p,learned:true}); }
   return rules;
 }
-function isDue(rule,now){
-  const h=histFor(rule); const l=lastOf(h); const y=now.getFullYear(),m=now.getMonth();
+function isDue(rule,now,H){
+  const h=histFor(rule,H); const l=lastOf(h); const y=now.getFullYear(),m=now.getMonth();
   if(rule.type==="monthly"){
     if(now.getDate()<rule.from) return false;
-    const doneThisMonth=h.some(e=>{ const d=fromISO(e.d); return d.getFullYear()===y&&d.getMonth()===m&&d.getDate()>=rule.from-5; });
-    return !doneThisMonth;
+    return !h.some(e=>{ const d=fromISO(e.d); return d.getFullYear()===y&&d.getMonth()===m&&d.getDate()>=rule.from-5; });
   }
   if(rule.type==="weekly"){
-    const dow=now.getDay(); const since=(dow-rule.dow+7)%7; // giorni dall'ultimo giorno previsto
-    const weekStart=new Date(now); weekStart.setDate(now.getDate()-since);
-    const done=h.some(e=>fromISO(e.d)>=weekStart);
-    return !done;
+    const since=(now.getDay()-rule.dow+7)%7; const weekStart=new Date(now); weekStart.setDate(now.getDate()-since);
+    return !h.some(e=>fromISO(e.d)>=weekStart);
   }
-  if(rule.type==="interval"){
-    if(!l) return true; return daysBetween(fromISO(l.d),now)>=rule.days-2;
-  }
+  if(rule.type==="interval"){ if(!l) return true; return daysBetween(fromISO(l.d),now)>=rule.days-2; }
   return false;
 }
-function dueNow(){ const now=today(); return allRules().filter(r=>isDue(r,now)); }
+function dueNow(){ const now=today(); const H=allHist(); return allRules().filter(r=>isDue(r,now,H)); }
 
 // ---------- render ----------
 function render(){
-  const num=$("num"); const n=amtNum();
+  const num=$("num");
   num.className="num"+(F.sign>0?" in":"");
   num.innerHTML=(F.amt?`<span>${F.sign<0?"−":"+"}${F.amt}</span>`:`<span class="ph">0,00</span>`)+`<span class="eur">€</span>`;
   $("amountHint").textContent=F.amt?"Importo (tocca per modificare)":"Tocca per inserire l'importo";
@@ -395,10 +465,10 @@ function render(){
   const ln=S.log.length; $("logN").hidden=!ln; $("logN").textContent=ln;
 }
 function renderDue(){
-  const now=today(); $("dueDate").textContent="tocca per compilare";
+  $("dueDate").textContent="tocca per compilare";
   const items=dueNow(); const box=$("due");
   if(!items.length){ box.innerHTML=`<div class="none">Nessun suggerimento per oggi. Qui compaiono le spese ricorrenti nel giorno previsto, finché non le registri.</div>`; return; }
-  box.innerHTML=items.map((r,i)=>`<button data-i="${i}"><b>${r.desc}</b><small>${r.imp?`<em>${fmtIT(r.imp)} €</em> · `:""}${r.hint}</small></button>`).join("");
+  box.innerHTML=items.map((r,i)=>`<button data-i="${i}"><b>${esc(r.desc)}</b><small>${r.imp?`<em>${fmtIT(r.imp)} €</em> · `:""}${esc(r.hint)}</small></button>`).join("");
   box.querySelectorAll("button").forEach(b=>b.onclick=()=>{ const r=items[+b.dataset.i]; applyEntry({desc:r.desc,cat:r.cat,conto:r.conto,imp:r.imp},true); if(!r.imp) openPad(); });
 }
 function applyEntry(e,withAmt){
@@ -410,13 +480,13 @@ function applyEntry(e,withAmt){
 function renderSugg(){
   const q=norm(F.desc); const box=$("sugg");
   if(q.length<2){ box.innerHTML=""; return; }
-  const hits=Object.values(S.dict).filter(e=>norm(e.desc).includes(q)&&norm(e.desc)!==q).sort((a,b)=>b.n-a.n).slice(0,6);
-  box.innerHTML=hits.map((e,i)=>`<button data-i="${i}">${e.desc}<small>${e.cat}</small></button>`).join("");
+  const hits=Object.values(allDict()).filter(e=>norm(e.desc).includes(q)&&norm(e.desc)!==q).sort((a,b)=>b.n-a.n).slice(0,6);
+  box.innerHTML=hits.map((e,i)=>`<button data-i="${i}">${esc(e.desc)}<small>${esc(e.cat)}</small></button>`).join("");
   box.querySelectorAll("button").forEach(b=>b.onclick=()=>applyEntry(hits[+b.dataset.i],true));
 }
 function renderCats(){
-  const box=$("cat");
-  const sorted=[...CATS].sort((a,b)=>(S.catN[b]||0)-(S.catN[a]||0));
+  const box=$("cat"); const cc=catCounts();
+  const sorted=[...CATS].sort((a,b)=>(cc[b]||0)-(cc[a]||0));
   let show=F.showAllCat?sorted:sorted.slice(0,8);
   if(F.cat&&!show.includes(F.cat)) show=[F.cat,...show];
   box.innerHTML=show.map(c=>`<button class="${c===F.cat?"on":""}" data-c="${c}">${c}</button>`).join("")+`<button class="more">${F.showAllCat?"meno":"tutte"}</button>`;
@@ -429,7 +499,7 @@ function renderConti(){
   box.querySelectorAll("button").forEach(b=>b.onclick=()=>{ F.conto=b.dataset.c; haptic(); render(); });
 }
 
-// ---------- keypad ----------
+// ---------- tastierino ----------
 function openPad(){ $("padwrap").classList.add("open"); $("scrim").classList.add("open"); $("amountBox").classList.add("open"); $("desc").blur(); }
 function closePad(){ $("padwrap").classList.remove("open"); $("scrim").classList.remove("open"); $("amountBox").classList.remove("open"); }
 $("amountTap").onclick=()=>{ $("padwrap").classList.contains("open")?closePad():openPad(); };
@@ -445,9 +515,9 @@ $("pad").onclick=e=>{
   render();
 };
 
-// ---------- voice ----------
+// ---------- dettatura ----------
 const NUMW={zero:0,uno:1,una:1,un:1,due:2,tre:3,quattro:4,cinque:5,sei:6,sette:7,otto:8,nove:9,dieci:10,undici:11,dodici:12,tredici:13,quattordici:14,quindici:15,sedici:16,diciassette:17,diciotto:18,diciannove:19,venti:20,trenta:30,quaranta:40,cinquanta:50,sessanta:60,settanta:70,ottanta:80,novanta:90,cento:100,mille:1000};
-function wordsToNum(w){ // "ottantacinque" -> 85 (semplice, fino a 9999)
+function wordsToNum(w){
   w=w.toLowerCase(); if(NUMW[w]!==undefined) return NUMW[w]; if(/^\d+$/.test(w)) return +w;
   let total=0,cur=w; let m=cur.match(/^(\w+?)mila(.*)$/); if(m){ total+=(m[1]==="due"?2:wordsToNum(m[1])||1)*1000; cur=m[2]; }
   m=cur.match(/^(\w*?)cent[oi](.*)$/); if(m){ total+=(m[1]?wordsToNum(m[1]):1)*100; cur=m[2]; }
@@ -456,33 +526,25 @@ function wordsToNum(w){ // "ottantacinque" -> 85 (semplice, fino a 9999)
   for(const tens of ["novant","ottant","settant","sessant","cinquant","quarant","trent","vent"]){ if(cur.startsWith(tens)){ const base=NUMW[tens+(tens==="vent"?"i":"a")]; const rest=cur.slice(tens.length).replace(/^[ai]/,""); if(!rest) return total+base; const u=NUMW[rest]; if(u!==undefined&&u<10) return total+base+u; } }
   return total||null;
 }
-const CAT_ALIAS={supermercato:"Spesa",spesa:"Spesa",esselunga:"Spesa",coop:"Spesa",conad:"Spesa",lidl:"Spesa",carrefour:"Spesa",pizzeria:"Ristorante",pizza:"Ristorante",ristorante:"Ristorante",bar:"Ristorante",caffè:"Ristorante",caffe:"Ristorante",pranzo:"Ristorante",cena:"Ristorante",aperitivo:"Ristorante",farmacia:"Mediche",medico:"Mediche",dentista:"Mediche",mediche:"Mediche",veterinario:"Cane",cane:"Cane",bambino:"Bambino",asilo:"Bambino",pannolini:"Bambino",palestra:"Sport",sport:"Sport",cinema:"Divertimento",divertimento:"Divertimento",viaggio:"Viaggi",viaggi:"Viaggi",hotel:"Viaggi",treno:"Viaggi",aereo:"Viaggi",casa:"Casa",bolletta:"Casa",bollette:"Casa",luce:"Casa",gas:"Casa",condominio:"Casa",parrucchiere:"Cura della persona",barbiere:"Cura della persona",integratori:"Cura della persona",regalo:"Regali -",regali:"Regali -",mutuo:"Mutuo",prestito:"Prestito",stipendio:"Stipendio Emi",investimento:"Investimento",trasferimento:"Trasferimento",bonifico:"Trasferimento",altro:"Altro"};
+const CAT_ALIAS={supermercato:"Spesa",spesa:"Spesa",esselunga:"Spesa",coop:"Spesa",conad:"Spesa",lidl:"Spesa",carrefour:"Spesa",pizzeria:"Ristorante",pizza:"Ristorante",ristorante:"Ristorante",bar:"Ristorante",caffè:"Ristorante",caffe:"Ristorante",pranzo:"Ristorante",cena:"Ristorante",aperitivo:"Ristorante",farmacia:"Mediche",medico:"Mediche",dentista:"Mediche",mediche:"Mediche",veterinario:"Cane",cane:"Cane",bambino:"Bambino",asilo:"Bambino",nido:"Bambino",pannolini:"Bambino",palestra:"Sport",sport:"Sport",cinema:"Divertimento",divertimento:"Divertimento",viaggio:"Viaggi",viaggi:"Viaggi",hotel:"Viaggi",treno:"Viaggi",aereo:"Viaggi",casa:"Casa",bolletta:"Casa",bollette:"Casa",luce:"Casa",gas:"Casa",condominio:"Casa",parrucchiere:"Cura della persona",barbiere:"Cura della persona",integratori:"Cura della persona",regalo:"Regali -",regali:"Regali -",mutuo:"Mutuo",prestito:"Prestito",stipendio:"Stipendio Emi",investimento:"Investimento",etf:"Investimento",trasferimento:"Trasferimento",bonifico:"Trasferimento",altro:"Altro"};
 function parseSpeech(text){
   let t=" "+text.toLowerCase().replace(/[.!?]/g,"").replace(/€/g," euro ").replace(/\s+/g," ")+" ";
-  const out={};
-  // importo: "85,30" / "85.30" / "85 e 30" / "ottantacinque e trenta" / "22 euro"
+  const out={}; const D=allDict();
   let m=t.match(/ (\d+)[,.](\d{1,2}) /)||t.match(/ (\d+|[a-zà]+) (?:euro )?e (\d+|[a-zà]+)(?: centesimi)? /)||t.match(/ (\d+|[a-zà]+) euro /)||t.match(/ (\d+) /);
   if(m){ const a=wordsToNum(m[1]); if(a!==null){ let c=0; if(m[2]!==undefined){ const cc=wordsToNum(m[2]); if(cc!==null&&cc<100) c=cc; } out.amt=a+c/100; t=t.replace(m[0]," "); } }
   t=t.replace(/ euro /g," ");
-  // data
   if(/ l'altro ieri |l'altroieri/.test(t)){ out.dOff=2; t=t.replace(/ l'altro ieri |l'altroieri/g," "); }
   else if(/ ieri /.test(t)){ out.dOff=1; t=t.replace(/ ieri /g," "); }
   else if(/ oggi /.test(t)){ out.dOff=0; t=t.replace(/ oggi /g," "); }
-  // entrata
   if(/ (entrata|ricevuto|ricevuti|incasso|accredito) /.test(t)){ out.sign=1; t=t.replace(/ (entrata|ricevuto|ricevuti|incasso|accredito) /g," "); }
-  // conto
   for(const c of CONTI){ const re=new RegExp(" (con |su |da )?"+c.toLowerCase()+"( (card|carta))? ","i"); if(re.test(t)){ out.conto=c; t=t.replace(re," "); break; } }
   if(!out.conto&&/ contante /.test(t)){ out.conto="Contanti"; t=t.replace(/ contante /g," "); }
-  // categoria esplicita (nome completo)
   for(const c of [...CATS].sort((a,b)=>b.length-a.length)){ const re=new RegExp(" "+c.toLowerCase().replace(/[+-]/g,"\\$&")+" "); if(re.test(t)){ out.cat=c; t=t.replace(re," "); break; } }
-  // descrizione: match con dizionario (parole ≥4 lettere), altrimenti testo residuo
   const words=t.trim().split(" ").filter(w=>w.length>=3&&!["per","con","del","della","dei","alla","alle","dal","spesa","euro","al","di","la","il","un","una"].includes(w));
   let best=null;
-  for(const e of Object.values(S.dict)){ const n=norm(e.desc); const score=words.filter(w=>w.length>=4&&n.includes(w)).length; if(score>(best?.score||0)) best={e,score}; }
+  for(const e of Object.values(D)){ const n=norm(e.desc); const score=words.filter(w=>w.length>=4&&n.includes(w)).length; if(score>(best?.score||0)) best={e,score}; }
   if(best){ out.entry=best.e; }
-  else{ const rest=t.trim(); if(rest){ // alias categoria dalle parole
-      if(!out.cat){ for(const w of rest.split(" ")){ if(CAT_ALIAS[w]){ out.cat=CAT_ALIAS[w]; break; } } }
-      out.desc=rest.charAt(0).toUpperCase()+rest.slice(1); } }
+  else{ const rest=t.trim(); if(rest){ if(!out.cat){ for(const w of rest.split(" ")){ if(CAT_ALIAS[w]){ out.cat=CAT_ALIAS[w]; break; } } } out.desc=rest.charAt(0).toUpperCase()+rest.slice(1); } }
   return out;
 }
 function applySpeech(text){
@@ -499,7 +561,8 @@ function applySpeech(text){
   else toast("Compilato: "+got.join(", ")+". Controlla e invia");
   if(!F.amt) openPad();
 }
-const MIC_SVG=`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2.5" width="6" height="11" rx="3" fill="currentColor" stroke="none"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0"/><path d="M12 18v3.5"/><path d="M8.5 21.5h7"/></svg>`, STOP_SVG=`<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="3"/></svg>`;
+const MIC_SVG=`<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2.5" width="6" height="11" rx="3" fill="currentColor" stroke="none"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0"/><path d="M12 18v3.5"/><path d="M8.5 21.5h7"/></svg>`;
+const STOP_SVG=`<svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="3"/></svg>`;
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition; let rec=null;
 $("mic").onclick=()=>{
   if(rec){ rec.stop(); return; }
@@ -512,7 +575,7 @@ $("mic").onclick=()=>{
   try{ rec.start(); }catch(e){ rec=null; }
 };
 
-// ---------- build row / send ----------
+// ---------- riga / invio ----------
 const cleanTxt=s=>String(s||"").replace(/[\t\r\n]+/g," ").replace(/^[\s.,;:]+|[\s.,;:]+$/g,"").replace(/\s+/g," ");
 const exact=(list,v)=>list.find(x=>norm(x)===norm(cleanTxt(v)))||cleanTxt(v);
 function currentRow(){
@@ -527,10 +590,9 @@ function learn(r){
   S.hist.push({k,desc:r.Descrizione,cat:r.Categoria,conto:r.Conto,imp:Math.abs(r.Importo),d:r.DataISO}); S.hist=S.hist.slice(-600);
 }
 function resetForm(){ F.amt=""; F.desc=""; $("desc").value=""; $("desc").placeholder="Es. Esselunga"; F.cat=""; F.conto=S.defConto; F.dOff=0; F.dCustom=""; $("dateIn").value=""; F.showAllCat=false; closePad(); render(); }
-
 async function send(){
   const r=currentRow();
-  if(!S.hook){ toast("Manca l'indirizzo Zapier: aggiungilo in ⚙︎",true); return; }
+  if(!S.hook){ toast("Manca l'indirizzo webhook: aggiungilo in ⚙︎",true); return; }
   const p=new URLSearchParams({Data:S.dateFmt==="iso"?r.DataISO:S.dateFmt==="serial"?String(r.DataSeriale):r.Data, Descrizione:r.Descrizione, Categoria:r.Categoria, Conto:r.Conto, Importo:String(r.Importo), ImportoIT:r.ImportoIT});
   $("btnSend").disabled=true; $("btnSend").textContent="Invio…";
   let ok=true;
@@ -545,19 +607,18 @@ async function copyText(t,msg){
   try{ await navigator.clipboard.writeText(t); toast(msg); }
   catch(e){ const ta=document.createElement("textarea"); ta.value=t; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove(); toast(msg); }
 }
+function waUrl(text){ const n=(S.wa||"").replace(/\D/g,""); return (n?`https://wa.me/${n}`:`https://wa.me/`)+"?text="+encodeURIComponent(text); }
+function waOpen(text){ const w=window.open(waUrl(text),"_blank"); if(!w) window.location.href=waUrl(text); }
 
-// ---------- events ----------
+// ---------- eventi modulo ----------
 $("segOut").onclick=()=>{F.sign=-1;render();}; $("segIn").onclick=()=>{F.sign=1;render();};
-$("desc").oninput=e=>{ F.desc=e.target.value; const ex=S.dict[norm(F.desc)]; if(ex&&!F.cat){ F.cat=ex.cat; F.conto=ex.conto; F.sign=IN_CATS.has(ex.cat)?1:-1; } render(); };
+$("desc").oninput=e=>{ F.desc=e.target.value; const ex=allDict()[norm(F.desc)]; if(ex&&!F.cat){ F.cat=ex.cat; F.conto=ex.conto; F.sign=IN_CATS.has(ex.cat)?1:-1; } render(); };
 $("desc").onkeydown=e=>{ if(e.key==="Enter") e.target.blur(); };
-$("desc").onblur=()=>{ // testo dettato con la tastiera: se contiene un importo lo interpreto
-  const v=$("desc").value; if(/\d/.test(v)||/ euro /.test(" "+v.toLowerCase()+" ")) applySpeech(v); };
+$("desc").onblur=()=>{ const v=$("desc").value; if(/\d/.test(v)||/ euro /.test(" "+v.toLowerCase()+" ")) applySpeech(v); };
 $("desc").onfocus=closePad;
 $("dateChips").onclick=e=>{ const b=e.target.closest("button"); if(!b) return; F.dOff=+b.dataset.d; F.dCustom=""; $("dateIn").value=""; render(); };
 $("dateIn").onchange=e=>{ F.dCustom=e.target.value; render(); };
 $("btnSend").onclick=send;
-function waUrl(text){ const n=(S.wa||"").replace(/\D/g,""); return (n?`https://wa.me/${n}`:`https://wa.me/`)+"?text="+encodeURIComponent(text); }
-function waOpen(text){ const w=window.open(waUrl(text),"_blank"); if(!w) window.location.href=waUrl(text); }
 $("btnWa").onclick=e=>{ if($("btnSend").disabled){ e.preventDefault(); toast("Compila importo, descrizione, categoria e conto",true); return; }
   const r=currentRow(); e.currentTarget.href=waUrl(tsv(r)); learn(r); S.log.unshift({...r,ts:Date.now(),ok:true,wa:true}); save(); setTimeout(resetForm,300); };
 $("btnCopy").onclick=()=>{ if($("btnSend").disabled) return toast("Compila importo, descrizione, categoria e conto",true); const r=currentRow(); learn(r); S.log.unshift({...r,ts:Date.now(),ok:true,copied:true}); save(); copyText(tsv(r),"Riga copiata: incollala in Movimenti"); resetForm(); };
@@ -565,10 +626,11 @@ $("btnCopy").onclick=()=>{ if($("btnSend").disabled) return toast("Compila impor
 document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>$(b.dataset.close).classList.remove("open"));
 $("btnLog").onclick=()=>{ renderLog(); $("sheetLog").classList.add("open"); };
 $("btnSettings").onclick=()=>{ renderSettings(); $("sheetSettings").classList.add("open"); };
+$("btnRp").onclick=()=>{ openRp(); };
 
 function renderLog(){
   const ul=$("logList");
-  ul.innerHTML=S.log.length?S.log.map((r,i)=>`<li><b>${r.Descrizione}</b><span class="v ${r.Importo>0?"in":""}">${r.ImportoIT} €</span><span class="m">${r.Data} · ${r.Categoria} · ${r.Conto}</span><span class="st ${r.ok?"":"err"}">${r.wa?"WhatsApp":r.copied?"copiata":r.ok?"inviata":"non inviata"} <button class="x" data-i="${i}" aria-label="Rimuovi dall'elenco">✕</button></span></li>`).join(""):`<li><span class="m">Ancora nessun movimento.</span></li>`;
+  ul.innerHTML=S.log.length?S.log.map((r,i)=>`<li><b>${esc(r.Descrizione)}</b><span class="v ${r.Importo>0?"in":""}">${r.ImportoIT} €</span><span class="m">${r.Data} · ${esc(r.Categoria)} · ${esc(r.Conto)}</span><span class="st ${r.ok?"":"err"}">${r.wa?"WhatsApp":r.copied?"copiata":r.ok?"inviata":"non inviata"} <button class="x" data-i="${i}" aria-label="Rimuovi dall'elenco">✕</button></span></li>`).join(""):`<li><span class="m">Ancora nessun movimento.</span></li>`;
   ul.querySelectorAll(".x").forEach(b=>b.onclick=()=>{ S.log.splice(+b.dataset.i,1); save(); renderLog(); render(); toast("Rimossa dall'elenco (in Excel resta)"); });
 }
 $("btnCopyAll").onclick=()=>{ if(!S.log.length) return; copyText(S.log.slice().reverse().map(tsv).join("\n"),`${S.log.length} righe copiate`); };
@@ -576,18 +638,21 @@ $("btnWaAll").onclick=()=>{ if(!S.log.length) return; waOpen(S.log.slice().rever
 $("btnClearLog").onclick=()=>{ if(confirm("Svuotare l'elenco degli inviati?")){ S.log=[]; save(); renderLog(); render(); } };
 
 function renderSettings(){
-  $("hook").value=S.hook; $("wa").value=S.wa||"";
+  $("hook").value=S.hook; $("share").value=S.share||""; $("wa").value=S.wa||"";
   $("dateFmt").querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.f===S.dateFmt));
   $("defConto").innerHTML=CONTI.map(c=>`<button class="${c===S.defConto?"on":""}" data-c="${c}">${c}</button>`).join("");
   $("defConto").querySelectorAll("button").forEach(b=>b.onclick=()=>{ S.defConto=b.dataset.c; save(); renderSettings(); });
-  $("memInfo").textContent=`${Object.keys(S.dict).length} descrizioni · ${S.hist.length} registrazioni con data · ${S.log.length} righe in elenco`;
-  const rules=allRules(); const ul=$("rulesList");
-  ul.innerHTML=rules.map(r=>{ const l=lastOf(histFor(r)); return `<li><b>${r.desc}</b><button class="del" data-id="${r.id}">✕</button><span class="m">${r.hint}${r.learned?" · scoperta dall'app":""}${l?" · ultima: "+dateIT(fromISO(l.d)):""}</span></li>`; }).join("")+(S.muted.length?`<li><span class="m">${S.muted.length} nascoste · <button class="del" data-id="__all">ripristina</button></span></li>`:"");
+  const nx=S.cache?S.cache.rows.length:0;
+  $("memInfo").textContent=`${Object.keys(allDict()).length} descrizioni · ${nx} movimenti letti da Excel · ${S.hist.length} registrati da qui · ${S.log.length} righe in elenco`;
+  const rules=allRules(); const ul=$("rulesList"); const H=allHist();
+  ul.innerHTML=rules.map(r=>{ const l=lastOf(histFor(r,H)); return `<li><b>${esc(r.desc)}</b><button class="del" data-id="${esc(r.id)}">✕</button><span class="m">${esc(r.hint)}${r.learned?" · scoperta dall'app":""}${l?" · ultima: "+dateIT(fromISO(l.d)):""}</span></li>`; }).join("")+(S.muted.length?`<li><span class="m">${S.muted.length} nascoste · <button class="del" data-id="__all">ripristina</button></span></li>`:"");
   ul.querySelectorAll(".del").forEach(b=>b.onclick=()=>{ if(b.dataset.id==="__all") S.muted=[]; else S.muted.push(b.dataset.id); save(); renderSettings(); render(); });
 }
-$("wa").onchange=e=>{ S.wa=e.target.value.replace(/\D/g,""); save(); toast(S.wa?"Numero salvato":"Numero rimosso"); };
 $("hook").onchange=e=>{ S.hook=e.target.value.trim(); save(); toast(S.hook?"Indirizzo salvato":"Indirizzo rimosso"); };
+$("share").onchange=e=>{ S.share=e.target.value.trim(); save(); toast(S.share?"Link salvato":"Link rimosso"); };
+$("wa").onchange=e=>{ S.wa=e.target.value.replace(/\D/g,""); save(); toast(S.wa?"Numero salvato":"Numero rimosso"); };
 $("dateFmt").onclick=e=>{ const b=e.target.closest("button"); if(!b) return; S.dateFmt=b.dataset.f; save(); renderSettings(); };
+$("btnTestShare").onclick=async()=>{ S.share=$("share").value.trim(); save(); if(!S.share) return toast("Incolla prima il link",true); $("btnTestShare").textContent="Verifico…"; try{ await refreshExcel(true); toast(`Collegamento ok: ${S.cache.rows.length} movimenti letti`); }catch(err){ toast(err.message,true); } $("btnTestShare").textContent="Prova collegamento"; renderSettings(); };
 $("btnImport").onclick=()=>{
   const lines=$("imp").value.split(/\r?\n/).map(l=>l.trim()).filter(Boolean); let ok=0;
   for(const l of lines){ let c=l.split("\t").map(s=>s.trim()); let d=null;
@@ -600,11 +665,164 @@ $("btnImport").onclick=()=>{
   S.hist.sort((a,b)=>a.d<b.d?-1:1); S.hist=S.hist.slice(-600);
   save(); $("imp").value=""; renderSettings(); render(); toast(ok?`${ok} righe importate`:"Nessuna riga valida: servono almeno Descrizione, Categoria, Conto",!ok);
 };
-$("btnExport").onclick=()=>copyText(JSON.stringify(S),"Backup copiato negli appunti");
-$("btnImportBak").onclick=()=>{ try{ const v=JSON.parse($("bak").value.trim()); if(!v||!v.dict) throw 0; const keepHook=S.hook; S={...S,...v}; if(!S.hook) S.hook=keepHook; save(); $("bak").value=""; renderSettings(); resetForm(); toast("Backup importato"); }catch(e){ toast("Backup non valido: incolla il testo copiato con \"Copia backup\"",true); } };
-$("btnReset").onclick=()=>{ if(confirm("Azzerare memoria, ricorrenze e impostazioni?")){ S={hook:"",dateFmt:"serial",defConto:"Trade",dict:{},catN:{},log:[],hist:[],muted:[],v2:true}; save(); renderSettings(); resetForm(); } };
+$("btnExport").onclick=()=>{ const {cache,...rest}=S; copyText(JSON.stringify(rest),"Backup copiato negli appunti"); };
+$("btnImportBak").onclick=()=>{ try{ const v=JSON.parse($("bak").value.trim()); if(!v||!v.dict) throw 0; const keepHook=S.hook, keepShare=S.share, keepCache=S.cache; S={...S,...v}; if(!S.hook) S.hook=keepHook; if(!S.share) S.share=keepShare; S.cache=keepCache; save(); $("bak").value=""; renderSettings(); resetForm(); toast("Backup importato"); }catch(e){ toast("Backup non valido: incolla il testo copiato con \"Copia backup\"",true); } };
+$("btnReset").onclick=()=>{ if(confirm("Azzerare memoria, ricorrenze e impostazioni?")){ S={hook:"",share:"",wa:"",dateFmt:"serial",defConto:"Trade",dict:{},catN:{},log:[],hist:[],muted:[],cache:null,v2:true}; save(); renderSettings(); resetForm(); } };
 
-load().then(render);
+// ================= LETTURA EXCEL =================
+function loadXLSX(){ return window.XLSX?Promise.resolve():new Promise((res,rej)=>{ const s=document.createElement("script"); s.src=XLSX_CDN; s.onload=res; s.onerror=()=>rej(new Error("Libreria Excel non scaricata: controlla la connessione")); document.head.appendChild(s); }); }
+function shareUrls(link){
+  const b64=btoa(unescape(encodeURIComponent(link))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+  return [`https://api.onedrive.com/v1.0/shares/u!${b64}/root/content`, link+(link.includes("?")?"&":"?")+"download=1"];
+}
+async function fetchWorkbook(){
+  let lastErr="";
+  for(const u of shareUrls(S.share)){
+    try{ const r=await fetch(u,{cache:"no-store"}); if(!r.ok){ lastErr=`OneDrive ha risposto ${r.status}`; continue; }
+      const buf=await r.arrayBuffer(); const b=new Uint8Array(buf.slice(0,2));
+      if(b[0]===0x50&&b[1]===0x4B) return buf; lastErr="Il link non restituisce il file Excel (forse non è un link 'chiunque può visualizzare')"; }
+    catch(e){ lastErr="Il browser ha bloccato il download dal link"; }
+  }
+  throw new Error(lastErr||"Download non riuscito");
+}
+function cellDate(v){
+  if(v==null||v==="") return null;
+  if(typeof v==="number") return serialISO(v);
+  if(v instanceof Date) return dateISO(v);
+  const s=String(v).trim(); let m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})/); if(m){ let y=+m[3]; if(y<100) y+=2000; return `${y}-${pad2(m[2])}-${pad2(m[1])}`; }
+  m=s.match(/^(\d{4})-(\d{2})-(\d{2})/); if(m) return m[0]; return null;
+}
+function parseWorkbook(buf){
+  const wb=XLSX.read(buf,{type:"array",cellDates:false});
+  const need=["Movimenti","Impostazioni","Patrimonio"]; for(const n of need) if(!wb.Sheets[n]) throw new Error(`Manca il foglio ${n} nel file`);
+  const mv=XLSX.utils.sheet_to_json(wb.Sheets["Movimenti"],{header:1,range:"A5:J5024",raw:true,defval:null});
+  const rows=[]; for(const r of mv){ const d=cellDate(r[0]); const imp=typeof r[4]==="number"?r[4]:parseFloat(String(r[4]||"").replace(",",".")); if(!d||isNaN(imp)||!r[1]) continue; rows.push({d,desc:String(r[1]).trim(),cat:String(r[2]||"").trim(),conto:String(r[3]||"").trim(),imp:Math.round(imp*100)/100}); }
+  const im=XLSX.utils.sheet_to_json(wb.Sheets["Impostazioni"],{header:1,range:"A5:K31",raw:true,defval:null});
+  const cats=[], accounts=[];
+  for(const r of im.slice(0,27)){ if(r[1]) cats.push({name:String(r[1]).trim(),emoji:r[2]||"",tipo:String(r[3]||"").trim(),budget:Math.abs(+r[4]||0)}); }
+  for(const r of im.slice(0,8)){ if(r[6]) accounts.push({name:String(r[6]).trim(),saldo0:+r[7]||0,addebita:r[8]?String(r[8]).trim():""}); }
+  const ps=wb.Sheets["Patrimonio"]; const gv=a=>{ const c=ps[a]; return c?c.v:null; };
+  const assets=[]; for(let r=31;r<=36;r++){ const name=gv("B"+r); if(!name) continue; const qty=gv("C"+r), price=gv("D"+r); const value=(typeof qty==="number"&&typeof price==="number")?qty*price:(typeof price==="number"?price:(+gv("E"+r)||0)); assets.push({name:String(name),qty:typeof qty==="number"?qty:null,price:typeof price==="number"?price:null,value:Math.round(value*100)/100}); }
+  const assetDate=cellDate(gv("E4"));
+  const storico=[]; for(let r=58;r<=200;r++){ const d=cellDate(gv("B"+r)); const v=gv("C"+r); if(!d||typeof v!=="number") { if(r>60&&!gv("B"+r)) break; continue; } storico.push({d,v}); }
+  return {ts:Date.now(),rows,cats,accounts,assets,assetDate,storico};
+}
+let lastRefresh=0;
+async function refreshExcel(force){
+  if(!S.share) throw new Error("Manca il link OneDrive: aggiungilo in ⚙︎");
+  if(!force&&Date.now()-lastRefresh<60000) return;
+  await loadXLSX(); const buf=await fetchWorkbook(); const data=parseWorkbook(buf);
+  S.cache=data; lastRefresh=Date.now(); save(); render();
+}
+
+// ---------- calcoli (replica delle formule del file) ----------
+function calc(){
+  const C=S.cache; if(!C) return null;
+  const rows=C.rows; const now=today(); const yearNow=now.getFullYear();
+  const catInfo={}; for(const c of C.cats) catInfo[c.name]=c;
+  const tipoOf=cat=>(catInfo[cat]||{}).tipo||"Spesa";
+  const sum=f=>rows.reduce((a,r)=>f(r)?a+r.imp:a,0);
+  // carte: spese già addebitate (il 15 del mese successivo) e ancora da addebitare
+  const cards=C.accounts.filter(a=>a.addebita).map(c=>{ let settled=0; for(let m=0;m<12;m++){ const addebito=new Date(yearNow,m+1,15); if(now>=addebito) settled+=sum(r=>r.conto===c.name&&r.d.startsWith(`${yearNow}-${pad2(m+1)}`)); }
+    const total=sum(r=>r.conto===c.name); return {...c,settled,daAddebitare:total-settled}; });
+  // saldi conto = saldo iniziale + movimenti + addebiti già passati delle carte collegate
+  const liquid=C.accounts.filter(a=>!a.addebita).map(a=>({...a,saldo:a.saldo0+sum(r=>r.conto===a.name)+cards.filter(c=>c.addebita===a.name).reduce((x,c)=>x+c.settled,0)}));
+  const liquidita=liquid.reduce((a,x)=>a+x.saldo,0);
+  const carte=cards;
+  const carteTot=carte.reduce((a,x)=>a+x.daAddebitare,0);
+  const assetTot=C.assets.reduce((a,x)=>a+x.value,0);
+  const patrimonio=liquidita+carteTot+assetTot;
+  const inizioAnno=(C.storico.find(s=>s.d===`${yearNow}-01-01`)||{}).v;
+  const etf=C.assets.filter(a=>/etf|ftse|msci/i.test(a.name)).reduce((a,x)=>a+x.value,0);
+  const crypto=C.assets.filter(a=>/bitcoin|btc|cronos|cro|crypto|eth/i.test(a.name)).reduce((a,x)=>a+x.value,0);
+  const pensione=C.assets.filter(a=>/pension/i.test(a.name)).reduce((a,x)=>a+x.value,0);
+  // mese
+  const month=m=>{ const pre=m; const inM=r=>r.d.startsWith(pre);
+    const entrate=sum(r=>inM(r)&&tipoOf(r.cat)==="Entrata"); const spese=-sum(r=>inM(r)&&tipoOf(r.cat)==="Spesa"); const investiti=-sum(r=>inM(r)&&tipoOf(r.cat)==="Investimento");
+    const varLiq=entrate-spese-investiti; const risparmio=investiti+Math.max(0,varLiq);
+    const byCat=C.cats.filter(c=>c.tipo==="Spesa").map(c=>({name:c.name,emoji:c.emoji,budget:c.budget,speso:-sum(r=>inM(r)&&r.cat===c.name)})).filter(c=>c.speso>0.005).sort((a,b)=>b.speso-a.speso);
+    return {entrate,spese,investiti,varLiq,risparmio,tasso:entrate?risparmio/entrate:0,byCat}; };
+  const months=[...new Set(rows.map(r=>r.d.slice(0,7)))].sort();
+  return {saldi:liquid,carte,liquidita,carteTot,assetTot,patrimonio,inizioAnno,etf,crypto,pensione,assets:C.assets,assetDate:C.assetDate,storico:C.storico,month,months,ts:C.ts};
+}
+
+// ---------- Riepilogo UI ----------
+function monthLabel(m){ const [y,mm]=m.split("-"); return `${MESI[+mm-1]} ${y}`; }
+function shiftMonth(m,k){ const [y,mm]=m.split("-").map(Number); const d=new Date(y,mm-1+k,1); return `${d.getFullYear()}-${pad2(d.getMonth()+1)}`; }
+function donutSVG(items,total){
+  const R=60, r=38, cx=75, cy=75; let a0=-Math.PI/2; let paths="";
+  items.forEach((it,i)=>{ const frac=it.speso/total; if(frac<=0) return; const a1=a0+frac*2*Math.PI; const large=frac>0.5?1:0;
+    const p=(ang,rad)=>[cx+rad*Math.cos(ang),cy+rad*Math.sin(ang)];
+    const [x0,y0]=p(a0,R),[x1,y1]=p(a1,R),[x2,y2]=p(a1,r),[x3,y3]=p(a0,r);
+    paths+=`<path d="M${x0.toFixed(1)} ${y0.toFixed(1)} A${R} ${R} 0 ${large} 1 ${x1.toFixed(1)} ${y1.toFixed(1)} L${x2.toFixed(1)} ${y2.toFixed(1)} A${r} ${r} 0 ${large} 0 ${x3.toFixed(1)} ${y3.toFixed(1)} Z" fill="${PALETTE[i%PALETTE.length]}" stroke="#fff" stroke-width="1.5"/>`; a0=a1; });
+  return `<svg viewBox="0 0 150 150" width="150" height="150" aria-hidden="true">${paths}<text x="75" y="71" text-anchor="middle" font-size="11" fill="#5A6C80">Spese</text><text x="75" y="88" text-anchor="middle" font-size="15" font-weight="700" fill="#16283A">${fmt0(total)} €</text></svg>`;
+}
+function barsSVG(series){ // series: [{label, a(entrate), b(spese)}]
+  const W=440,H=170,padL=8,padB=22,padT=8; const n=series.length; if(!n) return "";
+  const max=Math.max(1,...series.flatMap(s=>[s.a,s.b])); const gw=(W-padL*2)/n; const bw=Math.min(18,gw*0.32);
+  let g="";
+  series.forEach((s,i)=>{ const x=padL+i*gw+gw/2; const ha=(s.a/max)*(H-padB-padT), hb=(s.b/max)*(H-padB-padT);
+    g+=`<rect x="${(x-bw-1).toFixed(1)}" y="${(H-padB-ha).toFixed(1)}" width="${bw}" height="${ha.toFixed(1)}" rx="3" fill="#1F6FD0"/>`;
+    g+=`<rect x="${(x+1).toFixed(1)}" y="${(H-padB-hb).toFixed(1)}" width="${bw}" height="${hb.toFixed(1)}" rx="3" fill="#E4572E"/>`;
+    g+=`<text x="${x.toFixed(1)}" y="${H-6}" text-anchor="middle" font-size="11" fill="#5A6C80">${s.label}</text>`; });
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" aria-hidden="true"><line x1="${padL}" y1="${H-padB}" x2="${W-padL}" y2="${H-padB}" stroke="#CFDCEA"/>${g}</svg>`;
+}
+function lineSVG(points){ // [{d,v}]
+  const W=440,H=150,pl=8,pb=20,pt=10; if(points.length<2) return "";
+  const vs=points.map(p=>p.v); const min=Math.min(...vs), max=Math.max(...vs); const span=Math.max(1,max-min);
+  const xs=i=>pl+i*(W-pl*2)/(points.length-1); const ys=v=>pt+(1-(v-min)/span)*(H-pt-pb);
+  const path=points.map((p,i)=>`${i?"L":"M"}${xs(i).toFixed(1)} ${ys(p.v).toFixed(1)}`).join(" ");
+  const area=path+` L${xs(points.length-1).toFixed(1)} ${H-pb} L${pl} ${H-pb} Z`;
+  const labels=points.map((p,i)=>(i===0||i===points.length-1||i%3===0)?`<text x="${xs(i).toFixed(1)}" y="${H-5}" text-anchor="middle" font-size="10" fill="#5A6C80">${MESI_S[+p.d.slice(5,7)-1]} ${p.d.slice(2,4)}</text>`:"").join("");
+  const last=points[points.length-1];
+  return `<svg class="chart" viewBox="0 0 ${W} ${H}" aria-hidden="true"><path d="${area}" fill="#DCEBFB"/><path d="${path}" fill="none" stroke="#1F6FD0" stroke-width="2.5" stroke-linejoin="round"/><circle cx="${xs(points.length-1).toFixed(1)}" cy="${ys(last.v).toFixed(1)}" r="4" fill="#1F6FD0"/>${labels}</svg>`;
+}
+function renderRp(){
+  const body=$("rpBody"); const D=calc();
+  if(!D){ body.innerHTML=`<div class="card"><div class="empty"><b>${R.loading?"Sto leggendo Excel…":"Nessun dato ancora"}</b>${R.loading?"":(S.share?"Trascina in giù o tocca Aggiorna per leggere il file.":"In ⚙︎ incolla il link di condivisione OneDrive di Finanze2026.xlsx, poi torna qui.")}</div></div>`; return; }
+  if(!R.month) R.month=D.months.length?D.months[D.months.length-1]:dateISO(today()).slice(0,7);
+  const M=D.month(R.month); const ytd=D.inizioAnno!=null?D.patrimonio-D.inizioAnno:null;
+  const when=new Date(D.ts); const ago=Math.round((Date.now()-D.ts)/60000);
+  let h=`<div class="hero"><div class="lbl">Patrimonio oggi${D.assetDate?` · prezzi asset al ${dateIT(fromISO(D.assetDate))}`:""}</div><div class="big">${fmtIT(D.patrimonio)} €</div>`;
+  if(ytd!=null) h+=`<div class="ytd">Da inizio anno <em class="${ytd<0?"neg":""}">${ytd>=0?"+":"−"}${fmtIT(Math.abs(ytd))} €</em></div>`;
+  h+=`<div class="grid3"><div><small>Liquidità</small><b>${fmt0(D.liquidita)} €</b></div><div><small>Carte da addebitare</small><b>${fmt0(D.carteTot)} €</b></div><div><small>Asset</small><b>${fmt0(D.assetTot)} €</b></div></div></div>`;
+  h+=`<div class="sync">${R.loading?"Aggiornamento in corso…":`Letto da Excel ${ago<1?"adesso":ago<60?ago+" min fa":"alle "+pad2(when.getHours())+":"+pad2(when.getMinutes())+" del "+shortDate(when)}`}<button id="rpRefresh">Aggiorna</button></div>`;
+  // mese
+  h+=`<div class="card"><div class="mnav"><button id="mPrev">‹</button><b>${monthLabel(R.month)}</b><button id="mNext">›</button></div>
+    <div class="kpi"><div><small>Entrate</small><b>${fmt0(M.entrate)} €</b></div><div><small>Spese</small><b>${fmt0(M.spese)} €</b></div><div><small>Investiti</small><b>${fmt0(M.investiti)} €</b></div><div><small>Risparmio · ${Math.round(M.tasso*100)}%</small><b>${fmt0(M.risparmio)} €</b></div></div></div>`;
+  // torta
+  const top=M.byCat.slice(0,9); const rest=M.byCat.slice(9); const items=rest.length?[...top,{name:"Altre",emoji:"…",speso:rest.reduce((a,c)=>a+c.speso,0),budget:0}]:top;
+  h+=`<div class="card"><h3>Spese per categoria<small>${monthLabel(R.month)}</small></h3>`;
+  if(!items.length) h+=`<div class="empty">Nessuna spesa registrata in questo mese.</div>`;
+  else{ h+=`<div class="donutwrap">${donutSVG(items,M.spese)}<ul class="legend">${items.map((c,i)=>`<li><i style="background:${PALETTE[i%PALETTE.length]}"></i><span>${c.emoji?c.emoji+" ":""}${esc(c.name)}</span><b>${fmt0(c.speso)} €<small>${Math.round(c.speso/M.spese*100)}%</small></b></li>`).join("")}</ul></div>`;
+    h+=`<ul class="rows" style="margin-top:10px">${M.byCat.map(c=>`<li><span>${c.emoji?c.emoji+" ":""}${esc(c.name)}<small>budget ${fmt0(c.budget)} €</small><div class="bar"><i class="${c.budget&&c.speso>c.budget?"over":""}" style="width:${c.budget?Math.min(100,c.speso/c.budget*100):0}%"></i></div></span><b>${fmtIT(c.speso)} €</b></li>`).join("")}</ul>`; }
+  h+=`</div>`;
+  // saldi
+  h+=`<div class="card"><h3>Saldo per conto</h3><ul class="rows">${D.saldi.map(a=>`<li><span>${esc(a.name)}</span><b>${fmtIT(a.saldo)} €</b></li>`).join("")}<li class="tot"><span>Totale liquidità</span><b>${fmtIT(D.liquidita)} €</b></li>${D.carte.map(c=>`<li><span>${esc(c.name)}<small>carta · addebito su ${esc(c.addebita)} il 15 del mese dopo</small></span><b>${fmtIT(c.daAddebitare)} €</b></li>`).join("")}</ul></div>`;
+  // investimenti
+  h+=`<div class="card"><h3>Investimenti e asset<small>${D.assetDate?"al "+dateIT(fromISO(D.assetDate)):""}</small></h3><ul class="rows">${D.assets.map(a=>`<li><span>${esc(a.name)}${a.qty!=null?`<small>${a.qty.toLocaleString("it-IT",{maximumFractionDigits:4})} × ${fmtIT(a.price)} €</small>`:""}</span><b>${fmtIT(a.value)} €</b></li>`).join("")}<li class="tot"><span>Totale asset</span><b>${fmtIT(D.assetTot)} €</b></li></ul><p style="font-size:12.5px;color:#5A6C80;margin:8px 0 0">Quantità e prezzi sono quelli inseriti nel foglio Patrimonio: aggiornali lì per vedere il valore corrente.</p></div>`;
+  // confronto mesi
+  const yearNow=today().getFullYear(); const ms=D.months.filter(m=>m.startsWith(String(yearNow))).slice(-12);
+  const series=ms.map(m=>{ const x=D.month(m); return {label:MESI_S[+m.slice(5,7)-1],a:x.entrate,b:x.spese}; });
+  h+=`<div class="card"><h3>Confronto mese su mese<small>${yearNow}</small></h3>${barsSVG(series)}<div class="lg"><span><i style="background:#1F6FD0"></i>Entrate</span><span><i style="background:#E4572E"></i>Spese</span></div></div>`;
+  // storico patrimonio
+  const st=D.storico.slice(-14);
+  if(st.length>=2) h+=`<div class="card"><h3>Andamento patrimonio<small>inizio mese</small></h3>${lineSVG(st)}</div>`;
+  body.innerHTML=h;
+  $("rpRefresh").onclick=()=>doRefresh(true);
+  $("mPrev").onclick=()=>{ R.month=shiftMonth(R.month,-1); renderRp(); };
+  $("mNext").onclick=()=>{ R.month=shiftMonth(R.month,1); renderRp(); };
+}
+async function doRefresh(force){
+  if(R.loading) return; R.loading=true; renderRp();
+  try{ await refreshExcel(force); }catch(e){ toast(e.message,true); }
+  R.loading=false; renderRp();
+}
+function openRp(){ $("sheetRp").classList.add("open"); renderRp(); if(S.share) doRefresh(false); }
+// trascina in giù per aggiornare
+(()=>{ const sh=$("sheetRp"); let y0=null; sh.addEventListener("touchstart",e=>{ y0=sh.scrollTop<=0?e.touches[0].clientY:null; },{passive:true}); sh.addEventListener("touchend",e=>{ if(y0!=null&&e.changedTouches[0].clientY-y0>90) doRefresh(true); y0=null; },{passive:true}); })();
+
+load().then(()=>{ render(); if(S.share&&S.cache&&Date.now()-S.cache.ts>4*3600e3) refreshExcel(false).catch(()=>{}); });
 </script>
 </body>
 </html>
