@@ -345,7 +345,7 @@
 
   <div class="field">
     <label>Versione app</label>
-    <p><b>v9</b> · "Aggiorna da Trade" + border collie che insegue la pallina. Se non leggi "v9" qui, versione vecchia.</p>
+    <p><b>v10</b> · "Aggiorna da Trade" + border collie che insegue la pallina. Aggiunti conto Amex Siemens e categoria Trasferte. Se non leggi "v10" qui, versione vecchia.</p>
   </div>
   <div class="field">
     <label>Dettatura</label>
@@ -356,9 +356,10 @@
 <div class="toast" id="toast"></div>
 
 <script>
-const CATS=["Casa","Spesa","Ristorante","Mediche","Bambino","Cane","Sport","Divertimento","Viaggi","Abbigliamento Emi","Abbigliamento Ele","Auto Emi","Auto Ele","Cell Emi","Cell Ele","Cura della persona","Regali -","Mutuo","Prestito","Altro","Carta di Credito","Stipendio Emi","Stipendio Ele","Regali +","Interessi conto deposito","Investimento","Trasferimento"];
+const CATS=["Casa","Spesa","Ristorante","Mediche","Bambino","Cane","Sport","Divertimento","Viaggi","Abbigliamento Emi","Abbigliamento Ele","Auto Emi","Auto Ele","Cell Emi","Cell Ele","Cura della persona","Regali -","Mutuo","Prestito","Altro","Trasferte","Stipendio Emi","Stipendio Ele","Regali +","Interessi conto deposito","Investimento","Trasferimento"];
 const IN_CATS=new Set(["Stipendio Emi","Stipendio Ele","Regali +","Interessi conto deposito"]);
-const CONTI=["Trade","BNL","Allianz","Contanti","Amex","Visa","BPER","PayPal"];
+const CONTI=["Trade","BNL","Allianz","Contanti","Amex","Visa","BPER","PayPal","Amex Siemens"];
+const CONTO_TRASFERTE="Amex Siemens", CAT_TRASFERTE="Trasferte";
 const DOW=["domenica","lunedì","martedì","mercoledì","giovedì","venerdì","sabato"];
 const MESI=["Gennaio","Febbraio","Marzo","Aprile","Maggio","Giugno","Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre"];
 const MESI_S=["Gen","Feb","Mar","Apr","Mag","Giu","Lug","Ago","Set","Ott","Nov","Dic"];
@@ -371,7 +372,8 @@ const SEED_RULES=[
   {id:"mutuo",desc:"Mutuo",cat:"Mutuo",conto:"BNL",type:"monthly",from:25,hint:"a fine mese"},
   {id:"stip_ele",desc:"Stipendio Ele",cat:"Stipendio Ele",conto:"Allianz",type:"monthly",from:4,hint:"dal 4 del mese"},
   {id:"rebelot",desc:"CAFFÈ REBELOT DI STEFAN",key:"caffè rebelot di stefan",cat:"Ristorante",conto:"Trade",imp:7,type:"weekly",dow:1,hint:"ogni lunedì · brioches Ele"},
-  {id:"spesa",desc:"Spesa",cat:"Spesa",conto:"BNL",type:"interval",days:14,hint:"ogni 2 settimane"}
+  {id:"spesa",desc:"Spesa",cat:"Spesa",conto:"BNL",type:"interval",days:14,hint:"ogni 2 settimane"},
+  {id:"amex_siemens",desc:"Addebito Amex Siemens",key:"addebito amex siemens",cat:CAT_TRASFERTE,conto:"BNL",type:"monthly",from:8,hint:"l'8 del mese · poi registra la gamba su Amex Siemens"}
 ];
 
 let S={ hook:"", share:"", pac:"", wa:"", dateFmt:"serial", defConto:"Trade",
@@ -759,7 +761,8 @@ function calc(){
       if(now>=addebito) settled+=spend; else if(Math.abs(spend)>0.004) pend.push({mese:MESI[m],due:addebito,amount:spend}); }
     const total=sum(r=>r.conto===c.name); return {...c,settled,pend,daAddebitare:total-settled}; });
   // saldi conto = saldo iniziale + movimenti + addebiti già passati delle carte collegate
-  const liquid=C.accounts.filter(a=>!a.addebita).map(a=>({...a,saldo:a.saldo0+sum(r=>r.conto===a.name)+cards.filter(c=>c.addebita===a.name).reduce((x,c)=>x+c.settled,0)}));
+  const liquid=C.accounts.filter(a=>!a.addebita&&a.name!==CONTO_TRASFERTE).map(a=>({...a,saldo:a.saldo0+sum(r=>r.conto===a.name)+cards.filter(c=>c.addebita===a.name).reduce((x,c)=>x+c.settled,0)}));
+  const trasferte={ daAddebitare:sum(r=>r.conto===CONTO_TRASFERTE), credito:-sum(r=>r.cat===CAT_TRASFERTE), righe:rows.filter(r=>r.cat===CAT_TRASFERTE).length };
   const liquidita=liquid.reduce((a,x)=>a+x.saldo,0);
   const carte=cards;
   const carteTot=carte.reduce((a,x)=>a+x.daAddebitare,0);
@@ -778,7 +781,7 @@ function calc(){
     const byCat=C.cats.filter(c=>c.tipo==="Spesa").map(c=>({name:c.name,emoji:c.emoji,budget:c.budget,speso:-sum(r=>inM(r)&&r.cat===c.name)})).filter(c=>c.speso>0.005).sort((a,b)=>b.speso-a.speso);
     return {entrate,spese,investiti,varLiq,risparmio,tasso:entrate?risparmio/entrate:0,byCat}; };
   const months=[...new Set(rows.map(r=>r.d.slice(0,7)))].sort();
-  return {saldi:liquid,carte,liquidita,carteTot,assetTot,patrimonio,inizioAnno,etf,crypto,pensione,assets,livePrices,assetDate:C.assetDate,storico:C.storico,month,months,ts:C.ts};
+  return {saldi:liquid,carte,trasferte,liquidita,carteTot,assetTot,patrimonio,inizioAnno,etf,crypto,pensione,assets,livePrices,assetDate:C.assetDate,storico:C.storico,month,months,ts:C.ts};
 }
 
 // ---------- Riepilogo UI ----------
@@ -834,6 +837,11 @@ function renderRp(){
   h+=`</div>`;
   // saldi
   h+=`<div class="card"><h3>Saldo per conto</h3><ul class="rows">${D.saldi.map(a=>`<li><span>${esc(a.name)}</span><b>${fmtIT(a.saldo)} €</b></li>`).join("")}<li class="tot"><span>Totale liquidità</span><b>${fmtIT(D.liquidita)} €</b></li>${D.carte.map(c=>c.pend.length?c.pend.map(p=>`<li><span>${esc(c.name)} · spese di ${p.mese.toLowerCase()}<small>addebito su ${esc(c.addebita)} il ${dateIT(p.due)}</small></span><b>${fmtIT(p.amount)} €</b></li>`).join(""):`<li><span>${esc(c.name)}<small>nessuna spesa da addebitare</small></span><b>0,00 €</b></li>`).join("")}</ul></div>`;
+  // trasferte Siemens
+  if(D.trasferte.righe) h+=`<div class="card"><h3>Trasferte Siemens</h3><ul class="rows">
+    <li><span>Da farsi rimborsare<small>spese fatte e non ancora accreditate da Siemens</small></span><b>${fmtIT(D.trasferte.credito)} €</b></li>
+    <li><span>Speso su Amex Siemens<small>non ancora addebitato sul conto</small></span><b>${fmtIT(D.trasferte.daAddebitare)} €</b></li></ul>
+    <p style="font-size:12.5px;color:#5A6C80;margin:8px 0 0">Non entra nelle spese del mese né nel patrimonio: l'uscita è compensata dal rimborso.</p></div>`;
   // investimenti
   h+=`<div class="card"><h3>Investimenti e asset<small>${D.livePrices?`<span class="live">prezzi live</span>`:(D.assetDate?"al "+dateIT(fromISO(D.assetDate)):"")}</small></h3><ul class="rows">${D.assets.map(a=>`<li><span>${esc(a.name)}${a.qty!=null?`<small>${a.qty.toLocaleString("it-IT",{maximumFractionDigits:4})} × ${fmtIT(a.price)} €${a.live?" · live":""}</small>`:""}</span><b>${fmtIT(a.value)} €</b></li>`).join("")}<li class="tot"><span>Totale asset</span><b>${fmtIT(D.assetTot)} €</b></li></ul><button class="btn" id="btnPacOpen" style="margin-top:10px">📥 Aggiorna da Trade (incolla screenshot)</button></div>`;
   // confronto mesi
