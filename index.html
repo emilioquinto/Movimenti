@@ -180,6 +180,19 @@
   .rp .empty{color:var(--ink-2);font-size:14px;text-align:center;padding:24px 8px;line-height:1.5}
   .rp .empty b{display:block;color:var(--ink);margin-bottom:6px}
   .rp .chart{width:100%;height:auto;display:block}
+  .mv .sum{display:flex;justify-content:space-between;gap:10px;background:var(--navy);color:#fff;border-radius:var(--r);padding:10px 14px;margin-bottom:10px;font-size:14px}
+  .mv .sum b{display:block;font-size:17px;font-family:ui-rounded,-apple-system,system-ui,sans-serif}
+  .mv .sum span small{color:var(--navy-2)}
+  .mv .day{font-size:13px;color:var(--ink-2);font-weight:600;margin:12px 0 6px}
+  .mv ul.list{list-style:none;margin:0;padding:0;background:var(--paper);border-radius:var(--r);overflow:hidden}
+  .mv ul.list li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line)}
+  .mv ul.list li:last-child{border-bottom:0}
+  .mv ul.list li b{font-weight:600;font-size:15px;display:block}
+  .mv ul.list li small{color:var(--ink-2);font-size:12.5px}
+  .mv ul.list li .v{font-family:ui-rounded,-apple-system,system-ui,sans-serif;font-weight:700;white-space:nowrap}
+  .mv ul.list li .v.in{color:var(--in)}
+  .mv .more2{width:100%;background:var(--paper);border-radius:var(--r);padding:12px;font-weight:600;color:var(--go);margin-top:10px}
+  .mv .empty{color:var(--ink-2);text-align:center;padding:24px 8px}
   .rp .lg{display:flex;gap:14px;font-size:12.5px;color:var(--ink-2);margin-top:6px}
   .rp .lg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
   @media (prefers-reduced-motion:reduce){.toast,.padwrap{transition:none}.dictate.rec .mic{animation:none}}
@@ -192,6 +205,7 @@
     <h1>Nuovo movimento</h1>
     <div class="grp">
       <button class="ic" id="btnRp" aria-label="Riepilogo"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></button>
+      <button class="ic" id="btnMv" aria-label="Movimenti"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg></button>
       <button class="ic badge" id="btnLog" aria-label="Inviati"><span>☰</span><span class="n" id="logN" hidden>0</span></button>
     </div>
   </div>
@@ -266,6 +280,15 @@
 <div class="sheet rp" id="sheetRp">
   <div class="top"><h2>Riepilogo</h2><button class="close" data-close="sheetRp">Chiudi</button></div>
   <div id="rpBody"></div>
+</div>
+
+<div class="sheet mv" id="sheetMv">
+  <div class="top"><h2>Movimenti</h2><button class="close" data-close="sheetMv">Chiudi</button></div>
+  <div class="field"><input type="text" id="mvQ" placeholder="Cerca descrizione…" autocomplete="off" autocorrect="off" enterkeyhint="search"></div>
+  <div class="field inline"><label>Mese</label><div class="chips" id="mvMonth"></div></div>
+  <div class="field"><label>Categoria</label><div class="chips" id="mvCat"></div></div>
+  <div class="field"><label>Conto</label><div class="chips" id="mvConto"></div></div>
+  <div id="mvBody"></div>
 </div>
 
 <!-- ============ PAC ============ -->
@@ -345,7 +368,7 @@
 
   <div class="field">
     <label>Versione app</label>
-    <p><b>v10</b> · "Aggiorna da Trade" + border collie che insegue la pallina. Aggiunti conto Amex Siemens e categoria Trasferte. Se non leggi "v10" qui, versione vecchia.</p>
+    <p><b>v11</b> · "Aggiorna da Trade" + border collie che insegue la pallina. Aggiunti conto Amex Siemens, categoria Trasferte ed elenco Movimenti con ricerca e filtri. Se non leggi "v11" qui, versione vecchia.</p>
   </div>
   <div class="field">
     <label>Dettatura</label>
@@ -912,6 +935,43 @@ async function sendPac(){
   toast(ok?"Patrimonio in aggiornamento: tra qualche secondo ricarico i dati":"Invio non riuscito, riprova",!ok);
   setTimeout(()=>doRefresh(true),5000);
 }
+// ---------- elenco movimenti ----------
+let MV={q:"",month:null,cat:"",conto:"",limit:60};
+function openMv(){ if(!S.cache){ toast(S.share?"Apri prima il Riepilogo per scaricare i dati":"Manca l'indirizzo del relay in ⚙︎",true); return; }
+  if(MV.month===null) MV.month=dateISO(today()).slice(0,7);
+  MV.limit=60; $("sheetMv").classList.add("open"); renderMv(); if(S.share) doRefresh(false).then?.(()=>{}); }
+function mvRows(){
+  const rows=(S.cache&&S.cache.rows)||[]; const q=norm(MV.q);
+  return rows.filter(r=> (!MV.month||r.d.startsWith(MV.month)) && (!MV.cat||r.cat===MV.cat) && (!MV.conto||r.conto===MV.conto) && (!q||norm(r.desc).includes(q)) )
+    .sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:0);
+}
+function renderMv(){
+  const C=S.cache; if(!C) return;
+  const months=[...new Set(C.rows.map(r=>r.d.slice(0,7)))].sort().reverse();
+  $("mvMonth").innerHTML=`<button class="${MV.month?"":"on"}" data-m="">Tutti</button>`+months.slice(0,18).map(m=>`<button class="${MV.month===m?"on":""}" data-m="${m}">${MESI_S[+m.slice(5,7)-1]} ${m.slice(2,4)}</button>`).join("");
+  $("mvMonth").querySelectorAll("button").forEach(b=>b.onclick=()=>{ MV.month=b.dataset.m||null; MV.limit=60; renderMv(); });
+  const cats=[...new Set(C.rows.map(r=>r.cat))].sort();
+  $("mvCat").innerHTML=`<button class="${MV.cat?"":"on"}" data-c="">Tutte</button>`+cats.map(c=>`<button class="${MV.cat===c?"on":""}" data-c="${esc(c)}">${esc(c)}</button>`).join("");
+  $("mvCat").querySelectorAll("button").forEach(b=>b.onclick=()=>{ MV.cat=b.dataset.c; MV.limit=60; renderMv(); });
+  const conti=[...new Set(C.rows.map(r=>r.conto))].sort();
+  $("mvConto").innerHTML=`<button class="${MV.conto?"":"on"}" data-c="">Tutti</button>`+conti.map(c=>`<button class="${MV.conto===c?"on":""}" data-c="${esc(c)}">${esc(c)}</button>`).join("");
+  $("mvConto").querySelectorAll("button").forEach(b=>b.onclick=()=>{ MV.conto=b.dataset.c; MV.limit=60; renderMv(); });
+  const rows=mvRows(); const inTot=rows.filter(r=>r.imp>0).reduce((a,r)=>a+r.imp,0), outTot=-rows.filter(r=>r.imp<0).reduce((a,r)=>a+r.imp,0);
+  let h=`<div class="sum"><span><small>${rows.length} movimenti</small><b>${fmtIT(inTot-outTot)} €</b></span><span><small>Entrate</small><b>${fmt0(inTot)} €</b></span><span><small>Uscite</small><b>${fmt0(outTot)} €</b></span></div>`;
+  if(!rows.length) h+=`<div class="empty">Nessun movimento con questi filtri.</div>`;
+  else{ let day=null;
+    const shown=rows.slice(0,MV.limit);
+    for(const r of shown){ if(r.d!==day){ if(day)h+=`</ul>`; day=r.d; h+=`<div class="day">${fromISO(r.d).toLocaleDateString("it-IT",{weekday:"short",day:"numeric",month:"long"})}</div><ul class="list">`; }
+      h+=`<li><span><b>${esc(r.desc)}</b><small>${esc(r.cat)} · ${esc(r.conto)}</small></span><span class="v ${r.imp>0?"in":""}">${fmtIT(r.imp)} €</span></li>`; }
+    h+=`</ul>`;
+    if(rows.length>MV.limit) h+=`<button class="more2" id="mvMore">Mostra altri ${Math.min(60,rows.length-MV.limit)} (di ${rows.length-MV.limit})</button>`;
+  }
+  $("mvBody").innerHTML=h;
+  const mm=$("mvMore"); if(mm) mm.onclick=()=>{ MV.limit+=60; renderMv(); };
+}
+$("mvQ").oninput=e=>{ MV.q=e.target.value; MV.limit=60; renderMv(); };
+$("mvQ").onkeydown=e=>{ if(e.key==="Enter") e.target.blur(); };
+$("btnMv").onclick=openMv;
 // trascina in giù per aggiornare
 (()=>{ const sh=$("sheetRp"); let y0=null; sh.addEventListener("touchstart",e=>{ y0=sh.scrollTop<=0?e.touches[0].clientY:null; },{passive:true}); sh.addEventListener("touchend",e=>{ if(y0!=null&&e.changedTouches[0].clientY-y0>90) doRefresh(true); y0=null; },{passive:true}); })();
 
