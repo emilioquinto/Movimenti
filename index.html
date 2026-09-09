@@ -383,7 +383,7 @@
 
   <div class="field">
     <label>Versione app</label>
-    <p><b>v13</b> · "Aggiorna da Trade" + border collie che insegue la pallina. Aggiunti conto Amex Siemens, categoria Trasferte elenco Movimenti e grafico patrimonio interattivo. Se non leggi "v12" qui, versione vecchia.</p>
+    <p><b>v14</b> · "Aggiorna da Trade" + border collie che insegue la pallina. Aggiunti conto Amex Siemens, categoria Trasferte elenco Movimenti e grafico patrimonio interattivo. Se non leggi "v12" qui, versione vecchia.</p>
   </div>
   <div class="field">
     <label>Dettatura</label>
@@ -845,68 +845,87 @@ function barsSVG(series){ // series: [{label, a(entrate), b(spese)}]
 }
 
 // ---------- grafico patrimonio interattivo ----------
-let PAT={pts:[],i0:0,i1:0,sel:null};
+let PAT={pts:[],i0:0,i1:0,sel:null,geo:null};
 function initPat(all){
-  PAT.pts=all;
-  const n=all.length; if(PAT.i1===0||PAT.i1>n-1){ PAT.i0=Math.max(0,n-13); PAT.i1=n-1; }
-  drawPat();
+  PAT.pts=all; const n=all.length;
+  if(!PAT.geo||PAT.i1>n-1){ PAT.i1=n-1; PAT.i0=Math.max(0,n-13); }
+  buildPat(); bindPat();
 }
-function drawPat(){
+function patView(){ return PAT.pts.slice(PAT.i0,PAT.i1+1); }
+function buildPat(){
   const card=$("patCard"); if(!card) return;
-  const {pts,i0,i1}=PAT; const view=pts.slice(i0,i1+1); if(view.length<2) return;
+  const view=patView(); if(view.length<2) return;
   const W=440,H=210,pl=10,pr=10,pt=16,pb=24;
   const vs=view.map(p=>p.v); let min=Math.min(...vs),max=Math.max(...vs); const pad=(max-min)*0.12||1; min-=pad; max+=pad;
   const X=i=>pl+i*(W-pl-pr)/(view.length-1), Y=v=>pt+(1-(v-min)/(max-min))*(H-pt-pb);
+  PAT.geo={W,H,pl,pr,pt,pb,min,max,X,Y,view};
   const line=view.map((p,i)=>`${i?"L":"M"}${X(i).toFixed(1)} ${Y(p.v).toFixed(1)}`).join(" ");
   const area=line+` L${X(view.length-1).toFixed(1)} ${H-pb} L${pl} ${H-pb} Z`;
   const iMax=vs.indexOf(Math.max(...vs)), iMin=vs.indexOf(Math.min(...vs));
-  const last=view[view.length-1], first=view[0];
-  const selIdx=PAT.sel!=null?Math.max(i0,Math.min(i1,PAT.sel))-i0:null;
-  const cur=selIdx!=null?view[selIdx]:last;
-  const prev=selIdx!=null&&selIdx>0?view[selIdx-1]:null;
-  const dRange=cur.v-first.v, pRange=first.v?dRange/first.v*100:0;
-  const dPrev=prev?cur.v-prev.v:null;
-  const labels=view.map((p,i)=>{ const step=Math.ceil(view.length/5); return (i%step===0||i===view.length-1)?`<text x="${X(i).toFixed(1)}" y="${H-6}" text-anchor="middle" font-size="10" fill="#5A6C80">${MESI_S[+p.d.slice(5,7)-1]} ${p.d.slice(2,4)}</text>`:""; }).join("");
-  const marker=(i,txt,up)=>`<circle cx="${X(i).toFixed(1)}" cy="${Y(view[i].v).toFixed(1)}" r="3" fill="${up?"#0B8A4B":"#C24A2C"}"/><text x="${X(i).toFixed(1)}" y="${(Y(view[i].v)+(up?-8:14)).toFixed(1)}" text-anchor="middle" font-size="9.5" font-weight="600" fill="${up?"#0B8A4B":"#C24A2C"}">${txt}</text>`;
-  const scrub=selIdx!=null?`<line x1="${X(selIdx).toFixed(1)}" y1="${pt}" x2="${X(selIdx).toFixed(1)}" y2="${H-pb}" stroke="#1F6FD0" stroke-width="1" stroke-dasharray="3 3"/><circle cx="${X(selIdx).toFixed(1)}" cy="${Y(cur.v).toFixed(1)}" r="5" fill="#1F6FD0" stroke="#fff" stroke-width="2"/>`:`<circle cx="${X(view.length-1).toFixed(1)}" cy="${Y(last.v).toFixed(1)}" r="4.5" fill="#1F6FD0" stroke="#fff" stroke-width="2"/>`;
-  const n=pts.length;
-  const R=[["6",6],["12",12],["36",36],["all","Tutto"]];
+  const step=Math.ceil(view.length/5);
+  const labels=view.map((p,i)=>(i%step===0||i===view.length-1)?`<text x="${X(i).toFixed(1)}" y="${H-6}" text-anchor="middle" font-size="10" fill="#5A6C80">${MESI_S[+p.d.slice(5,7)-1]} ${p.d.slice(2,4)}</text>`:"").join("");
+  const marker=(i,up)=>`<circle cx="${X(i).toFixed(1)}" cy="${Y(view[i].v).toFixed(1)}" r="3" fill="${up?"#0B8A4B":"#C24A2C"}"/><text x="${X(i).toFixed(1)}" y="${(Y(view[i].v)+(up?-8:14)).toFixed(1)}" text-anchor="middle" font-size="9.5" font-weight="600" fill="${up?"#0B8A4B":"#C24A2C"}">${fmt0(view[i].v)}</text>`;
+  const n=PAT.pts.length;
+  const R=[["6","6M"],["12","12M"],["36","36M"],["all","Tutto"]];
   card.innerHTML=`
   <div class="hd">
-    <div><div class="val">${fmtIT(cur.v)} €</div><div class="sub">${selIdx!=null?fromISO(cur.d).toLocaleDateString("it-IT",{month:"long",year:"numeric"}):"oggi · "+view.length+" mesi mostrati"}${dPrev!=null?` · ${dPrev>=0?"+":"−"}${fmt0(Math.abs(dPrev))} € sul mese prima`:""}</div></div>
-    <div class="dlt ${dRange>=0?"up":"down"}">${dRange>=0?"+":"−"}${fmt0(Math.abs(dRange))} €<small>${dRange>=0?"+":"−"}${Math.abs(pRange).toFixed(1)}% da ${MESI_S[+first.d.slice(5,7)-1]} ${first.d.slice(2,4)}</small></div>
+    <div><div class="val" id="patVal"></div><div class="sub" id="patSub"></div></div>
+    <div class="dlt" id="patDlt"></div>
   </div>
-  <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+  <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" id="patSvg">
     <defs><linearGradient id="pg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1F6FD0" stop-opacity=".28"/><stop offset="1" stop-color="#1F6FD0" stop-opacity="0"/></linearGradient></defs>
     <path d="${area}" fill="url(#pg)"/>
     <path d="${line}" fill="none" stroke="#1F6FD0" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
-    ${view.length<=24?marker(iMax,fmt0(vs[iMax]),true)+marker(iMin,fmt0(vs[iMin]),false):""}
-    ${scrub}${labels}
+    ${view.length<=24?marker(iMax,true)+marker(iMin,false):""}
+    ${labels}
+    <line id="patLine" x1="0" y1="${pt}" x2="0" y2="${H-pb}" stroke="#1F6FD0" stroke-width="1" stroke-dasharray="3 3" opacity="0"/>
+    <circle id="patDot" r="5" fill="#1F6FD0" stroke="#fff" stroke-width="2" cx="${X(view.length-1).toFixed(1)}" cy="${Y(view[view.length-1].v).toFixed(1)}"/>
   </svg>
-  <div class="ranges">${R.map(([k,l])=>{ const span=k==="all"?n-1:Math.min(+k,n-1); const on=(PAT.i1===n-1&&PAT.i0===Math.max(0,n-1-span)); return `<button class="${on?"on":""}" data-r="${k}">${k==="all"?"Tutto":k+"M"}</button>`; }).join("")}</div>
+  <div class="ranges">${R.map(([k,l])=>{ const span=k==="all"?n-1:Math.min(+k,n-1); const on=(PAT.i1===n-1&&PAT.i0===Math.max(0,n-1-span)); return `<button class="${on?"on":""}" data-r="${k}">${l}</button>`; }).join("")}</div>
   <div class="tip">Scorri col dito sul grafico per i valori · pizzica per zoomare</div>`;
-  card.querySelectorAll(".ranges button").forEach(b=>b.onclick=()=>{ const k=b.dataset.r; const n=PAT.pts.length; PAT.i1=n-1; PAT.i0=k==="all"?0:Math.max(0,n-1-(+k)); PAT.sel=null; drawPat(); initPatEvents(); });
-  initPatEvents();
+  card.querySelectorAll(".ranges button").forEach(b=>b.onclick=()=>{ const k=b.dataset.r, n=PAT.pts.length; PAT.i1=n-1; PAT.i0=k==="all"?0:Math.max(0,n-1-(+k)); PAT.sel=null; buildPat(); paintPat(); });
+  paintPat();
 }
-function initPatEvents(){ /* gli handler sono agganciati una volta in initPat sul nodo svg corrente */
-  const card=$("patCard"); if(!card||card._bound===card.querySelector("svg")) return;
-  const svg=card.querySelector("svg"); if(!svg) return; card._bound=svg;
-  const xToIdx=cx=>{ const r=svg.getBoundingClientRect(); const f=(cx-r.left)/r.width; const {i0,i1}=PAT; return Math.max(i0,Math.min(i1,Math.round(i0+f*(i1-i0)))); };
-  let pinch0=null, tmr=null;
-  svg.addEventListener("touchstart",e=>{ clearTimeout(tmr);
-    if(e.touches.length===2){ const r=svg.getBoundingClientRect(); pinch0={d:Math.abs(e.touches[0].clientX-e.touches[1].clientX),i0:PAT.i0,i1:PAT.i1,c:(((e.touches[0].clientX+e.touches[1].clientX)/2-r.left)/r.width)}; PAT.sel=null; drawPat(); }
-    else { PAT.sel=xToIdx(e.touches[0].clientX); drawPat(); } },{passive:true});
-  svg.addEventListener("touchmove",e=>{
-    if(e.touches.length===2&&pinch0){ const d=Math.abs(e.touches[0].clientX-e.touches[1].clientX); if(!d) return;
-      const span0=pinch0.i1-pinch0.i0; let span=Math.round(span0*(pinch0.d/d)); span=Math.max(2,Math.min(PAT.pts.length-1,span));
-      const anchor=pinch0.i0+pinch0.c*span0; let i0=Math.round(anchor-pinch0.c*span); i0=Math.max(0,Math.min(PAT.pts.length-1-span,i0));
-      PAT.i0=i0; PAT.i1=i0+span; drawPat(); }
-    else if(e.touches.length===1){ PAT.sel=xToIdx(e.touches[0].clientX); drawPat(); } },{passive:true});
-  svg.addEventListener("touchend",e=>{ pinch0=null; if(!e.touches.length){ tmr=setTimeout(()=>{ PAT.sel=null; drawPat(); },2500); } },{passive:true});
-  svg.addEventListener("mousemove",e=>{ PAT.sel=xToIdx(e.clientX); drawPat(); });
-  svg.addEventListener("mouseleave",()=>{ PAT.sel=null; drawPat(); });
+function paintPat(){
+  const g=PAT.geo; if(!g) return; const view=g.view;
+  const li=PAT.sel!=null?Math.max(0,Math.min(view.length-1,PAT.sel-PAT.i0)):null;
+  const cur=li!=null?view[li]:view[view.length-1];
+  const prev=li!=null&&li>0?view[li-1]:null;
+  const first=view[0], d=cur.v-first.v, pc=first.v?d/first.v*100:0;
+  const val=$("patVal"), sub=$("patSub"), dlt=$("patDlt"), line=$("patLine"), dot=$("patDot");
+  if(!val) return;
+  val.textContent=fmtIT(cur.v)+" €";
+  sub.textContent=(li!=null?fromISO(cur.d).toLocaleDateString("it-IT",{month:"long",year:"numeric"}):"oggi · "+view.length+" mesi mostrati")+(prev?` · ${cur.v-prev.v>=0?"+":"−"}${fmt0(Math.abs(cur.v-prev.v))} € sul mese prima`:"");
+  dlt.className="dlt "+(d>=0?"up":"down");
+  dlt.innerHTML=`${d>=0?"+":"−"}${fmt0(Math.abs(d))} €<small>${d>=0?"+":"−"}${Math.abs(pc).toFixed(1)}% da ${MESI_S[+first.d.slice(5,7)-1]} ${first.d.slice(2,4)}</small>`;
+  const x=g.X(li!=null?li:view.length-1), y=g.Y(cur.v);
+  line.setAttribute("x1",x); line.setAttribute("x2",x); line.setAttribute("opacity",li!=null?"1":"0");
+  dot.setAttribute("cx",x); dot.setAttribute("cy",y);
 }
-
+function bindPat(){
+  const card=$("patCard"); if(!card||card._bound) return; card._bound=true;
+  const idxAt=cx=>{ const svg=$("patSvg"); if(!svg) return null; const r=svg.getBoundingClientRect();
+    const g=PAT.geo, f=(cx-r.left)/r.width;
+    const inner=(f*g.W-g.pl)/(g.W-g.pl-g.pr); // tiene conto dei margini
+    return PAT.i0+Math.max(0,Math.min(g.view.length-1,Math.round(inner*(g.view.length-1)))); };
+  let pinch=null, tmr=null;
+  const onStart=e=>{ if(!$("patSvg")) return; clearTimeout(tmr);
+    if(e.touches&&e.touches.length===2){ const r=$("patSvg").getBoundingClientRect();
+      pinch={d:Math.abs(e.touches[0].clientX-e.touches[1].clientX),i0:PAT.i0,i1:PAT.i1,c:(((e.touches[0].clientX+e.touches[1].clientX)/2-r.left)/r.width)}; PAT.sel=null; paintPat(); }
+    else { PAT.sel=idxAt((e.touches?e.touches[0]:e).clientX); paintPat(); } };
+  const onMove=e=>{
+    if(e.touches&&e.touches.length===2&&pinch){ const d=Math.abs(e.touches[0].clientX-e.touches[1].clientX); if(!d) return;
+      const span0=pinch.i1-pinch.i0; let span=Math.round(span0*(pinch.d/d)); span=Math.max(2,Math.min(PAT.pts.length-1,span));
+      const anchor=pinch.i0+pinch.c*span0; let i0=Math.round(anchor-pinch.c*span); i0=Math.max(0,Math.min(PAT.pts.length-1-span,i0));
+      if(i0!==PAT.i0||i0+span!==PAT.i1){ PAT.i0=i0; PAT.i1=i0+span; buildPat(); } }
+    else { PAT.sel=idxAt((e.touches?e.touches[0]:e).clientX); paintPat(); } };
+  const onEnd=e=>{ pinch=null; if(!e.touches||!e.touches.length) tmr=setTimeout(()=>{ PAT.sel=null; paintPat(); },2500); };
+  card.addEventListener("touchstart",onStart,{passive:true});
+  card.addEventListener("touchmove",onMove,{passive:true});
+  card.addEventListener("touchend",onEnd,{passive:true});
+  card.addEventListener("mousemove",e=>{ if(e.buttons||e.type==="mousemove") { PAT.sel=idxAt(e.clientX); paintPat(); } });
+  card.addEventListener("mouseleave",()=>{ PAT.sel=null; paintPat(); });
+}
 function lineSVG(points){ // [{d,v}]
   const W=440,H=150,pl=8,pb=20,pt=10; if(points.length<2) return "";
   const vs=points.map(p=>p.v); const min=Math.min(...vs), max=Math.max(...vs); const span=Math.max(1,max-min);
@@ -953,7 +972,7 @@ function renderRp(){
   // storico patrimonio
   if(D.storico.length>=2) h+=`<div class="pat" id="patCard"></div>`;
   body.innerHTML=h;
-  if(D.storico.length>=2) initPat(D.storico);
+  if(D.storico.length>=2){ const pc=$("patCard"); if(pc) pc._bound=false; initPat(D.storico); }
   $("rpRefresh").onclick=()=>doRefresh(true);
   const bp=$("btnPacOpen"); if(bp) bp.onclick=openPac;
   $("mPrev").onclick=()=>{ R.month=shiftMonth(R.month,-1); renderRp(); };
@@ -1052,7 +1071,7 @@ $("mvQ").oninput=e=>{ MV.q=e.target.value; MV.limit=60; renderMv(); };
 $("mvQ").onkeydown=e=>{ if(e.key==="Enter") e.target.blur(); };
 $("btnMv").onclick=openMv;
 // trascina in giù per aggiornare
-(()=>{ const sh=$("sheetRp"); let y0=null; sh.addEventListener("touchstart",e=>{ y0=sh.scrollTop<=0?e.touches[0].clientY:null; },{passive:true}); sh.addEventListener("touchend",e=>{ if(y0!=null&&e.changedTouches[0].clientY-y0>90) doRefresh(true); y0=null; },{passive:true}); })();
+(()=>{ const sh=$("sheetRp"); let y0=null; sh.addEventListener("touchstart",e=>{ y0=(sh.scrollTop<=0&&e.touches[0])?e.touches[0].clientY:null; },{passive:true}); sh.addEventListener("touchend",e=>{ const t=e.changedTouches&&e.changedTouches[0]; if(y0!=null&&t&&t.clientY-y0>90) doRefresh(true); y0=null; },{passive:true}); })();
 
 
 
