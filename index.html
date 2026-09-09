@@ -34,9 +34,9 @@
   .due .h span{font-size:13px;color:var(--navy-2)}
   .due .list{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:0 -12px;padding:0 12px 2px}
   .due .list::-webkit-scrollbar{display:none}
-  .due .list button{flex:0 0 auto;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);color:#fff;border-radius:12px;padding:9px 13px;text-align:left;min-height:52px;max-width:220px}
+  .due .list button{flex:0 0 auto;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);color:#fff;border-radius:12px;padding:9px 13px;text-align:left;min-height:52px;max-width:60vw;overflow:hidden}
   .due .list button b{display:block;font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .due .list button small{display:block;color:var(--navy-2);font-size:12.5px;margin-top:2px;white-space:nowrap}
+  .due .list button small{display:block;color:var(--navy-2);font-size:12.5px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .due .list button small em{font-style:normal;color:#fff;font-weight:600}
   .due .none{color:var(--navy-2);font-size:14px;padding:2px 0}
   .manual{font-size:13px;color:var(--ink-2);text-align:center;margin:4px 0 8px}
@@ -180,6 +180,9 @@
   .rp .empty{color:var(--ink-2);font-size:14px;text-align:center;padding:24px 8px;line-height:1.5}
   .rp .empty b{display:block;color:var(--ink);margin-bottom:6px}
   .rp .chart{width:100%;height:auto;display:block}
+  .mv .field{padding:8px 12px;margin-bottom:8px}
+  .mv .field.inline label{font-size:13px;color:var(--ink-2);font-weight:600;min-width:42px}
+  .mv .chips button{padding:7px 11px;font-size:14px;min-height:36px}
   .mv .sum{display:flex;justify-content:space-between;gap:10px;background:var(--navy);color:#fff;border-radius:var(--r);padding:10px 14px;margin-bottom:10px;font-size:14px}
   .mv .sum b{display:block;font-size:17px;font-family:ui-rounded,-apple-system,system-ui,sans-serif}
   .mv .sum span small{color:var(--navy-2)}
@@ -298,8 +301,8 @@
   <div class="top"><h2>Movimenti</h2><button class="close" data-close="sheetMv">Chiudi</button></div>
   <div class="field"><input type="text" id="mvQ" placeholder="Cerca descrizione…" autocomplete="off" autocorrect="off" enterkeyhint="search"></div>
   <div class="field inline"><label>Mese</label><div class="chips" id="mvMonth"></div></div>
-  <div class="field"><label>Categoria</label><div class="chips" id="mvCat"></div></div>
-  <div class="field"><label>Conto</label><div class="chips" id="mvConto"></div></div>
+  <div class="field inline"><label>Cat.</label><div class="chips" id="mvCat"></div></div>
+  <div class="field inline"><label>Conto</label><div class="chips" id="mvConto"></div></div>
   <div id="mvBody"></div>
 </div>
 
@@ -380,7 +383,7 @@
 
   <div class="field">
     <label>Versione app</label>
-    <p><b>v12</b> · "Aggiorna da Trade" + border collie che insegue la pallina. Aggiunti conto Amex Siemens, categoria Trasferte elenco Movimenti e grafico patrimonio interattivo. Se non leggi "v12" qui, versione vecchia.</p>
+    <p><b>v13</b> · "Aggiorna da Trade" + border collie che insegue la pallina. Aggiunti conto Amex Siemens, categoria Trasferte elenco Movimenti e grafico patrimonio interattivo. Se non leggi "v12" qui, versione vecchia.</p>
   </div>
   <div class="field">
     <label>Dettatura</label>
@@ -408,7 +411,7 @@ const SEED_RULES=[
   {id:"stip_ele",desc:"Stipendio Ele",cat:"Stipendio Ele",conto:"Allianz",type:"monthly",from:4,hint:"dal 4 del mese"},
   {id:"rebelot",desc:"CAFFÈ REBELOT DI STEFAN",key:"caffè rebelot di stefan",cat:"Ristorante",conto:"Trade",imp:7,type:"weekly",dow:1,hint:"ogni lunedì · brioches Ele"},
   {id:"spesa",desc:"Spesa",cat:"Spesa",conto:"BNL",type:"interval",days:14,hint:"ogni 2 settimane"},
-  {id:"amex_siemens",desc:"Addebito Amex Siemens",key:"addebito amex siemens",cat:CAT_TRASFERTE,conto:"BNL",type:"monthly",from:8,hint:"l'8 del mese · poi registra la gamba su Amex Siemens"}
+  {id:"amex_siemens",desc:"Addebito Amex Siemens",key:"addebito amex siemens",cat:CAT_TRASFERTE,conto:"BNL",type:"monthly",from:8,hint:"l'8 del mese"}
 ];
 
 let S={ hook:"", share:"", pac:"", wa:"", dateFmt:"serial", defConto:"Trade",
