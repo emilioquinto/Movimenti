@@ -349,6 +349,14 @@
   <div id="fireBody"></div>
 </div>
 
+<div class="sheet" id="sheetRep">
+  <div class="top"><h2>Report PDF</h2><button class="close" data-close="sheetRep">Chiudi</button></div>
+  <p>Scegli il periodo. Sono elencati solo i mesi già chiusi, così i dati sono definitivi.</p>
+  <div class="field"><label>Periodo</label><div class="chips" id="repMonths"></div></div>
+  <button class="go" id="btnRepGo" style="width:100%">Genera PDF</button>
+  <p id="repNote" style="margin-top:10px"></p>
+</div>
+
 <!-- ============ PAC ============ -->
 <div class="sheet" id="sheetPac">
   <div class="top"><h2>Aggiorna da Trade</h2><button class="close" data-close="sheetPac">Chiudi</button></div>
@@ -426,7 +434,7 @@
 
   <div class="field">
     <label>Versione app</label>
-    <p><b>v15</b> · "Aggiorna da Trade" + border collie che insegue la pallina. Aggiunti conto Amex Siemens, categoria Trasferte elenco Movimenti, grafico patrimonio interattivo e sezione FIRE. Se non leggi "v15" qui, versione vecchia.</p>
+    <p><b>v21</b> · "Aggiorna da Trade" + border collie che insegue la pallina. Aggiunti conto Amex Siemens, categoria Trasferte elenco Movimenti, grafico patrimonio interattivo sezione FIRE ed export report PDF. Se non leggi "v15" qui, versione vecchia.</p>
   </div>
   <div class="field">
     <label>Dettatura</label>
@@ -439,7 +447,8 @@
 <script>
 const CATS=["Casa","Spesa","Ristorante","Mediche","Bambino","Cane","Sport","Divertimento","Viaggi","Abbigliamento Emi","Abbigliamento Ele","Auto Emi","Auto Ele","Cell Emi","Cell Ele","Cura della persona","Regali -","Mutuo","Prestito","Altro","Trasferte","Stipendio Emi","Stipendio Ele","Regali +","Interessi conto deposito","Investimento","Trasferimento"];
 const IN_CATS=new Set(["Stipendio Emi","Stipendio Ele","Regali +","Interessi conto deposito"]);
-const CONTI=["Trade","BNL","Allianz","Contanti","Amex","Visa","BPER","PayPal","Amex Siemens"];
+const CONTI=["Trade","BNL","Allianz","Contanti","Amex","Visa","PayPal","Amex Siemens"];
+const CONTI_NASCOSTI=new Set(["BPER"]);
 const CONTO_TRASFERTE="Amex Siemens", CAT_TRASFERTE="Trasferte";
 const DOW=["domenica","lunedì","martedì","mercoledì","giovedì","venerdì","sabato"];
 const MESI=["Gennaio","Febbraio","Marzo","Aprile","Maggio","Giugno","Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre"];
@@ -811,7 +820,7 @@ function parseWorkbook(buf){
   const im=XLSX.utils.sheet_to_json(wb.Sheets["Impostazioni"],{header:1,range:"A5:K31",raw:true,defval:null});
   const cats=[], accounts=[];
   for(const r of im.slice(0,27)){ if(r[1]) cats.push({name:String(r[1]).trim(),emoji:r[2]||"",tipo:String(r[3]||"").trim(),budget:Math.abs(+r[4]||0)}); }
-  for(const r of im.slice(0,8)){ if(r[6]) accounts.push({name:String(r[6]).trim(),saldo0:+r[7]||0,addebita:r[8]?String(r[8]).trim():""}); }
+  for(const r of im.slice(0,9)){ if(r[6]&&!CONTI_NASCOSTI.has(String(r[6]).trim())) accounts.push({name:String(r[6]).trim(),saldo0:+r[7]||0,addebita:r[8]?String(r[8]).trim():""}); }
   const ps=wb.Sheets["Patrimonio"]; const gv=a=>{ const c=ps[a]; return c?c.v:null; };
   const assets=[]; for(let r=31;r<=36;r++){ const name=gv("B"+r); if(!name) continue; const qty=gv("C"+r), price=gv("D"+r); const value=(typeof qty==="number"&&typeof price==="number")?qty*price:(typeof price==="number"?price:(+gv("E"+r)||0)); assets.push({name:String(name),qty:typeof qty==="number"?qty:null,price:typeof price==="number"?price:null,value:Math.round(value*100)/100}); }
   const assetDate=cellDate(gv("E4"));
@@ -1012,10 +1021,12 @@ function renderRp(){
   const yearNow=today().getFullYear(); const ms=D.months.filter(m=>m.startsWith(String(yearNow))).slice(-12);
   const series=ms.map(m=>{ const x=D.month(m); return {label:MESI_S[+m.slice(5,7)-1],a:x.entrate,b:x.spese}; });
   h+=`<div class="card"><h3>Confronto mese su mese<small>${yearNow}</small></h3>${barsSVG(series)}<div class="lg"><span><i style="background:#1F6FD0"></i>Entrate</span><span><i style="background:#E4572E"></i>Spese</span></div></div>`;
+  h+=`<div class="card"><h3>Report PDF</h3><p style="font-size:13.5px;color:#5A6C80;margin:0 0 10px">Un resoconto completo del mese chiuso: patrimonio, spese per categoria, trend, investimenti e stato FIRE.</p><button class="btn" id="btnReport" style="width:100%">📄 Genera report PDF</button></div>`;
   // storico patrimonio
   if(D.storico.length>=2) h+=`<div class="pat" id="patCard"></div>`;
   body.innerHTML=h;
   if(D.storico.length>=2){ const pc=$("patCard"); if(pc) pc._bound=false; initPat(D.storico); }
+  const br=$("btnReport"); if(br) br.onclick=openReport;
   $("rpRefresh").onclick=()=>doRefresh(true);
   const bp=$("btnPacOpen"); if(bp) bp.onclick=openPac;
   $("mPrev").onclick=()=>{ R.month=shiftMonth(R.month,-1); renderRp(); };
@@ -1076,6 +1087,277 @@ async function sendPac(){
   toast(ok?"Patrimonio in aggiornamento: tra qualche secondo ricarico i dati":"Invio non riuscito, riprova",!ok);
   setTimeout(()=>doRefresh(true),5000);
 }
+
+
+// ================= REPORT PDF =================
+const JSPDF_CDN="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+let REP={month:null};
+function loadJsPDF(){ return (window.jspdf&&window.jspdf.jsPDF)?Promise.resolve():new Promise((res,rej)=>{ const sc=document.createElement("script"); sc.src=JSPDF_CDN; sc.onload=res; sc.onerror=()=>rej(new Error("Libreria PDF non scaricata: controlla la connessione")); document.head.appendChild(sc); }); }
+function closedMonths(){ const D=calc(); if(!D) return []; const cur=dateISO(today()).slice(0,7); return D.months.filter(m=>m<cur).slice(-24).reverse(); }
+function openReport(){
+  const ms=closedMonths(); if(!ms.length){ toast("Nessun mese chiuso da esportare",true); return; }
+  if(!REP.month||!ms.includes(REP.month)) REP.month=ms[0];
+  $("repMonths").innerHTML=ms.slice(0,12).map(m=>`<button class="${REP.month===m?"on":""}" data-m="${m}">${monthLabel(m)}</button>`).join("");
+  $("repMonths").querySelectorAll("button").forEach(b=>b.onclick=()=>{ REP.month=b.dataset.m; openReport(); });
+  $("repNote").textContent="";
+  $("sheetRep").classList.add("open");
+}
+const RP_BLUE=[31,111,208], RP_NAVY=[18,58,107], RP_INK=[22,40,58], RP_GREY=[90,108,128], RP_LINE=[207,220,234], RP_GREEN=[11,138,75], RP_RED=[194,74,44];
+const RP_PAL=[[31,111,208],[242,169,59],[43,182,115],[228,87,46],[142,91,217],[23,162,184],[214,70,154],[124,140,158],[163,198,68],[199,123,54]];
+function buildPDF(){
+  const {jsPDF}=window.jspdf; const doc=new jsPDF({unit:"mm",format:"a4"});
+  const D=calc(), m=REP.month, M=D.month(m), W=210, L=14, R=196;
+  const eur=n=>fmtIT(n)+" €", eur0=n=>fmt0(n)+" €", dec=(n,d)=>n.toFixed(d===undefined?1:d).replace(".",",");
+  let page=1;
+  const footer=()=>{ doc.setDrawColor(...RP_LINE); doc.line(L,283,R,283);
+    doc.setFontSize(8); doc.setTextColor(...RP_GREY);
+    doc.text("Finanze2026 · report generato il "+dateIT(today()),L,287); doc.text(String(page),R,287,{align:"right"}); };
+  const newPage=()=>{ footer(); doc.addPage(); page++; };
+  const h2=(t,y)=>{ doc.setFontSize(12.5); doc.setTextColor(...RP_INK); doc.setFont(undefined,"bold"); doc.text(t,L,y); doc.setFont(undefined,"normal");
+    doc.setDrawColor(...RP_BLUE); doc.setLineWidth(0.6); doc.line(L,y+2.2,L+16,y+2.2); doc.setLineWidth(0.2); doc.setDrawColor(...RP_LINE); doc.line(L+17,y+2.2,R,y+2.2); };
+  const tri=(x,y,up,col)=>{ doc.setFillColor(...col); const h=1.7,w=1.5;
+    doc.lines(up?[[w,h*1.6],[-2*w,0]]:[[w,-h*1.6],[-2*w,0]],x-w,up?y:y-0.4,[1,1],"F",true); };
+  const kpi=(x,y,w,label,val,sub,col)=>{ doc.setFillColor(247,250,253); doc.roundedRect(x,y,w,21,2.5,2.5,"F");
+    doc.setFillColor(...(col||RP_BLUE)); doc.roundedRect(x,y,1.4,21,0.7,0.7,"F");
+    doc.setFontSize(7.2); doc.setTextColor(...RP_GREY); doc.text(label.toUpperCase(),x+5,y+6);
+    doc.setFontSize(13); doc.setTextColor(...RP_INK); doc.setFont(undefined,"bold"); doc.text(val,x+5,y+13.6); doc.setFont(undefined,"normal");
+    if(sub){ doc.setFontSize(7.2); doc.setTextColor(...RP_GREY); doc.text(sub,x+5,y+18.4); } };
+
+  // medie di riferimento (12 mesi chiusi prima del mese scelto, incluso)
+  const prevMs=D.months.filter(x=>x<=m).slice(-12);
+  const avg=k=>prevMs.reduce((a,x)=>a+D.month(x)[k],0)/Math.max(1,prevMs.length);
+  const avgSpese=avg("spese"), avgEntr=avg("entrate"), avgRisp=avg("risparmio");
+  const avgCat=name=>prevMs.reduce((a,x)=>{ const c=D.month(x).byCat.find(c=>c.name===name); return a+(c?c.speso:0); },0)/Math.max(1,prevMs.length);
+  const vsAvg=(v,a)=>{ if(!a) return null; return (v-a)/a*100; };
+
+  // ---------- PAG 1 ----------
+  doc.setFillColor(...RP_NAVY); doc.rect(0,0,W,54,"F");
+  doc.setFillColor(...RP_BLUE); doc.rect(0,54,W,1.6,"F");
+  doc.setTextColor(169,195,230); doc.setFontSize(9); doc.text("REPORT FINANZIARIO",L,15);
+  doc.setTextColor(255,255,255); doc.setFontSize(25); doc.setFont(undefined,"bold"); doc.text(monthLabel(m),L,28); doc.setFont(undefined,"normal");
+  const st=D.storico.filter(p=>p.d<=m+"-31"); const patMese=st.length?st[st.length-1].v:D.patrimonio;
+  const prevPt=st.length>1?st[st.length-2].v:null;
+  doc.setFontSize(8.5); doc.setTextColor(169,195,230); doc.text("PATRIMONIO A FINE PERIODO",L,39);
+  doc.setFontSize(20); doc.setTextColor(255,255,255); doc.setFont(undefined,"bold"); doc.text(eur(patMese),L,47.5); doc.setFont(undefined,"normal");
+  if(prevPt!=null){ const dv=patMese-prevPt, up=dv>=0, col=up?[139,224,181]:[246,162,140];
+    doc.setFontSize(9.5); doc.setTextColor(...col); tri(R-42,44.4,up,col);
+    doc.text((up?"+":"-")+fmt0(Math.abs(dv))+" € sul mese prima",R,45,{align:"right"}); }
+
+  let y=66; h2("Il mese in sintesi",y); y+=8;
+  const w3=(R-L-8)/3;
+  const dS=vsAvg(M.spese,avgSpese), dE=vsAvg(M.entrate,avgEntr);
+  kpi(L,y,w3,"Entrate",eur0(M.entrate),dE!=null?(dE>=0?"+":"-")+Math.round(Math.abs(dE))+"% sulla media":"",RP_BLUE);
+  kpi(L+w3+4,y,w3,"Spese",eur0(M.spese),dS!=null?(dS>=0?"+":"-")+Math.round(Math.abs(dS))+"% sulla media":"",dS>0?RP_RED:RP_GREEN);
+  kpi(L+2*(w3+4),y,w3,"Investito",eur0(M.investiti),"media "+fmt0(avg("investiti"))+" €",RP_BLUE);
+  y+=25;
+  kpi(L,y,w3,"Risparmio",eur0(M.risparmio),Math.round(M.tasso*100)+"% delle entrate · media "+fmt0(avgRisp)+" €",M.risparmio>=0?RP_GREEN:RP_RED);
+  kpi(L+w3+4,y,w3,"Liquidità",eur0(D.liquidita),"",RP_BLUE);
+  kpi(L+2*(w3+4),y,w3,"Investimenti",eur0(D.assetTot),"",RP_BLUE);
+  y+=29;
+
+  // ---- spese per categoria con confronto media ----
+  h2("Come hai speso",y); y+=9;
+  const cats=M.byCat.slice(0,8), rest=M.byCat.slice(8);
+  const items=rest.length?[...cats,{name:"Altre categorie",speso:rest.reduce((a,c)=>a+c.speso,0),budget:rest.reduce((a,c)=>a+c.budget,0)}]:cats;
+  const cx=L+28, cy=y+27, rOut=25, rIn=14.5; let a0=-Math.PI/2;
+  items.forEach((c,i)=>{ const frac=c.speso/M.spese; if(frac<=0) return; const a1=a0+frac*2*Math.PI;
+    doc.setFillColor(...RP_PAL[i%RP_PAL.length]);
+    const steps=Math.max(2,Math.ceil(frac*60)), pts=[];
+    for(let k=0;k<=steps;k++){ const a=a0+(a1-a0)*k/steps; pts.push([cx+rOut*Math.cos(a),cy+rOut*Math.sin(a)]); }
+    for(let k=steps;k>=0;k--){ const a=a0+(a1-a0)*k/steps; pts.push([cx+rIn*Math.cos(a),cy+rIn*Math.sin(a)]); }
+    const rel=pts.slice(1).map((p,idx)=>[p[0]-pts[idx][0],p[1]-pts[idx][1]]);
+    doc.lines(rel,pts[0][0],pts[0][1],[1,1],"F",true); a0=a1; });
+  doc.setFontSize(7.5); doc.setTextColor(...RP_GREY); doc.text("SPESE",cx,cy-1.5,{align:"center"});
+  doc.setFontSize(11.5); doc.setTextColor(...RP_INK); doc.setFont(undefined,"bold"); doc.text(fmt0(M.spese)+" €",cx,cy+3.5,{align:"center"}); doc.setFont(undefined,"normal");
+  doc.setFontSize(7); doc.setTextColor(...RP_GREY); doc.text("media "+fmt0(avgSpese)+" €",cx,cy+8,{align:"center"});
+  const lx=L+62; let ly=y+5;
+  doc.setFontSize(7); doc.setTextColor(...RP_GREY);
+  doc.text("CATEGORIA",lx+5,ly-3); doc.text("IMPORTO",R-34,ly-3,{align:"right"}); doc.text("QUOTA",R-19,ly-3,{align:"right"}); doc.text("VS MEDIA",R,ly-3,{align:"right"});
+  items.forEach((c,i)=>{
+    doc.setFillColor(...RP_PAL[i%RP_PAL.length]); doc.roundedRect(lx,ly-2.7,2.6,2.6,.6,.6,"F");
+    doc.setFontSize(8.5); doc.setTextColor(...RP_INK); doc.text(c.name.slice(0,24),lx+5,ly);
+    doc.text(eur0(c.speso),R-34,ly,{align:"right"});
+    doc.setTextColor(...RP_GREY); doc.text(Math.round(c.speso/M.spese*100)+"%",R-19,ly,{align:"right"});
+    const a=c.name==="Altre categorie"?null:avgCat(c.name), dv=a?vsAvg(c.speso,a):null;
+    if(dv!=null&&Math.abs(dv)>=1){ const up=dv>0, col=up?RP_RED:RP_GREEN; doc.setTextColor(...col);
+      doc.setFontSize(7.6); doc.text((up?"+":"-")+Math.round(Math.abs(dv))+"%",R-3.4,ly,{align:"right"}); tri(R-1.4,ly-0.8,up,col); }
+    else if(dv!=null){ doc.setTextColor(...RP_GREY); doc.setFontSize(7.6); doc.text("in linea",R,ly,{align:"right"}); }
+    if(c.budget>0){ const use=c.speso/c.budget, over=use>1, bw=48, bx=lx+5;
+      doc.setFillColor(236,241,247); doc.rect(bx,ly+1.5,bw,1.2,"F");
+      doc.setFillColor(...(over?RP_RED:RP_BLUE)); doc.rect(bx,ly+1.5,Math.min(bw,bw*use),1.2,"F");
+    }
+    ly+=8.2; });
+  y=Math.max(cy+rOut+10,ly+3);
+
+  // ---- spese principali ----
+  const mrows=(S.cache.rows||[]).filter(r=>r.d.startsWith(m));
+  const spesaCats=new Set((S.cache.cats||[]).filter(c=>c.tipo==="Spesa").map(c=>c.name));
+  const maxRows=Math.max(0,Math.floor((272-y-14)/10.5));
+  const top=mrows.filter(r=>r.imp<0&&spesaCats.has(r.cat)).sort((a,b)=>a.imp-b.imp).slice(0,Math.min(7,maxRows));
+  if(top.length){ h2("Le spese più rilevanti",y); y+=8.5;
+    top.forEach((r,i)=>{ if(i%2===0){ doc.setFillColor(249,251,253); doc.rect(L,y-4.2,R-L,9.6,"F"); }
+      doc.setFontSize(9); doc.setTextColor(...RP_INK); doc.text(r.desc.slice(0,40),L+2,y);
+      doc.setFontSize(7.2); doc.setTextColor(...RP_GREY); doc.text(r.cat+" · "+r.conto+" · "+dateIT(fromISO(r.d)),L+2,y+3.6);
+      doc.setFontSize(9.5); doc.setTextColor(...RP_INK); doc.text(eur(Math.abs(r.imp)),R-2,y+1,{align:"right"}); y+=10.5; });
+    doc.setFontSize(7.5); doc.setTextColor(...RP_GREY);
+    doc.text(mrows.length+" movimenti nel mese · trasferimenti e investimenti esclusi",L,y+1); }
+
+  newPage();
+  // ---------- PAG 2 ----------
+  y=20; h2("Entrate e spese · ultimi 12 mesi",y); y+=9;
+  const ms=D.months.filter(x=>x<=m).slice(-12);
+  const series=ms.map(x=>({l:MESI_S[+x.slice(5,7)-1],k:x,a:D.month(x).entrate,b:D.month(x).spese}));
+  const cW=R-L, cH=50, maxV=Math.max(1,...series.flatMap(s=>[s.a,s.b])), gw=cW/series.length;
+  doc.setDrawColor(236,241,247); for(let g=1;g<=3;g++){ const gy=y+cH-cH*g/3; doc.line(L,gy,R,gy); }
+  doc.setDrawColor(...RP_LINE); doc.line(L,y+cH,R,y+cH);
+  series.forEach((sr,i)=>{ const x=L+i*gw+gw/2, bw=Math.min(5,gw*0.3), isCur=sr.k===m;
+    doc.setFillColor(...(isCur?RP_BLUE:[150,190,235])); doc.rect(x-bw-0.6,y+cH-sr.a/maxV*cH,bw,sr.a/maxV*cH,"F");
+    doc.setFillColor(...(isCur?RP_RED:[240,175,155])); doc.rect(x+0.6,y+cH-sr.b/maxV*cH,bw,sr.b/maxV*cH,"F");
+    doc.setFontSize(6.4); doc.setTextColor(...(isCur?RP_INK:RP_GREY)); doc.text(sr.l,x,y+cH+4,{align:"center"}); });
+  const yAvg=y+cH-avgSpese/maxV*cH;
+  doc.setDrawColor(...RP_RED); doc.setLineDashPattern([1.2,1.2],0); doc.line(L,yAvg,R,yAvg); doc.setLineDashPattern([],0);
+  doc.setFontSize(6.8); doc.setTextColor(...RP_RED); doc.text("media spese "+fmt0(avgSpese)+" €",L+1,yAvg-1.4);
+  doc.setFontSize(7.5); doc.setFillColor(...RP_BLUE); doc.rect(L,y+cH+7,3,3,"F"); doc.setTextColor(...RP_INK); doc.text("Entrate",L+5,y+cH+9.6);
+  doc.setFillColor(...RP_RED); doc.rect(L+24,y+cH+7,3,3,"F"); doc.text("Spese",L+29,y+cH+9.6);
+  doc.setTextColor(...RP_GREY); doc.text("Tasso di risparmio medio: "+Math.round(prevMs.reduce((a,x)=>a+D.month(x).tasso,0)/prevMs.length*100)+"% · questo mese "+Math.round(M.tasso*100)+"%",L+50,y+cH+9.6);
+  y+=cH+17;
+
+  y+=6;
+  // dove vanno i soldi su 12 mesi
+  const yearTot={}; prevMs.forEach(x=>D.month(x).byCat.forEach(c=>{ yearTot[c.name]=(yearTot[c.name]||0)+c.speso; }));
+  const roomRows=Math.floor((272-y-14)/7.4);
+  const yearList=Object.entries(yearTot).sort((a,b)=>b[1]-a[1]).slice(0,Math.min(8,roomRows));
+  const yearSum=Object.values(yearTot).reduce((a,v)=>a+v,0);
+  if(yearList.length>=3){ h2("Dove vanno i soldi · media degli ultimi "+prevMs.length+" mesi",y); y+=9;
+    doc.setFontSize(8.5);
+    yearList.forEach(([name,tot],i)=>{ const mese=tot/prevMs.length, quota=yearSum?tot/yearSum*100:0, bw=(R-L-104);
+      doc.setFillColor(...RP_PAL[i%RP_PAL.length]); doc.roundedRect(L+2,y-2.6,2.6,2.6,.6,.6,"F");
+      doc.setTextColor(...RP_INK); doc.text(name.slice(0,22),L+7,y);
+      doc.setFillColor(236,241,247); doc.rect(L+58,y-2.4,bw,2.6,"F");
+      doc.setFillColor(...RP_PAL[i%RP_PAL.length]); doc.rect(L+58,y-2.4,bw*quota/Math.max(1,yearList[0][1]/yearSum*100),2.6,"F");
+      doc.setTextColor(...RP_GREY); doc.setFontSize(7.6);
+      doc.text(fmt0(mese)+" €/mese",R-16,y,{align:"right"}); doc.text(Math.round(quota)+"%",R-2,y,{align:"right"}); doc.setFontSize(8.5);
+      y+=7.4; });
+    doc.setFontSize(7.6); doc.setTextColor(...RP_GREY);
+    doc.text("Spesa media complessiva "+fmt0(avgSpese)+" €/mese · "+fmt0(avgSpese*12)+" € l'anno",L+2,y+2); }
+
+  y+=10;
+  h2("Andamento del patrimonio",y); y+=9;
+  const hist=D.storico.filter(p=>p.d<=m+"-31").slice(-24);
+  if(hist.length>1){ const vs=hist.map(p=>p.v), mn=Math.min(...vs), mx=Math.max(...vs), span=(mx-mn)||1, lH=46;
+    const PX=i=>L+i*(R-L)/(hist.length-1), PY=v=>y+lH-((v-mn)/span)*lH;
+    doc.setFillColor(232,240,250);
+    const poly=hist.map((p,i)=>[PX(i),PY(p.v)]); const rel=poly.slice(1).map((p,i)=>[p[0]-poly[i][0],p[1]-poly[i][1]]);
+    doc.lines([...rel,[0,y+lH-PY(vs[vs.length-1])],[-(R-L),0]],poly[0][0],poly[0][1],[1,1],"F",true);
+    doc.setDrawColor(...RP_BLUE); doc.setLineWidth(0.8);
+    for(let i=1;i<hist.length;i++) doc.line(PX(i-1),PY(vs[i-1]),PX(i),PY(vs[i]));
+    doc.setLineWidth(0.2);
+    doc.setFillColor(...RP_BLUE); doc.circle(PX(hist.length-1),PY(vs[vs.length-1]),1.4,"F");
+    doc.setFontSize(6.4); doc.setTextColor(...RP_GREY);
+    hist.forEach((p,i)=>{ if(i%Math.ceil(hist.length/6)===0||i===hist.length-1) doc.text(MESI_S[+p.d.slice(5,7)-1]+" "+p.d.slice(2,4),PX(i),y+lH+4,{align:"center"}); });
+    const n12=Math.min(12,hist.length-1), d12=vs[vs.length-1]-vs[vs.length-1-n12];
+    doc.setFontSize(8.5); doc.setTextColor(...RP_INK);
+    doc.text("Negli ultimi "+n12+" mesi: ",L,y+lH+11);
+    const up=d12>=0, col=up?RP_GREEN:RP_RED; doc.setTextColor(...col);
+    doc.text((up?"+":"-")+fmt0(Math.abs(d12))+" € ("+(up?"+":"-")+dec(Math.abs(d12/Math.max(1,vs[vs.length-1-n12])*100))+"%)",L+33,y+lH+11);
+    doc.setTextColor(...RP_GREY); doc.setFontSize(8);
+    doc.text("· risparmio medio "+fmt0(avgRisp)+" €/mese",L+75,y+lH+11);
+    y+=lH+18; }
+
+  newPage();
+  // ---------- PAG 3 ----------
+  y=20;
+  h2("Conti e carte",y); y+=9; doc.setFontSize(9);
+  D.saldi.forEach((a,i)=>{ if(i%2===0){ doc.setFillColor(249,251,253); doc.rect(L,y-4,R-L,7.6,"F"); }
+    doc.setTextColor(...RP_INK); doc.text(a.name,L+2,y); doc.text(eur(a.saldo),R-2,y,{align:"right"}); y+=8; });
+  doc.setDrawColor(...RP_LINE); doc.line(L,y-3,R,y-3);
+  doc.setFont(undefined,"bold"); doc.setTextColor(...RP_INK); doc.text("Totale liquidità",L+2,y+1.5); doc.text(eur(D.liquidita),R-2,y+1.5,{align:"right"}); doc.setFont(undefined,"normal"); y+=9;
+  D.carte.forEach(c=>{ doc.setFontSize(8.2); doc.setTextColor(...RP_GREY);
+    doc.text(c.name+" · addebito su "+c.addebita,L+2,y); doc.text(eur(c.daAddebitare),R-2,y,{align:"right"}); y+=5.8; });
+  if(D.trasferte&&D.trasferte.righe){ doc.setFontSize(8.2); doc.setTextColor(...RP_GREY);
+    doc.text("Trasferte da farsi rimborsare",L+2,y); doc.text(eur(D.trasferte.credito),R-2,y,{align:"right"}); y+=6; }
+  y+=10;
+
+  h2("Investimenti",y); y+=10;
+  const allocW=R-L;
+  let ax=L; doc.setFillColor(236,241,247); doc.rect(L,y-4,allocW,4,"F");
+  D.assets.forEach((a,i)=>{ const w=D.assetTot?allocW*a.value/D.assetTot:0; doc.setFillColor(...RP_PAL[i%RP_PAL.length]); doc.rect(ax,y-4,w,4,"F"); ax+=w; });
+  y+=5; doc.setFontSize(9);
+  D.assets.forEach((a,i)=>{ const pct=D.assetTot?a.value/D.assetTot*100:0;
+    if(i%2===0){ doc.setFillColor(249,251,253); doc.rect(L,y-4.2,R-L,10,"F"); }
+    doc.setFillColor(...RP_PAL[i%RP_PAL.length]); doc.roundedRect(L+2,y-2.6,2.6,2.6,.6,.6,"F");
+    doc.setTextColor(...RP_INK); doc.text(a.name.slice(0,32),L+7,y);
+    doc.text(eur(a.value),R-16,y,{align:"right"}); doc.setTextColor(...RP_GREY); doc.text(dec(pct)+"%",R-2,y,{align:"right"});
+    if(a.qty!=null){ doc.setFontSize(7.2); doc.text(a.qty.toLocaleString("it-IT",{maximumFractionDigits:4})+" quote × "+fmtIT(a.price)+" €",L+7,y+3.6); doc.setFontSize(9); }
+    y+=10.4; });
+  doc.setDrawColor(...RP_LINE); doc.line(L,y-4,R,y-4);
+  doc.setFont(undefined,"bold"); doc.setTextColor(...RP_INK); doc.text("Totale investito",L+2,y+1); doc.text(eur(D.assetTot),R-2,y+1,{align:"right"}); doc.setFont(undefined,"normal"); y+=10;
+  const invYTD=(S.cache.rows||[]).filter(r=>r.cat==="Investimento"&&r.d.slice(0,4)===m.slice(0,4)&&r.d.slice(0,7)<=m).reduce((a,r)=>a-r.imp,0);
+  doc.setFontSize(8.5); doc.setTextColor(...RP_GREY);
+  doc.text("Versato nel mese "+eur0(M.investiti)+"   ·   da inizio anno "+eur0(invYTD)+"   ·   quota investita del patrimonio "+(D.patrimonio?Math.round(D.assetTot/D.patrimonio*100):0)+"%",L,y); y+=13;
+
+  const f=fireDefaults(); const rr=realRate(f.rate,f.infl), target=f.spesa*12/(f.swr/100), yF=yearsTo(patMese,f.pac,rr,target);
+  newPage();
+  y=20; h2("Obiettivo FIRE",y); y+=10;
+  const w2=(R-L-4)/2;
+  kpi(L,y,w2,"Capitale obiettivo",eur0(target),"spesa "+fmt0(f.spesa)+" €/mese al "+dec(f.swr,2).replace(/,00$/,"")+"%",RP_BLUE);
+  kpi(L+w2+4,y,w2,"Traguardo",yF!=null?dec(yF)+" anni":"oltre 100 anni",yF!=null?"intorno al "+(today().getFullYear()+Math.round(yF)):"aumenta versamento o orizzonte",yF!=null?RP_GREEN:RP_RED);
+  y+=27;
+  const prog=Math.min(100,patMese/target*100);
+  doc.setFillColor(236,241,247); doc.roundedRect(L,y,R-L,6,3,3,"F");
+  doc.setFillColor(...RP_BLUE); doc.roundedRect(L,y,Math.max(6,(R-L)*prog/100),6,3,3,"F");
+  doc.setFontSize(8.5); doc.setTextColor(...RP_INK); doc.text("Sei al "+dec(prog)+"% dell'obiettivo",L,y+12);
+  doc.setTextColor(...RP_GREY); doc.text("mancano "+eur0(Math.max(0,target-patMese)),R,y+12,{align:"right"}); y+=19;
+  doc.setFontSize(7.2); doc.setTextColor(...RP_GREY);
+  doc.text("ORIZZONTE",L+2,y); doc.text("CAPITALE STIMATO",L+72,y,{align:"right"}); doc.text("RENDITA MENSILE",R-2,y,{align:"right"}); y+=5;
+  doc.setFontSize(9);
+  [[5,"Fra 5 anni"],[10,"Fra 10 anni"],[20,"Fra 20 anni"]].forEach(([n,lab],i)=>{ const v=fv(patMese,f.pac,rr,n);
+    if(i%2===0){ doc.setFillColor(249,251,253); doc.rect(L,y-4.2,R-L,8,"F"); }
+    doc.setTextColor(...RP_INK); doc.text(lab,L+2,y); doc.text(eur0(v),L+72,y,{align:"right"});
+    doc.setTextColor(...RP_GREY); doc.text(fmt0(v*(f.swr/100)/12)+" €",R-2,y,{align:"right"}); y+=8.4; });
+  y+=5;
+  // curva di crescita verso l'obiettivo
+  const Nyr=Math.max(10,Math.min(40,yF!=null?Math.ceil(yF)+5:30));
+  const fH=52, fx=i=>L+i*(R-L)/Nyr;
+  const vals=[]; for(let k=0;k<=Nyr;k++) vals.push(fv(patMese,f.pac,rr,k));
+  const fMax=Math.max(target*1.08,...vals), fy=v=>y+fH-(v/fMax)*fH;
+  doc.setFillColor(232,240,250);
+  const poly2=vals.map((v,i)=>[fx(i),fy(v)]); const rel2=poly2.slice(1).map((pp,i)=>[pp[0]-poly2[i][0],pp[1]-poly2[i][1]]);
+  doc.lines([...rel2,[0,y+fH-fy(vals[vals.length-1])],[-(R-L),0]],poly2[0][0],poly2[0][1],[1,1],"F",true);
+  doc.setDrawColor(...RP_BLUE); doc.setLineWidth(0.8);
+  for(let i=1;i<vals.length;i++) doc.line(fx(i-1),fy(vals[i-1]),fx(i),fy(vals[i]));
+  doc.setLineWidth(0.2);
+  doc.setDrawColor(...RP_GREEN); doc.setLineDashPattern([1.5,1.5],0); doc.line(L,fy(target),R,fy(target)); doc.setLineDashPattern([],0);
+  doc.setFontSize(7); doc.setTextColor(...RP_GREEN); doc.text("obiettivo "+fmt0(target)+" €",R,fy(target)-1.5,{align:"right"});
+  if(yF!=null&&yF<=Nyr){ doc.setFillColor(...RP_GREEN); doc.circle(fx(yF),fy(target),1.6,"F");
+    doc.setFontSize(7.5); doc.setTextColor(...RP_GREEN); doc.text(dec(yF)+" anni",fx(yF),fy(target)+5,{align:"center"}); }
+  doc.setFontSize(6.6); doc.setTextColor(...RP_GREY);
+  [0,Math.round(Nyr/2),Nyr].forEach(k=>doc.text(k===0?"oggi":"+"+k+" anni",fx(k),y+fH+4,{align:"center"}));
+  y+=fH+12;
+  doc.setFillColor(247,250,253); doc.roundedRect(L,y,R-L,20,2.5,2.5,"F");
+  doc.setFontSize(7.4); doc.setTextColor(...RP_GREY);
+  const note="Ipotesi: versamento "+fmt0(f.pac)+" €/mese, rendimento "+dec(f.rate,2).replace(/,00$/,"")+"% e inflazione "+dec(f.infl,2).replace(/,00$/,"")+"%, quindi "+dec(rr)+"% reale. Tutti gli importi sono espressi in potere d'acquisto di oggi. Le proiezioni sono indicative e non costituiscono consulenza finanziaria: i rendimenti non sono garantiti e l'ordine in cui arrivano gli anni negativi pesa più della media.";
+  doc.text(doc.splitTextToSize(note,R-L-8),L+4,y+6);
+  footer();
+  return doc;
+}
+async function genReport(){
+  const btn=$("btnRepGo"); btn.disabled=true; btn.textContent="Genero…";
+  $("repNote").innerHTML="";
+  try{
+    await loadJsPDF();
+    const doc=buildPDF(); const name="Report_"+REP.month+".pdf";
+    const blob=doc.output("blob"); const url=URL.createObjectURL(blob);
+    let condiviso=false;
+    try{ const file=new File([blob],name,{type:"application/pdf"});
+      if(navigator.canShare&&navigator.canShare({files:[file]})){ await navigator.share({files:[file],title:name}); condiviso=true; }
+    }catch(e){}
+    if(!condiviso){ const a=document.createElement("a"); a.href=url; a.download=name; a.rel="noopener"; document.body.appendChild(a); a.click(); a.remove(); }
+    $("repNote").innerHTML=`Se non si è aperto nulla, <a href="${url}" target="_blank" rel="noopener" style="color:var(--go);font-weight:600">tocca qui per aprire il PDF</a> e poi usa Condividi → Salva su File.`;
+  }catch(e){ toast(e.message||"Generazione non riuscita",true); }
+  btn.disabled=false; btn.textContent="Genera PDF";
+}
+$("btnRepGo").onclick=genReport;
 
 // ================= FIRE =================
 const FIRE_DEF={mode:"proj",cap:null,pac:null,rate:7,infl:2,spesa:null,swr:4,anni:20,base:"asset"};
