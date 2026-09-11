@@ -180,6 +180,38 @@
   .rp .empty{color:var(--ink-2);font-size:14px;text-align:center;padding:24px 8px;line-height:1.5}
   .rp .empty b{display:block;color:var(--ink);margin-bottom:6px}
   .rp .chart{width:100%;height:auto;display:block}
+  .fire .modes{display:flex;gap:6px;background:var(--key);border-radius:12px;padding:4px;margin-bottom:12px}
+  .fire .modes button{flex:1;border-radius:9px;padding:9px 4px;font-size:13.5px;font-weight:600;color:var(--ink-2);min-height:40px}
+  .fire .modes button.on{background:var(--paper);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+  .fire .hero{background:var(--navy);color:#fff;border-radius:18px;padding:14px 16px;margin-bottom:10px}
+  .fire .hero .lbl{font-size:13px;color:var(--navy-2)}
+  .fire .hero .big{font-family:ui-rounded,-apple-system,system-ui,sans-serif;font-size:34px;font-weight:700;letter-spacing:-.02em;margin:2px 0 2px;line-height:1.05}
+  .fire .hero .sub{font-size:13.5px;color:#fff}
+  .fire .hero .sub em{font-style:normal;color:#8BE0B5;font-weight:700}
+  .fire .hero .g2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+  .fire .hero .g2 div{background:rgba(255,255,255,.1);border-radius:10px;padding:8px 10px}
+  .fire .hero .g2 small{display:block;font-size:11.5px;color:var(--navy-2)}
+  .fire .hero .g2 b{font-size:15px;font-weight:700}
+  .fire .card{background:var(--paper);border-radius:var(--r);padding:12px 14px;margin-bottom:10px}
+  .fire .card h3{font-size:15px;margin:0 0 10px;font-weight:700}
+  .fire .ip{margin-bottom:12px}
+  .fire .ip .r1{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+  .fire .ip label{font-size:13.5px;color:var(--ink-2)}
+  .fire .ip .v{display:flex;align-items:baseline;gap:3px}
+  .fire .ip input[type=text]{width:110px;text-align:right;border:0;background:var(--key);border-radius:8px;padding:6px 8px;font-size:17px;font-weight:700;font-family:ui-rounded,-apple-system,system-ui,sans-serif;outline:0}
+  .fire .ip .u{font-size:13px;color:var(--ink-2);font-weight:600}
+  .fire .ip input[type=range]{width:100%;margin-top:8px;accent-color:var(--go);height:28px}
+  .fire .ip .hint{font-size:12px;color:var(--ink-2);margin-top:2px}
+  .fire .seg2{display:flex;background:var(--key);border-radius:10px;padding:3px;margin-bottom:12px}
+  .fire .seg2 button{flex:1;border-radius:8px;padding:8px 4px;font-size:13.5px;font-weight:600;color:var(--ink-2);min-height:38px}
+  .fire .seg2 button.on{background:var(--paper);color:var(--ink)}
+  .fire svg.ch{width:100%;height:190px;display:block}
+  .fire .rows{list-style:none;margin:0;padding:0}
+  .fire .rows li{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);font-size:14.5px}
+  .fire .rows li:last-child{border-bottom:0}
+  .fire .rows li b{font-family:ui-rounded,-apple-system,system-ui,sans-serif;font-weight:700}
+  .fire .rows li small{display:block;color:var(--ink-2);font-size:12px}
+  .fire .note{font-size:12.5px;color:var(--ink-2);line-height:1.45}
   .mv .field{padding:8px 12px;margin-bottom:8px}
   .mv .field.inline label{font-size:13px;color:var(--ink-2);font-weight:600;min-width:42px}
   .mv .chips button{padding:7px 11px;font-size:14px;min-height:36px}
@@ -220,6 +252,7 @@
     <h1>Nuovo movimento</h1>
     <div class="grp">
       <button class="ic" id="btnRp" aria-label="Riepilogo"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></button>
+      <button class="ic" id="btnFire" aria-label="FIRE"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.5 2c.6 3-1 4.6-2.4 6C9.4 9.6 8 11.2 8 13.8A6.2 6.2 0 0 0 14.2 20a6 6 0 0 0 6-6c0-3.4-2.2-5-3.4-7.4-.3 1.3-1 2-1.8 2.5.6-2.4.3-5-1.5-7.1z" opacity=".9"/></svg></button>
       <button class="ic" id="btnMv" aria-label="Movimenti"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg></button>
       <button class="ic badge" id="btnLog" aria-label="Inviati"><span>☰</span><span class="n" id="logN" hidden>0</span></button>
     </div>
@@ -306,6 +339,16 @@
   <div id="mvBody"></div>
 </div>
 
+<div class="sheet fire" id="sheetFire">
+  <div class="top"><h2>FIRE</h2><button class="close" data-close="sheetFire">Chiudi</button></div>
+  <div class="modes" id="fireModes">
+    <button data-m="proj" class="on">Proiezione</button>
+    <button data-m="pmt">Quanto investire</button>
+    <button data-m="rate">Che rendimento</button>
+  </div>
+  <div id="fireBody"></div>
+</div>
+
 <!-- ============ PAC ============ -->
 <div class="sheet" id="sheetPac">
   <div class="top"><h2>Aggiorna da Trade</h2><button class="close" data-close="sheetPac">Chiudi</button></div>
@@ -383,7 +426,7 @@
 
   <div class="field">
     <label>Versione app</label>
-    <p><b>v14</b> · "Aggiorna da Trade" + border collie che insegue la pallina. Aggiunti conto Amex Siemens, categoria Trasferte elenco Movimenti e grafico patrimonio interattivo. Se non leggi "v12" qui, versione vecchia.</p>
+    <p><b>v15</b> · "Aggiorna da Trade" + border collie che insegue la pallina. Aggiunti conto Amex Siemens, categoria Trasferte elenco Movimenti, grafico patrimonio interattivo e sezione FIRE. Se non leggi "v15" qui, versione vecchia.</p>
   </div>
   <div class="field">
     <label>Dettatura</label>
@@ -1033,6 +1076,126 @@ async function sendPac(){
   toast(ok?"Patrimonio in aggiornamento: tra qualche secondo ricarico i dati":"Invio non riuscito, riprova",!ok);
   setTimeout(()=>doRefresh(true),5000);
 }
+
+// ================= FIRE =================
+const FIRE_DEF={mode:"proj",cap:null,pac:null,rate:7,infl:2,spesa:null,swr:4,anni:20,base:"asset"};
+function fireCfg(){ S.fire=Object.assign({},FIRE_DEF,S.fire||{}); return S.fire; }
+function fireDefaults(){
+  const D=calc(); const f=fireCfg(); if(!D) return f;
+  if(f.cap==null) f.cap=Math.round(f.base==="tot"?D.patrimonio:D.assetTot);
+  if(f.pac==null){ // media investimenti ultimi 12 mesi
+    const rows=(S.cache.rows||[]).filter(r=>r.cat==="Investimento"); const now=today();
+    const from=new Date(now.getFullYear()-1,now.getMonth(),1);
+    const recent=rows.filter(r=>fromISO(r.d)>=from);
+    f.pac=recent.length?Math.round(-recent.reduce((a,r)=>a+r.imp,0)/12):500;
+  }
+  if(f.spesa==null){ // media spese mensili ultimi 6 mesi
+    const ms=D.months.slice(-6); const tot=ms.reduce((a,m)=>a+D.month(m).spese,0);
+    f.spesa=ms.length?Math.round(tot/ms.length):2500;
+  }
+  return f;
+}
+function fv(P,pmt,rAnn,anni){ const i=rAnn/100/12, m=Math.round(anni*12);
+  if(Math.abs(i)<1e-9) return P+pmt*m;
+  return P*Math.pow(1+i,m)+pmt*(Math.pow(1+i,m)-1)/i; }
+function realRate(r,infl){ return ((1+r/100)/(1+infl/100)-1)*100; }
+function yearsTo(P,pmt,rAnn,target){ const i=rAnn/100/12; let m=0,v=P;
+  if(v>=target) return 0;
+  while(m<1200){ v=v*(1+i)+pmt; m++; if(v>=target) return m/12; }
+  return null; }
+function pmtFor(P,rAnn,anni,target){ const i=rAnn/100/12,m=Math.round(anni*12);
+  if(Math.abs(i)<1e-9) return Math.max(0,(target-P)/m);
+  return Math.max(0,(target-P*Math.pow(1+i,m))*i/(Math.pow(1+i,m)-1)); }
+function rateFor(P,pmt,anni,target){ let lo=-5,hi=60;
+  if(fv(P,pmt,hi,anni)<target) return null;
+  for(let k=0;k<80;k++){ const mid=(lo+hi)/2; if(fv(P,pmt,mid,anni)<target) lo=mid; else hi=mid; }
+  return (lo+hi)/2; }
+function fireChart(P,pmt,rReal,anni,target){
+  const W=440,H=190,pl=8,pr=8,pt=14,pb=22, N=Math.max(2,Math.round(anni));
+  const pts=[]; for(let y=0;y<=N;y++) pts.push(fv(P,pmt,rReal,y));
+  const max=Math.max(target*1.05,...pts), min=0;
+  const X=i=>pl+i*(W-pl-pr)/N, Y=v=>pt+(1-(v-min)/(max-min))*(H-pt-pb);
+  const line=pts.map((v,i)=>`${i?"L":"M"}${X(i).toFixed(1)} ${Y(v).toFixed(1)}`).join(" ");
+  const area=line+` L${X(N).toFixed(1)} ${H-pb} L${pl} ${H-pb} Z`;
+  const ty=Y(target);
+  let cross=""; const yFire=yearsTo(P,pmt,rReal,target);
+  if(yFire!=null&&yFire<=N) cross=`<circle cx="${X(yFire).toFixed(1)}" cy="${ty.toFixed(1)}" r="5" fill="#0B8A4B" stroke="#fff" stroke-width="2"/><text x="${X(yFire).toFixed(1)}" y="${(ty-10).toFixed(1)}" text-anchor="middle" font-size="10.5" font-weight="700" fill="#0B8A4B">${yFire.toFixed(1)} anni</text>`;
+  const labels=[0,Math.round(N/2),N].map(i=>`<text x="${X(i).toFixed(1)}" y="${H-6}" text-anchor="middle" font-size="10" fill="#5A6C80">${i===0?"oggi":"+"+i+"a"}</text>`).join("");
+  return `<svg class="ch" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">
+    <defs><linearGradient id="fg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1F6FD0" stop-opacity=".28"/><stop offset="1" stop-color="#1F6FD0" stop-opacity="0"/></linearGradient></defs>
+    <path d="${area}" fill="url(#fg)"/><path d="${line}" fill="none" stroke="#1F6FD0" stroke-width="2.4" stroke-linejoin="round"/>
+    <line x1="${pl}" y1="${ty.toFixed(1)}" x2="${W-pr}" y2="${ty.toFixed(1)}" stroke="#0B8A4B" stroke-width="1.4" stroke-dasharray="5 4"/>
+    <text x="${W-pr}" y="${(ty-6).toFixed(1)}" text-anchor="end" font-size="10" fill="#0B8A4B">obiettivo ${fmt0(target)} €</text>
+    ${cross}${labels}</svg>`;
+}
+function ipNum(id,label,val,unit,hint){ return `<div class="ip"><div class="r1"><label for="${id}">${label}</label><span class="v"><input type="text" id="${id}" inputmode="decimal" value="${val}"><span class="u">${unit}</span></span></div>${hint?`<div class="hint">${hint}</div>`:""}</div>`; }
+function ipRange(id,label,val,unit,min,max,step,hint){ return `<div class="ip"><div class="r1"><label for="${id}">${label}</label><span class="v"><input type="text" id="${id}" inputmode="decimal" value="${String(val).replace(".",",")}"><span class="u">${unit}</span></span></div><input type="range" id="${id}_r" min="${min}" max="${max}" step="${step}" value="${val}">${hint?`<div class="hint">${hint}</div>`:""}</div>`; }
+function renderFire(){
+  const body=$("fireBody");
+  if(!S.cache){ body.innerHTML=`<div class="card"><p class="note">Apri prima il Riepilogo per scaricare i dati dal file, poi torna qui.</p></div>`; return; }
+  const f=fireDefaults(); const D=calc();
+  const rr=realRate(f.rate,f.infl);
+  const target=f.spesa*12/(f.swr/100);
+  const yFire=yearsTo(f.cap,f.pac,rr,target);
+  $("fireModes").querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.m===f.mode));
+  let hero="",extra="";
+  if(f.mode==="proj"){
+    const finale=fv(f.cap,f.pac,rr,f.anni), nom=fv(f.cap,f.pac,f.rate,f.anni);
+    const rendita=finale*(f.swr/100)/12;
+    hero=`<div class="hero"><div class="lbl">Capitale fra ${f.anni} anni · potere d'acquisto di oggi</div><div class="big">${fmtIT(finale)} €</div>
+      <div class="sub">Rendita al ${String(f.swr).replace(".",",")}%: <em>${fmt0(rendita)} €/mese</em></div>
+      <div class="g2"><div><small>Obiettivo FIRE</small><b>${fmt0(target)} €</b></div><div><small>${yFire!=null?"Traguardo tra":"Traguardo"}</small><b>${yFire!=null?yFire.toFixed(1)+" anni":"oltre 100 anni"}</b></div>
+      <div><small>Versato in ${f.anni} anni</small><b>${fmt0(f.pac*12*f.anni)} €</b></div><div><small>Valore nominale</small><b>${fmt0(nom)} €</b></div></div></div>`;
+    extra=ipRange("f_anni","Orizzonte",f.anni,"anni",1,45,1);
+  } else if(f.mode==="pmt"){
+    const need=pmtFor(f.cap,rr,f.anni,target); const delta=need-f.pac;
+    hero=`<div class="hero"><div class="lbl">Per arrivare a ${fmt0(target)} € in ${f.anni} anni</div><div class="big">${fmtIT(need)} €/mese</div>
+      <div class="sub">${Math.abs(delta)<1?"Sei esattamente in linea":(delta>0?`<em style="color:#F6A28C">${fmt0(delta)} € in più</em> di quanto investi oggi`:`<em>${fmt0(-delta)} € in meno</em> di quanto investi oggi`)}</div>
+      <div class="g2"><div><small>PAC attuale</small><b>${fmt0(f.pac)} €/mese</b></div><div><small>Rendimento reale</small><b>${rr.toFixed(1)}%</b></div></div></div>`;
+    extra=ipRange("f_anni","In quanti anni",f.anni,"anni",1,45,1);
+  } else {
+    const need=rateFor(f.cap,f.pac,f.anni,target);
+    hero=`<div class="hero"><div class="lbl">Rendimento reale necessario in ${f.anni} anni</div><div class="big">${need==null?"non raggiungibile":need.toFixed(1)+"%"}</div>
+      <div class="sub">${need==null?"Con questo PAC il traguardo non si raggiunge: aumenta versamento o anni":`Nominale con inflazione al ${String(f.infl).replace(".",",")}%: <em>${(((1+need/100)*(1+f.infl/100)-1)*100).toFixed(1)}%</em>`}</div>
+      <div class="g2"><div><small>Obiettivo</small><b>${fmt0(target)} €</b></div><div><small>PAC</small><b>${fmt0(f.pac)} €/mese</b></div></div></div>`;
+    extra=ipRange("f_anni","In quanti anni",f.anni,"anni",1,45,1);
+  }
+  body.innerHTML=hero+
+  `<div class="card"><h3>Punto di partenza</h3>
+    <div class="seg2" id="f_base"><button data-b="asset" class="${f.base==="asset"?"on":""}">Solo investito</button><button data-b="tot" class="${f.base==="tot"?"on":""}">Patrimonio totale</button></div>
+    ${ipNum("f_cap","Capitale iniziale",fmt0(f.cap),"€","Dal file: investito ${a} € · totale ${b} €".replace("${a}",fmt0(D.assetTot)).replace("${b}",fmt0(D.patrimonio)))}
+    ${ipNum("f_pac","Versamento mensile",fmt0(f.pac),"€","Media dei tuoi investimenti negli ultimi 12 mesi")}
+    ${extra}</div>
+  <div class="card"><h3>Ipotesi di mercato</h3>
+    ${ipRange("f_rate","Rendimento annuo",f.rate,"%",0,15,0.5)}
+    ${ipRange("f_infl","Inflazione",f.infl,"%",0,8,0.25,`Rendimento reale: <b>${rr.toFixed(1)}%</b>`)}
+  </div>
+  <div class="card"><h3>Obiettivo di vita</h3>
+    ${ipNum("f_spesa","Spesa mensile desiderata",fmt0(f.spesa),"€","Le tue spese medie degli ultimi 6 mesi")}
+    ${ipRange("f_swr","Prelievo annuo sicuro",f.swr,"%",2,6,0.25,`Capitale necessario: <b>${fmt0(target)} €</b> (spesa annua ÷ ${String(f.swr).replace(".",",")}%)`)}
+  </div>
+  <div class="card"><h3>Proiezione</h3>${fireChart(f.cap,f.pac,rr,Math.max(f.anni,yFire!=null?Math.ceil(yFire):f.anni),target)}
+    <ul class="rows">
+      <li><span>Fra 5 anni</span><b>${fmt0(fv(f.cap,f.pac,rr,5))} €</b></li>
+      <li><span>Fra 10 anni</span><b>${fmt0(fv(f.cap,f.pac,rr,10))} €</b></li>
+      <li><span>Fra 20 anni</span><b>${fmt0(fv(f.cap,f.pac,rr,20))} €</b></li>
+      <li><span>Al traguardo FIRE<small>${yFire!=null?"tra "+yFire.toFixed(1)+" anni":"non raggiunto entro 100 anni"}</small></span><b>${fmt0(target)} €</b></li>
+    </ul></div>
+  <div class="card"><p class="note">Tutti gli importi sono in potere d'acquisto di oggi: il rendimento usato è quello reale (rendimento meno inflazione). Il prelievo sicuro è una regola pratica, non una garanzia: i mercati non salgono in linea retta e le sequenze negative dei primi anni pesano più di quelle successive. Sono stime, non consulenza finanziaria.</p></div>`;
+  // handlers
+  $("f_base").querySelectorAll("button").forEach(b=>b.onclick=()=>{ f.base=b.dataset.b; f.cap=Math.round(f.base==="tot"?D.patrimonio:D.assetTot); save(); renderFire(); });
+  const bindNum=(id,key,int)=>{ const el=$(id); if(!el) return;
+    el.onchange=()=>{ const v=parseFloat(el.value.replace(/\./g,"").replace(",",".")); if(!isNaN(v)){ f[key]=int?Math.round(v):v; save(); renderFire(); } };
+    el.onfocus=()=>{ el.value=String(f[key]).replace(".",","); el.select&&el.select(); }; };
+  bindNum("f_cap","cap",true); bindNum("f_pac","pac",true); bindNum("f_spesa","spesa",true);
+  bindNum("f_rate","rate"); bindNum("f_infl","infl"); bindNum("f_swr","swr"); bindNum("f_anni","anni",true);
+  [["f_rate_r","rate"],["f_infl_r","infl"],["f_swr_r","swr"],["f_anni_r","anni"]].forEach(([id,key])=>{ const r=$(id); if(!r) return;
+    r.oninput=()=>{ f[key]=+r.value; const t=$(id.replace("_r","")); if(t) t.value=String(f[key]).replace(".",","); };
+    r.onchange=()=>{ f[key]=+r.value; save(); renderFire(); }; });
+}
+$("btnFire").onclick=()=>{ $("sheetFire").classList.add("open"); renderFire(); if(S.share) doRefresh(false); };
+$("fireModes").onclick=e=>{ const b=e.target.closest("button"); if(!b) return; fireCfg().mode=b.dataset.m; save(); renderFire(); };
+
 // ---------- elenco movimenti ----------
 let MV={q:"",month:null,cat:"",conto:"",limit:60};
 function openMv(){ if(!S.cache){ toast(S.share?"Apri prima il Riepilogo per scaricare i dati":"Manca l'indirizzo del relay in ⚙︎",true); return; }
