@@ -18,6 +18,16 @@
   html,body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.35 -apple-system,"SF Pro Text",system-ui,sans-serif;-webkit-font-smoothing:antialiased;overscroll-behavior:none}
   button{font:inherit;color:inherit;border:0;background:none;padding:0;margin:0;cursor:pointer}
   input,textarea{font:inherit;color:inherit}
+  #bg{position:fixed;inset:0;z-index:-2;background-size:cover;background-position:center;display:none}
+  #bg.on{display:block}
+  #bgveil{position:fixed;inset:0;z-index:-1;display:none;background:linear-gradient(180deg,rgba(237,243,249,.72) 0%,rgba(237,243,249,.88) 45%,rgba(237,243,249,.95) 100%)}
+  #bgveil.on{display:block}
+  body.haspic .amount,body.haspic .field{box-shadow:0 1px 3px rgba(22,40,58,.10)}
+  .fam{text-align:center;font-style:italic;font-size:13px;color:var(--ink-2);margin:-2px 0 8px;letter-spacing:.02em}
+  .fam b{font-style:italic;font-weight:600;color:var(--navy)}
+  .sheet .fam{margin-bottom:12px}
+  .pic{display:flex;gap:10px;align-items:center;margin-top:6px}
+  .pic .prev{width:56px;height:56px;border-radius:12px;background:var(--key) center/cover;flex:0 0 auto}
   .app{max-width:480px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top) + 10px) 14px calc(env(safe-area-inset-bottom) + 12px)}
 
   .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
@@ -246,6 +256,7 @@
 </style>
 </head>
 <body>
+<div id="bg"></div><div id="bgveil"></div>
 <div class="app" id="main">
   <div class="top">
     <button class="ic" id="btnSettings" aria-label="Impostazioni">⚙︎</button>
@@ -257,6 +268,8 @@
       <button class="ic badge" id="btnLog" aria-label="Inviati"><span>☰</span><span class="n" id="logN" hidden>0</span></button>
     </div>
   </div>
+
+  <div class="fam">Famiglia <b>Quinto</b> · <i>Emi</i>, <i>Ele</i>, <i>Leo</i> e <i>Grace</i></div>
 
   <section class="fast">
     <div class="due">
@@ -433,8 +446,16 @@
   </div>
 
   <div class="field">
+    <label>Sfondo dell'app</label>
+    <p>Scegli una vostra foto dal rullino: resta su questo telefono, quindi tu e <i>Ele</i> potete averne una diversa.</p>
+    <div class="pic"><span class="prev" id="picPrev"></span>
+      <label class="btn" for="picIn" style="margin:0">Scegli foto</label>
+      <input type="file" id="picIn" accept="image/*" style="display:none">
+      <button class="btn danger" id="picDel" style="margin:0">Rimuovi</button></div>
+  </div>
+  <div class="field">
     <label>Versione app</label>
-    <p><b>v25</b> · "Aggiorna da Trade" + border collie che insegue la pallina. Aggiunti conto Amex Siemens, categoria Trasferte elenco Movimenti, grafico patrimonio interattivo sezione FIRE ed export report PDF. Se non leggi "v15" qui, versione vecchia.</p>
+    <p><b>v26</b> · "Aggiorna da Trade" + border collie che insegue la pallina. Aggiunti conto Amex Siemens, categoria Trasferte elenco Movimenti, grafico patrimonio interattivo sezione FIRE ed export report PDF. Se non leggi "v15" qui, versione vecchia.</p>
   </div>
   <div class="field">
     <label>Dettatura</label>
@@ -466,7 +487,7 @@ const SEED_RULES=[
   {id:"stip_emi",desc:"Stipendio Emi",cat:"Stipendio Emi",conto:"BNL",type:"monthly",from:25,hint:"a fine mese"},
   {id:"mutuo",desc:"Mutuo",cat:"Mutuo",conto:"BNL",type:"monthly",from:25,hint:"a fine mese"},
   {id:"stip_ele",desc:"Stipendio Ele",cat:"Stipendio Ele",conto:"Allianz",type:"monthly",from:4,hint:"dal 4 del mese"},
-  {id:"rebelot",desc:"CAFFÈ REBELOT DI STEFAN",key:"caffè rebelot di stefan",cat:"Ristorante",conto:"Trade",imp:7,type:"weekly",dow:1,hint:"ogni lunedì · brioches Ele"},
+  {id:"rebelot",desc:"CAFFÈ REBELOT DI STEFAN",key:"caffè rebelot di stefan",cat:"Ristorante",conto:"Trade",imp:7,type:"weekly",dow:1,hint:"ogni lunedì · brioches di Ele"},
   {id:"spesa",desc:"Spesa",cat:"Spesa",conto:"BNL",type:"interval",days:14,hint:"ogni 2 settimane"},
   {id:"amex_siemens",desc:"Addebito Amex Siemens",key:"addebito amex siemens",cat:CAT_TRASFERTE,conto:"BNL",type:"monthly",from:8,hint:"l'8 del mese"}
 ];
@@ -1002,7 +1023,7 @@ function renderRp(){
   if(!R.month) R.month=D.months.length?D.months[D.months.length-1]:dateISO(today()).slice(0,7);
   const M=D.month(R.month); const ytd=D.inizioAnno!=null?D.patrimonio-D.inizioAnno:null;
   const when=new Date(D.ts); const ago=Math.round((Date.now()-D.ts)/60000);
-  let h=`<div class="hero"><div class="lbl">Patrimonio oggi${D.livePrices?` · <span class="live">prezzi live</span>`:(D.assetDate?` · prezzi asset al ${dateIT(fromISO(D.assetDate))}`:"")}</div><div class="big">${fmtIT(D.patrimonio)} €</div>`;
+  let h=`<div class="hero"><div class="lbl">Patrimonio della famiglia <i>Quinto</i>${D.livePrices?` · <span class="live">prezzi live</span>`:(D.assetDate?` · prezzi asset al ${dateIT(fromISO(D.assetDate))}`:"")}</div><div class="big">${fmtIT(D.patrimonio)} €</div>`;
   if(ytd!=null) h+=`<div class="ytd">Da inizio anno <em class="${ytd<0?"neg":""}">${ytd>=0?"+":"−"}${fmtIT(Math.abs(ytd))} €</em></div>`;
   h+=`<div class="grid3"><div><small>Liquidità</small><b>${fmt0(D.liquidita)} €</b></div><div><small>Carte da addebitare</small><b>${fmt0(D.carteTot)} €</b></div><div><small>Asset</small><b>${fmt0(D.assetTot)} €</b></div>${D.trasferte.credito>0.005?`<div><small>Crediti trasferte</small><b>${fmt0(D.trasferte.credito)} €</b></div>`:""}</div></div>`;
   h+=`<div class="sync">${R.loading?"Aggiornamento in corso…":`Letto da Excel ${ago<1?"adesso":ago<60?ago+" min fa":"alle "+pad2(when.getHours())+":"+pad2(when.getMinutes())+" del "+shortDate(when)}`}<button id="rpRefresh">Aggiorna</button></div>`;
@@ -1102,6 +1123,31 @@ async function sendPac(){
 }
 
 
+
+// ---------- sfondo personale ----------
+const PIC_KEY="movimenti:sfondo";
+function applyPic(data){
+  const bg=$("bg"), veil=$("bgveil"), prev=$("picPrev");
+  if(data){ bg.style.backgroundImage=`url(${data})`; bg.classList.add("on"); veil.classList.add("on"); document.body.classList.add("haspic"); if(prev) prev.style.backgroundImage=`url(${data})`; }
+  else { bg.classList.remove("on"); veil.classList.remove("on"); document.body.classList.remove("haspic"); if(prev) prev.style.backgroundImage=""; }
+}
+function loadPic(){ try{ return localStorage.getItem(PIC_KEY); }catch(e){ return null; } }
+function savePic(d){ try{ d?localStorage.setItem(PIC_KEY,d):localStorage.removeItem(PIC_KEY); }catch(e){ toast("Foto troppo grande per essere salvata",true); } }
+$("picIn").onchange=e=>{
+  const f=e.target.files&&e.target.files[0]; if(!f) return;
+  const img=new Image(), rd=new FileReader();
+  rd.onload=()=>{ img.onload=()=>{
+    const maxW=1000, sc=Math.min(1,maxW/img.width);
+    const c=document.createElement("canvas"); c.width=Math.round(img.width*sc); c.height=Math.round(img.height*sc);
+    c.getContext("2d").drawImage(img,0,0,c.width,c.height);
+    let q=0.72, data=c.toDataURL("image/jpeg",q);
+    while(data.length>900000&&q>0.4){ q-=0.1; data=c.toDataURL("image/jpeg",q); }
+    savePic(data); applyPic(data); toast("Sfondo aggiornato");
+  }; img.src=rd.result; };
+  rd.readAsDataURL(f); e.target.value="";
+};
+$("picDel").onclick=()=>{ savePic(null); applyPic(null); toast("Sfondo rimosso"); };
+
 // ================= REPORT PDF =================
 const JSPDF_CDN="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
 let REP={month:null};
@@ -1124,7 +1170,7 @@ function buildPDF(){
   let page=1;
   const footer=()=>{ doc.setDrawColor(...RP_LINE); doc.line(L,283,R,283);
     doc.setFontSize(8); doc.setTextColor(...RP_GREY);
-    doc.text("Finanze2026 · report generato il "+dateIT(today()),L,287); doc.text(String(page),R,287,{align:"right"}); };
+    doc.text("Famiglia Quinto · report generato il "+dateIT(today()),L,287); doc.text(String(page),R,287,{align:"right"}); };
   const newPage=()=>{ footer(); doc.addPage(); page++; };
   const h2=(t,y)=>{ doc.setFontSize(12.5); doc.setTextColor(...RP_INK); doc.setFont(undefined,"bold"); doc.text(t,L,y); doc.setFont(undefined,"normal");
     doc.setDrawColor(...RP_BLUE); doc.setLineWidth(0.6); doc.line(L,y+2.2,L+16,y+2.2); doc.setLineWidth(0.2); doc.setDrawColor(...RP_LINE); doc.line(L+17,y+2.2,R,y+2.2); };
@@ -1146,7 +1192,7 @@ function buildPDF(){
   // ---------- PAG 1 ----------
   doc.setFillColor(...RP_NAVY); doc.rect(0,0,W,54,"F");
   doc.setFillColor(...RP_BLUE); doc.rect(0,54,W,1.6,"F");
-  doc.setTextColor(169,195,230); doc.setFontSize(9); doc.text("REPORT FINANZIARIO",L,15);
+  doc.setTextColor(169,195,230); doc.setFontSize(9); doc.text("REPORT FINANZIARIO · FAMIGLIA QUINTO",L,15);
   doc.setTextColor(255,255,255); doc.setFontSize(25); doc.setFont(undefined,"bold"); doc.text(monthLabel(m),L,28); doc.setFont(undefined,"normal");
   const st=D.storico.filter(p=>p.d<=m+"-31"); const patMese=st.length?st[st.length-1].v:D.patrimonio;
   const prevPt=st.length>1?st[st.length-2].v:null;
@@ -1466,7 +1512,7 @@ function renderFire(){
     ${ipRange("f_infl","Inflazione",f.infl,"%",0,8,0.25,`Rendimento reale: <b>${rr.toFixed(1)}%</b>`)}
   </div>
   <div class="card"><h3>Obiettivo di vita</h3>
-    ${ipNum("f_spesa","Spesa mensile desiderata",fmt0(f.spesa),"€","Le tue spese medie degli ultimi 6 mesi")}
+    ${ipNum("f_spesa","Spesa mensile per <i>Emi</i>, <i>Ele</i>, <i>Leo</i> e <i>Grace</i>",fmt0(f.spesa),"€","Le tue spese medie degli ultimi 6 mesi")}
     ${ipRange("f_swr","Prelievo annuo sicuro",f.swr,"%",2,6,0.25,`Capitale necessario: <b>${fmt0(target)} €</b> (spesa annua ÷ ${String(f.swr).replace(".",",")}%)`)}
   </div>
   <div class="card"><h3>Proiezione</h3>${fireChart(f.cap,f.pac,rr,Math.max(f.anni,yFire!=null?Math.ceil(yFire):f.anni),target)}
@@ -1514,7 +1560,7 @@ function renderMv(){
   $("mvConto").querySelectorAll("button").forEach(b=>b.onclick=()=>{ MV.conto=b.dataset.c; MV.limit=60; renderMv(); });
   const rows=mvRows(); const inTot=rows.filter(r=>r.imp>0).reduce((a,r)=>a+r.imp,0), outTot=-rows.filter(r=>r.imp<0).reduce((a,r)=>a+r.imp,0);
   let h=`<div class="sum"><span><small>${rows.length} movimenti</small><b>${fmtIT(inTot-outTot)} €</b></span><span><small>Entrate</small><b>${fmt0(inTot)} €</b></span><span><small>Uscite</small><b>${fmt0(outTot)} €</b></span></div>`;
-  if(!rows.length) h+=`<div class="empty">Nessun movimento con questi filtri.</div>`;
+  if(!rows.length) h+=`<div class="empty">Niente da vedere qui, <i>Leo</i> ne approva.</div>`;
   else{ let day=null;
     const shown=rows.slice(0,MV.limit);
     for(const r of shown){ if(r.d!==day){ if(day)h+=`</ul>`; day=r.d; h+=`<div class="day">${fromISO(r.d).toLocaleDateString("it-IT",{weekday:"short",day:"numeric",month:"long"})}</div><ul class="list">`; }
@@ -1533,6 +1579,7 @@ $("btnMv").onclick=openMv;
 
 
 
+applyPic(loadPic());
 load().then(()=>{ render(); if(S.share&&S.cache&&Date.now()-S.cache.ts>4*3600e3) refreshExcel(false).catch(()=>{}); });
 </script>
 </body>
