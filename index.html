@@ -20,12 +20,12 @@
   input,textarea{font:inherit;color:inherit}
   #bg{position:fixed;inset:0;z-index:0;background-size:cover;background-position:center;display:none;pointer-events:none}
   #bg.on{display:block}
-  #bgveil{position:fixed;inset:0;z-index:1;display:none;pointer-events:none;background:linear-gradient(180deg,rgba(237,243,249,.72) 0%,rgba(237,243,249,.88) 45%,rgba(237,243,249,.95) 100%)}
+  #bgveil{position:fixed;inset:0;z-index:1;display:none;pointer-events:none;background:linear-gradient(180deg,rgba(237,243,249,.40) 0%,rgba(237,243,249,.62) 45%,rgba(237,243,249,.80) 100%)}
   #bgveil.on{display:block}
   body.haspic{background:transparent}
   body.haspic .app{position:relative;z-index:2}
   body.haspic .amount,body.haspic .field,body.haspic .rp .card,body.haspic .fire .card{box-shadow:0 1px 3px rgba(22,40,58,.10)}
-  .fam{text-align:center;font-style:italic;font-size:13px;color:var(--ink-2);margin:-2px 0 8px;letter-spacing:.02em}
+  .fam{text-align:center;font-style:italic;font-size:13px;color:var(--ink);text-shadow:0 1px 2px rgba(255,255,255,.75);margin:-2px 0 8px;letter-spacing:.02em}
   .fam b{font-style:italic;font-weight:600;color:var(--navy)}
   .sheet .fam{margin-bottom:12px}
   .pic{display:flex;gap:10px;align-items:center;margin-top:6px}
@@ -457,7 +457,7 @@
   </div>
   <div class="field">
     <label>Versione app</label>
-    <p><b>v27</b> · "Aggiorna da Trade" + border collie che insegue la pallina. Aggiunti conto Amex Siemens, categoria Trasferte elenco Movimenti, grafico patrimonio interattivo sezione FIRE ed export report PDF. Se non leggi "v15" qui, versione vecchia.</p>
+    <p><b>v28</b> · "Aggiorna da Trade" + border collie che insegue la pallina. Aggiunti conto Amex Siemens, categoria Trasferte elenco Movimenti, grafico patrimonio interattivo sezione FIRE ed export report PDF. Se non leggi "v15" qui, versione vecchia.</p>
   </div>
   <div class="field">
     <label>Dettatura</label>
@@ -1586,4 +1586,3 @@ load().then(()=>{ render(); if(S.share&&S.cache&&Date.now()-S.cache.ts>4*3600e3)
 </script>
 </body>
 </html>
- 
