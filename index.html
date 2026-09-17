@@ -18,17 +18,19 @@
   html,body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.35 -apple-system,"SF Pro Text",system-ui,sans-serif;-webkit-font-smoothing:antialiased;overscroll-behavior:none}
   button{font:inherit;color:inherit;border:0;background:none;padding:0;margin:0;cursor:pointer}
   input,textarea{font:inherit;color:inherit}
-  #bg{position:fixed;inset:0;z-index:-2;background-size:cover;background-position:center;display:none}
+  #bg{position:fixed;inset:0;z-index:0;background-size:cover;background-position:center;display:none;pointer-events:none}
   #bg.on{display:block}
-  #bgveil{position:fixed;inset:0;z-index:-1;display:none;background:linear-gradient(180deg,rgba(237,243,249,.72) 0%,rgba(237,243,249,.88) 45%,rgba(237,243,249,.95) 100%)}
+  #bgveil{position:fixed;inset:0;z-index:1;display:none;pointer-events:none;background:linear-gradient(180deg,rgba(237,243,249,.72) 0%,rgba(237,243,249,.88) 45%,rgba(237,243,249,.95) 100%)}
   #bgveil.on{display:block}
-  body.haspic .amount,body.haspic .field{box-shadow:0 1px 3px rgba(22,40,58,.10)}
+  body.haspic{background:transparent}
+  body.haspic .app{position:relative;z-index:2}
+  body.haspic .amount,body.haspic .field,body.haspic .rp .card,body.haspic .fire .card{box-shadow:0 1px 3px rgba(22,40,58,.10)}
   .fam{text-align:center;font-style:italic;font-size:13px;color:var(--ink-2);margin:-2px 0 8px;letter-spacing:.02em}
   .fam b{font-style:italic;font-weight:600;color:var(--navy)}
   .sheet .fam{margin-bottom:12px}
   .pic{display:flex;gap:10px;align-items:center;margin-top:6px}
   .pic .prev{width:56px;height:56px;border-radius:12px;background:var(--key) center/cover;flex:0 0 auto}
-  .app{max-width:480px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top) + 10px) 14px calc(env(safe-area-inset-bottom) + 12px)}
+  .app{position:relative;z-index:1;max-width:480px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top) + 10px) 14px calc(env(safe-area-inset-bottom) + 12px)}
 
   .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
   .top h1{font-size:20px;font-weight:700;margin:0;letter-spacing:-.01em}
@@ -455,7 +457,7 @@
   </div>
   <div class="field">
     <label>Versione app</label>
-    <p><b>v26</b> · "Aggiorna da Trade" + border collie che insegue la pallina. Aggiunti conto Amex Siemens, categoria Trasferte elenco Movimenti, grafico patrimonio interattivo sezione FIRE ed export report PDF. Se non leggi "v15" qui, versione vecchia.</p>
+    <p><b>v27</b> · "Aggiorna da Trade" + border collie che insegue la pallina. Aggiunti conto Amex Siemens, categoria Trasferte elenco Movimenti, grafico patrimonio interattivo sezione FIRE ed export report PDF. Se non leggi "v15" qui, versione vecchia.</p>
   </div>
   <div class="field">
     <label>Dettatura</label>
