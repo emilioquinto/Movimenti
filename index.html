@@ -434,7 +434,7 @@
 
   <div class="field">
     <label>Versione app</label>
-    <p><b>v24</b> · "Aggiorna da Trade" + border collie che insegue la pallina. Aggiunti conto Amex Siemens, categoria Trasferte elenco Movimenti, grafico patrimonio interattivo sezione FIRE ed export report PDF. Se non leggi "v15" qui, versione vecchia.</p>
+    <p><b>v25</b> · "Aggiorna da Trade" + border collie che insegue la pallina. Aggiunti conto Amex Siemens, categoria Trasferte elenco Movimenti, grafico patrimonio interattivo sezione FIRE ed export report PDF. Se non leggi "v15" qui, versione vecchia.</p>
   </div>
   <div class="field">
     <label>Dettatura</label>
@@ -453,7 +453,8 @@ const lbl=n=>ETICHETTE[n]||n;
 const CONTI_NASCOSTI=new Set(["BPER"]);
 const CONTO_TRASFERTE="Amex Siemens", CAT_TRASFERTE="Trasferte";
 const GIORNO_ADDEBITO={"Amex Siemens":8};
-const CARTE_EXTRA=[{name:"Amex Siemens",saldo0:0,addebita:"BNL"}];
+const MESI_RITARDO={"Amex Siemens":2}; // 2 = spese di agosto addebitate a ottobre
+const CARTE_EXTRA=[{name:"Amex Siemens",saldo0:0,addebita:"Trade"}];
 const DOW=["domenica","lunedì","martedì","mercoledì","giovedì","venerdì","sabato"];
 const MESI=["Gennaio","Febbraio","Marzo","Aprile","Maggio","Giugno","Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre"];
 const MESI_S=["Gen","Feb","Mar","Apr","Mag","Giu","Lug","Ago","Set","Ott","Nov","Dic"];
@@ -851,8 +852,8 @@ function calc(){
   const sum=f=>rows.reduce((a,r)=>f(r)?a+r.imp:a,0);
   // carte: spese già addebitate (il 15 del mese successivo) e pendenze divise per mese
   const cardAccounts=[...C.accounts.filter(a=>a.addebita),...CARTE_EXTRA.filter(x=>!C.accounts.some(a=>a.name===x.name))];
-  const cards=cardAccounts.map(c=>{ let settled=0; const pend=[]; const gg=GIORNO_ADDEBITO[c.name]||15;
-    for(let m=0;m<12;m++){ const spend=sum(r=>r.conto===c.name&&r.d.startsWith(`${yearNow}-${pad2(m+1)}`)); const addebito=new Date(yearNow,m+1,gg);
+  const cards=cardAccounts.map(c=>{ let settled=0; const pend=[]; const gg=GIORNO_ADDEBITO[c.name]||15, lag=MESI_RITARDO[c.name]||1;
+    for(let m=0;m<12;m++){ const spend=sum(r=>r.conto===c.name&&r.d.startsWith(`${yearNow}-${pad2(m+1)}`)); const addebito=new Date(yearNow,m+lag,gg);
       if(now>=addebito) settled+=spend; else if(Math.abs(spend)>0.004) pend.push({mese:MESI[m],due:addebito,amount:spend}); }
     const total=sum(r=>r.conto===c.name); return {...c,giorno:gg,settled,pend,daAddebitare:total-settled}; });
   // saldi conto = saldo iniziale + movimenti + addebiti già passati delle carte collegate
