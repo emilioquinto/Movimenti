@@ -12,7 +12,9 @@
   :root{
     --bg:#EDF3F9; --paper:#FFFFFF; --ink:#16283A; --ink-2:#5A6C80; --line:#CFDCEA;
     --key:#DFE9F3; --key-press:#C3D4E6; --go:#1F6FD0; --go-press:#175AAB; --go-soft:#DCEBFB;
-    --out:#16283A; --in:#1F6FD0; --warn:#C24A2C; --chip-on:#1F6FD0; --navy:#123A6B; --navy-2:#A9C3E6; --r:14px;
+    --out:#16283A; --in:#1F6FD0; --warn:#C24A2C; --chip-on:#1F6FD0; --navy:#123A6B; --navy-2:#A9C3E6; --r:16px;
+    --glass:rgba(255,255,255,.60); --glass-strong:rgba(255,255,255,.78); --glass-brd:rgba(255,255,255,.65);
+    --glass-sh:0 8px 24px rgba(16,40,70,.10), inset 0 1px 0 rgba(255,255,255,.75);
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
   html,body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.35 -apple-system,"SF Pro Text",system-ui,sans-serif;-webkit-font-smoothing:antialiased;overscroll-behavior:none}
@@ -32,7 +34,11 @@
   .pic .prev{width:56px;height:56px;border-radius:12px;background:var(--key) center/cover;flex:0 0 auto}
   .app{position:relative;z-index:1;max-width:480px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top) + 10px) 14px calc(env(safe-area-inset-bottom) + 12px)}
 
-  .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+  .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;
+    position:sticky;top:0;z-index:12;margin-left:-14px;margin-right:-14px;padding:6px 14px;
+    background:rgba(237,243,249,.62);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);
+    border-bottom:1px solid rgba(255,255,255,.55)}
+  body.haspic .top{background:rgba(237,243,249,.42)}
   .top h1{font-size:20px;font-weight:700;margin:0;letter-spacing:-.01em}
   .top .ic{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:20px;color:var(--ink-2)}
   .top .ic.badge{position:relative}
@@ -132,6 +138,7 @@
   .flash.out .n{color:var(--warn)} .flash.in .n{color:#0B8A4B}
   .flash .bar{height:6px;border-radius:3px;background:var(--key);margin-top:12px;overflow:hidden}
   .flash .bar i{display:block;height:100%;border-radius:3px;background:var(--warn);width:0;transition:width .9s ease .2s}
+  .flash.hold .fcard{transform:scale(.985)}
   .flash.show .bar i{width:var(--w,0%)}
   .toast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom) + 96px);transform:translateX(-50%) translateY(20px);background:var(--ink);color:#fff;padding:12px 18px;border-radius:12px;font-size:15px;font-weight:600;opacity:0;transition:.2s;pointer-events:none;max-width:90vw;text-align:center;z-index:50}
   .toast.show{opacity:1;transform:translateX(-50%)}
@@ -139,7 +146,7 @@
 
   .sheet{position:fixed;inset:0;background:var(--bg);z-index:40;display:none;flex-direction:column;padding:calc(env(safe-area-inset-top) + 10px) 14px calc(env(safe-area-inset-bottom) + 12px);overflow-y:auto;-webkit-overflow-scrolling:touch}
   .sheet.open{display:flex}
-  .sheet .top{margin-bottom:12px}
+  .sheet .top{margin-bottom:12px;top:0}
   .sheet h2{font-size:20px;margin:0}
   .sheet .close{font-size:16px;font-weight:600;color:var(--go);padding:10px}
   .navmini{display:flex;gap:4px;align-items:center}
@@ -278,6 +285,23 @@
   .pat .tip{font-size:12px;color:var(--ink-2);text-align:center;margin-top:8px}
   .rp .lg{display:flex;gap:14px;font-size:12.5px;color:var(--ink-2);margin-top:6px}
   .rp .lg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+
+  /* --- effetto vetro --- */
+  .field,.amount,.dictate,.rp .card,.fire .card,.mv ul.list,.log li,.flash .fcard,.padwrap,.sheet .btn{
+    background:var(--glass);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);
+    box-shadow:var(--glass-sh)}
+  .flash .fcard,.padwrap{background:var(--glass-strong)}
+  .rp .card,.fire .card,.mv ul.list,.log li{border:1px solid var(--glass-brd)}
+  .field,.amount,.dictate{border:1.5px solid rgba(31,111,208,.55)}
+  .chips button,.chips label,.seg,.fire .modes,.navmini button,.pad button{
+    -webkit-backdrop-filter:saturate(160%) blur(12px);backdrop-filter:saturate(160%) blur(12px)}
+  .chips button,.chips label{background:rgba(223,233,243,.75)}
+  .pad button{background:var(--glass-strong);box-shadow:0 2px 6px rgba(16,40,70,.08)}
+  .go,.copy.wa{box-shadow:0 6px 18px rgba(31,111,208,.28)}
+  .copy{background:var(--glass-strong);box-shadow:var(--glass-sh)}
+  .rp .hero,.fire .hero,.fast{box-shadow:0 10px 30px rgba(18,58,107,.28)}
+  .sheet{background:rgba(237,243,249,.86);-webkit-backdrop-filter:saturate(180%) blur(24px);backdrop-filter:saturate(180%) blur(24px)}
+  .toast{-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);background:rgba(22,40,58,.88)}
   @media (prefers-reduced-motion:reduce){.toast,.padwrap{transition:none}.dictate.rec .mic{animation:none}}
 </style>
 </head>
@@ -473,7 +497,7 @@
   </div>
   <div class="field">
     <label>Versione app</label>
-    <p><b>v30</b> · "Aggiorna da Trade" + border collie che insegue la pallina. Aggiunti conto Amex Siemens, categoria Trasferte elenco Movimenti, grafico patrimonio interattivo sezione FIRE ed export report PDF. Se non leggi "v15" qui, versione vecchia.</p>
+    <p><b>v31</b> · "Aggiorna da Trade" + border collie che insegue la pallina. Aggiunti conto Amex Siemens, categoria Trasferte elenco Movimenti, grafico patrimonio interattivo sezione FIRE ed export report PDF. Se non leggi "v15" qui, versione vecchia.</p>
   </div>
   <div class="field">
     <label>Dettatura</label>
@@ -1166,7 +1190,8 @@ function meseTotali(r){
   const budget=(cats.find(c=>c.name===r.Categoria)||{}).budget||0;
   return {mese,entrata,cat,tot,budget};
 }
-let flashT=null;
+let flashT=null, flashHold=0;
+function startFlashTimer(ms){ clearTimeout(flashT); flashT=setTimeout(closeFlash,ms); }
 function flashMovimento(r){
   const f=$("flash"), c=$("fcard"); if(!f) return;
   const T=meseTotali(r); const emo=((S.cache&&S.cache.cats)||[]).find(x=>x.name===r.Categoria);
@@ -1192,8 +1217,11 @@ function flashMovimento(r){
       <div class="m">Spese totali di ${mLabel}<b>${fmtIT(totale)} €</b></div>`;
     f.className="flash out show";
   }
-  clearTimeout(flashT); flashT=setTimeout(closeFlash,3200);
-  f.onclick=closeFlash;
+  startFlashTimer(6200);
+  f.onpointerdown=e=>{ flashHold=Date.now(); clearTimeout(flashT); f.classList.add("hold"); };
+  f.onpointerup=e=>{ f.classList.remove("hold"); const dt=Date.now()-flashHold;
+    if(dt<300) closeFlash(); else startFlashTimer(2500); };
+  f.onpointercancel=()=>{ f.classList.remove("hold"); startFlashTimer(2500); };
 }
 function closeFlash(){ const f=$("flash"); if(!f) return; f.classList.remove("show"); clearTimeout(flashT); setTimeout(()=>{ if(!f.classList.contains("show")) f.className="flash"; },520); }
 
