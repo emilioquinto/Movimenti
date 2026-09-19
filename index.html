@@ -379,10 +379,10 @@
   .mv .more2{width:100%;background:var(--paper);border-radius:var(--r);padding:12px;font-weight:600;color:var(--go);margin-top:10px}
   .mv .empty{color:var(--ink-2);text-align:center;padding:24px 8px}
   .pat{background:var(--paper);border-radius:var(--r);padding:12px 14px;margin-bottom:10px;user-select:none}
-  .pat .hd{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px}
-  .pat .hd .val{font-family:ui-rounded,-apple-system,system-ui,sans-serif;font-size:24px;font-weight:700;line-height:1.1}
-  .pat .hd .sub{font-size:12.5px;color:var(--ink-2);margin-top:2px}
-  .pat .hd .dlt{font-size:14px;font-weight:700;text-align:right;white-space:nowrap}
+  .pat .hd{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px;min-height:58px}
+  .pat .hd .val{font-family:ui-rounded,-apple-system,system-ui,sans-serif;font-size:22px;font-weight:700;line-height:1.1;white-space:nowrap}
+  .pat .hd .sub{font-size:12.5px;color:var(--ink-2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60vw}
+  .pat .hd .dlt{font-size:14px;font-weight:700;text-align:right;white-space:nowrap;flex:0 0 auto}
   .pat .hd .dlt.up{color:#0B8A4B}.pat .hd .dlt.down{color:var(--warn)}
   .pat .hd .dlt small{display:block;font-weight:500;color:var(--ink-2);font-size:12px}
   .pat svg{width:100%;height:210px;display:block;touch-action:none}
@@ -788,7 +788,7 @@
   </div>
   <div class="field">
     <label>Versione app</label>
-    <p><b>v51</b> · "Aggiorna da Trade" + border collie che insegue la pallina. Aggiunti conto Amex Siemens, categoria Trasferte elenco Movimenti, grafico patrimonio interattivo sezione FIRE ed export report PDF. Se non leggi "v39" qui, versione vecchia.</p>
+    <p><b>v52</b> · "Aggiorna da Trade" + border collie che insegue la pallina. Aggiunti conto Amex Siemens, categoria Trasferte elenco Movimenti, grafico patrimonio interattivo sezione FIRE ed export report PDF. Se non leggi "v39" qui, versione vecchia.</p>
   </div>
   <div class="field">
     <label>Dettatura</label>
@@ -1284,86 +1284,82 @@ function barsSVG(series){ // series: [{label, a(entrate), b(spese)}]
   return `<svg class="chart" viewBox="0 0 ${W} ${H}" aria-hidden="true"><line x1="${padL}" y1="${H-padB}" x2="${W-padL}" y2="${H-padB}" stroke="#CFDCEA"/>${g}</svg>`;
 }
 
-// ---------- grafico patrimonio interattivo ----------
-let PAT={pts:[],i0:0,i1:0,sel:null,geo:null};
+// ---------- grafico patrimonio interattivo (finestra continua) ----------
+let PAT={pts:[],a:0,b:0,sel:null,geo:null};
 function initPat(all){
   PAT.pts=all; const n=all.length;
-  if(!PAT.geo||PAT.i1>n-1){ PAT.i1=n-1; PAT.i0=Math.max(0,n-13); }
+  if(!PAT.geo||PAT.b>n-1){ PAT.b=n-1; PAT.a=Math.max(0,n-13); }
   buildPat(); bindPat();
 }
-function patView(){ return PAT.pts.slice(PAT.i0,PAT.i1+1); }
 function buildPat(){
   const card=$("patCard"); if(!card) return;
-  const view=patView(); if(view.length<2) return;
+  const pts=PAT.pts; if(pts.length<2) return;
   const W=440,H=210,pl=10,pr=10,pt=16,pb=24;
-  const vs=view.map(p=>p.v); let min=Math.min(...vs),max=Math.max(...vs); const pad=(max-min)*0.12||1; min-=pad; max+=pad;
-  const X=i=>pl+i*(W-pl-pr)/(view.length-1), Y=v=>pt+(1-(v-min)/(max-min))*(H-pt-pb);
-  PAT.geo={W,H,pl,pr,pt,pb,min,max,X,Y,view};
-  const line=view.map((p,i)=>`${i?"L":"M"}${X(i).toFixed(1)} ${Y(p.v).toFixed(1)}`).join(" ");
-  const area=line+` L${X(view.length-1).toFixed(1)} ${H-pb} L${pl} ${H-pb} Z`;
-  const iMax=vs.indexOf(Math.max(...vs)), iMin=vs.indexOf(Math.min(...vs));
-  const step=Math.ceil(view.length/5);
-  const labels=view.map((p,i)=>(i%step===0||i===view.length-1)?`<text x="${X(i).toFixed(1)}" y="${H-6}" text-anchor="middle" font-size="10" fill="var(--ink-2)">${MESI_S[+p.d.slice(5,7)-1]} ${p.d.slice(2,4)}</text>`:"").join("");
-  const marker=(i,up)=>`<circle cx="${X(i).toFixed(1)}" cy="${Y(view[i].v).toFixed(1)}" r="3" fill="${up?"#0B8A4B":"#C24A2C"}"/><text x="${X(i).toFixed(1)}" y="${(Y(view[i].v)+(up?-8:14)).toFixed(1)}" text-anchor="middle" font-size="9.5" font-weight="600" fill="${up?"#0B8A4B":"#C24A2C"}">${fmt0(view[i].v)}</text>`;
-  const n=PAT.pts.length;
-  const R=[["6","6M"],["12","12M"],["36","36M"],["all","Tutto"]];
+  const i0=Math.max(0,Math.floor(PAT.a)), i1=Math.min(pts.length-1,Math.ceil(PAT.b));
+  const vs=pts.slice(i0,i1+1).map(p=>p.v); let min=Math.min(...vs),max=Math.max(...vs); const pad=(max-min)*0.12||1; min-=pad; max+=pad;
+  const X=i=>pl+(i-PAT.a)*(W-pl-pr)/Math.max(0.5,PAT.b-PAT.a), Y=v=>pt+(1-(v-min)/(max-min))*(H-pt-pb);
+  PAT.geo={W,H,pl,pr,pt,pb,min,max,X,Y,i0,i1};
+  const line=pts.map((p,i)=>`${i?"L":"M"}${X(i).toFixed(1)} ${Y(p.v).toFixed(1)}`).join(" ");
+  const area=line+` L${X(pts.length-1).toFixed(1)} ${H-pb} L${X(0).toFixed(1)} ${H-pb} Z`;
+  const span=PAT.b-PAT.a; const step=Math.max(1,Math.ceil(span/5));
+  const labels=pts.map((p,i)=>(i>=i0&&i<=i1&&(i%step===0))?`<text x="${X(i).toFixed(1)}" y="${H-6}" text-anchor="middle" font-size="10" fill="var(--ink-2)">${MESI_S[+p.d.slice(5,7)-1]} ${p.d.slice(2,4)}</text>`:"").join("");
+  let markers="";
+  if(span<=24){ const iMax=i0+vs.indexOf(Math.max(...vs)), iMin=i0+vs.indexOf(Math.min(...vs));
+    const mk=(i,up)=>`<circle cx="${X(i).toFixed(1)}" cy="${Y(pts[i].v).toFixed(1)}" r="3" fill="${up?"#0B8A4B":"#C24A2C"}"/><text x="${X(i).toFixed(1)}" y="${(Y(pts[i].v)+(up?-8:14)).toFixed(1)}" text-anchor="middle" font-size="9.5" font-weight="600" fill="${up?"#0B8A4B":"#C24A2C"}">${fmt0(pts[i].v)}</text>`;
+    markers=mk(iMax,true)+mk(iMin,false); }
+  const n=pts.length, R=[["6","6M"],["12","12M"],["36","36M"],["all","Tutto"]];
   card.innerHTML=`
   <div class="hd">
     <div><div class="val" id="patVal"></div><div class="sub" id="patSub"></div></div>
     <div class="dlt" id="patDlt"></div>
   </div>
-  <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" id="patSvg">
-    <defs><linearGradient id="pg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1F6FD0" stop-opacity=".28"/><stop offset="1" stop-color="#1F6FD0" stop-opacity="0"/></linearGradient></defs>
-    <path d="${area}" fill="url(#pg)"/>
-    <path d="${line}" fill="none" stroke="#1F6FD0" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
-    ${view.length<=24?marker(iMax,true)+marker(iMin,false):""}
-    ${labels}
+  <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" id="patSvg"><defs><clipPath id="patClip"><rect x="${pl-1}" y="0" width="${W-pl-pr+2}" height="${H}"/></clipPath>
+    <linearGradient id="pg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1F6FD0" stop-opacity=".28"/><stop offset="1" stop-color="#1F6FD0" stop-opacity="0"/></linearGradient></defs>
+    <g clip-path="url(#patClip)"><path d="${area}" fill="url(#pg)"/><path d="${line}" fill="none" stroke="#1F6FD0" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>${markers}
     <line id="patLine" x1="0" y1="${pt}" x2="0" y2="${H-pb}" stroke="#1F6FD0" stroke-width="1" stroke-dasharray="3 3" opacity="0"/>
-    <circle id="patDot" r="5" fill="#1F6FD0" stroke="#fff" stroke-width="2" cx="${X(view.length-1).toFixed(1)}" cy="${Y(view[view.length-1].v).toFixed(1)}"/>
+    <circle id="patDot" r="5" fill="#1F6FD0" stroke="#fff" stroke-width="2" cx="${X(n-1).toFixed(1)}" cy="${Y(pts[n-1].v).toFixed(1)}"/></g>${labels}
   </svg>
-  <div class="ranges">${R.map(([k,l])=>{ const span=k==="all"?n-1:Math.min(+k,n-1); const on=(PAT.i1===n-1&&PAT.i0===Math.max(0,n-1-span)); return `<button class="${on?"on":""}" data-r="${k}">${l}</button>`; }).join("")}</div>
-  <div class="tip">Scorri col dito sul grafico per i valori · pizzica per zoomare</div>`;
-  card.querySelectorAll(".ranges button").forEach(b=>b.onclick=()=>{ const k=b.dataset.r, n=PAT.pts.length; PAT.i1=n-1; PAT.i0=k==="all"?0:Math.max(0,n-1-(+k)); PAT.sel=null; buildPat(); paintPat(); });
+  <div class="ranges">${R.map(([k,l])=>{ const sp=k==="all"?n-1:Math.min(+k,n-1); const on=(Math.round(PAT.b)===n-1&&Math.round(PAT.a)===Math.max(0,n-1-sp)&&Math.abs(PAT.b-PAT.a-sp)<0.01); return `<button class="${on?"on":""}" data-r="${k}">${l}</button>`; }).join("")}</div>
+  <div class="tip">Scorri col dito per i valori · pizzica per zoomare · due dita per spostarti</div>`;
+  card.querySelectorAll(".ranges button").forEach(b=>b.onclick=()=>{ const k=b.dataset.r; PAT.b=n-1; PAT.a=k==="all"?0:Math.max(0,n-1-(+k)); PAT.sel=null; buildPat(); paintPat(); });
   paintPat();
 }
 function paintPat(){
-  const g=PAT.geo; if(!g) return; const view=g.view;
-  const li=PAT.sel!=null?Math.max(0,Math.min(view.length-1,PAT.sel-PAT.i0)):null;
-  const cur=li!=null?view[li]:view[view.length-1];
-  const prev=li!=null&&li>0?view[li-1]:null;
-  const first=view[0], d=cur.v-first.v, pc=first.v?d/first.v*100:0;
-  const val=$("patVal"), sub=$("patSub"), dlt=$("patDlt"), line=$("patLine"), dot=$("patDot");
-  if(!val) return;
+  const g=PAT.geo; if(!g) return; const pts=PAT.pts;
+  const li=PAT.sel!=null?Math.max(g.i0,Math.min(g.i1,PAT.sel)):pts.length-1;
+  const cur=pts[li], prev=li>0?pts[li-1]:null, first=pts[g.i0];
+  const d=cur.v-first.v, pc=first.v?d/first.v*100:0;
+  const val=$("patVal"), sub=$("patSub"), dlt=$("patDlt"), line=$("patLine"), dot=$("patDot"); if(!val) return;
   val.textContent=fmtIT(cur.v)+" €";
-  sub.textContent=(li!=null?fromISO(cur.d).toLocaleDateString("it-IT",{month:"long",year:"numeric"}):"oggi · "+view.length+" mesi mostrati")+(prev?` · ${cur.v-prev.v>=0?"+":"−"}${fmt0(Math.abs(cur.v-prev.v))} € sul mese prima`:"");
+  sub.textContent=(PAT.sel!=null?fromISO(cur.d).toLocaleDateString("it-IT",{month:"short",year:"2-digit"}):"oggi")+(prev?` · ${cur.v-prev.v>=0?"+":"−"}${fmt0(Math.abs(cur.v-prev.v))} € sul mese prima`:"");
   dlt.className="dlt "+(d>=0?"up":"down");
-  dlt.innerHTML=`${d>=0?"+":"−"}${fmt0(Math.abs(d))} €<small>${d>=0?"+":"−"}${Math.abs(pc).toFixed(1)}% da ${MESI_S[+first.d.slice(5,7)-1]} ${first.d.slice(2,4)}</small>`;
-  const x=g.X(li!=null?li:view.length-1), y=g.Y(cur.v);
-  line.setAttribute("x1",x); line.setAttribute("x2",x); line.setAttribute("opacity",li!=null?"1":"0");
+  dlt.innerHTML=`${d>=0?"+":"−"}${fmt0(Math.abs(d))} €<small>${d>=0?"+":"−"}${Math.abs(pc).toFixed(1).replace(".",",")}% da ${MESI_S[+first.d.slice(5,7)-1]} ${first.d.slice(2,4)}</small>`;
+  const x=g.X(li), y=g.Y(cur.v);
+  line.setAttribute("x1",x); line.setAttribute("x2",x); line.setAttribute("opacity",PAT.sel!=null?"1":"0");
   dot.setAttribute("cx",x); dot.setAttribute("cy",y);
 }
 function bindPat(){
   const card=$("patCard"); if(!card||card._bound) return; card._bound=true;
-  const idxAt=cx=>{ const svg=$("patSvg"); if(!svg) return null; const r=svg.getBoundingClientRect();
-    const g=PAT.geo, f=(cx-r.left)/r.width;
-    const inner=(f*g.W-g.pl)/(g.W-g.pl-g.pr); // tiene conto dei margini
-    return PAT.i0+Math.max(0,Math.min(g.view.length-1,Math.round(inner*(g.view.length-1)))); };
+  const idxAt=cx=>{ const svg=$("patSvg"); if(!svg) return null; const r=svg.getBoundingClientRect(); const g=PAT.geo;
+    const f=(cx-r.left)/r.width; const inner=(f*g.W-g.pl)/(g.W-g.pl-g.pr); return Math.round(PAT.a+inner*(PAT.b-PAT.a)); };
   let pinch=null, tmr=null;
   const onStart=e=>{ if(!$("patSvg")) return; clearTimeout(tmr);
-    if(e.touches&&e.touches.length===2){ const r=$("patSvg").getBoundingClientRect();
-      pinch={d:Math.abs(e.touches[0].clientX-e.touches[1].clientX),i0:PAT.i0,i1:PAT.i1,c:(((e.touches[0].clientX+e.touches[1].clientX)/2-r.left)/r.width)}; PAT.sel=null; paintPat(); }
+    if(e.touches&&e.touches.length===2){ const r=$("patSvg").getBoundingClientRect(); const x1=e.touches[0].clientX,x2=e.touches[1].clientX;
+      pinch={d:Math.abs(x1-x2),a:PAT.a,b:PAT.b,c:(((x1+x2)/2-r.left)/r.width),cx:(x1+x2)/2,w:r.width}; PAT.sel=null; paintPat(); }
     else { PAT.sel=idxAt((e.touches?e.touches[0]:e).clientX); paintPat(); } };
   const onMove=e=>{
-    if(e.touches&&e.touches.length===2&&pinch){ const d=Math.abs(e.touches[0].clientX-e.touches[1].clientX); if(!d) return;
-      const span0=pinch.i1-pinch.i0; let span=Math.round(span0*(pinch.d/d)); span=Math.max(2,Math.min(PAT.pts.length-1,span));
-      const anchor=pinch.i0+pinch.c*span0; let i0=Math.round(anchor-pinch.c*span); i0=Math.max(0,Math.min(PAT.pts.length-1-span,i0));
-      if(i0!==PAT.i0||i0+span!==PAT.i1){ PAT.i0=i0; PAT.i1=i0+span; buildPat(); } }
-    else { PAT.sel=idxAt((e.touches?e.touches[0]:e).clientX); paintPat(); } };
-  const onEnd=e=>{ pinch=null; if(!e.touches||!e.touches.length) tmr=setTimeout(()=>{ PAT.sel=null; paintPat(); },2500); };
+    if(e.touches&&e.touches.length===2&&pinch){ const x1=e.touches[0].clientX,x2=e.touches[1].clientX; const d=Math.abs(x1-x2); if(d<8) return;
+      const n=PAT.pts.length; const span0=pinch.b-pinch.a; let span=span0*(pinch.d/d); span=Math.max(2,Math.min(n-1,span));
+      const anchor=pinch.a+pinch.c*span0;                       // punto sotto il centro delle dita, resta fermo
+      const shift=-((x1+x2)/2-pinch.cx)/pinch.w*span;           // due dita: spostamento laterale
+      let a=anchor-pinch.c*span+shift; a=Math.max(0,Math.min(n-1-span,a));
+      PAT.a=a; PAT.b=a+span; buildPat(); }
+    else if(e.touches&&e.touches.length===1){ PAT.sel=idxAt(e.touches[0].clientX); paintPat(); } };
+  const onEnd=e=>{ pinch=null; if(!e.touches||!e.touches.length){ tmr=setTimeout(()=>{ PAT.sel=null; paintPat(); },2500); } };
   card.addEventListener("touchstart",onStart,{passive:true});
   card.addEventListener("touchmove",onMove,{passive:true});
   card.addEventListener("touchend",onEnd,{passive:true});
-  card.addEventListener("mousemove",e=>{ if(e.buttons||e.type==="mousemove") { PAT.sel=idxAt(e.clientX); paintPat(); } });
+  card.addEventListener("mousemove",e=>{ PAT.sel=idxAt(e.clientX); paintPat(); });
   card.addEventListener("mouseleave",()=>{ PAT.sel=null; paintPat(); });
 }
 function lineSVG(points){ // [{d,v}]
@@ -1386,11 +1382,14 @@ function renderRp(){
   const msPrev=D.months.filter(x=>x<R.month).slice(-12); const avgSp=msPrev.length?msPrev.reduce((a,x)=>a+D.month(x).spese,0)/msPrev.length:0;
   const ratio=avgSp?M.spese/avgSp:0; const stato=!avgSp?"":(ratio<=0.85?"ok":(ratio<=1.05?"warn":"over"));
   const pct=Math.max(0,Math.min(1,avgSp?M.spese/avgSp:0)); const C=2*Math.PI*78, off=C*(1-pct);
+  const curM=dateISO(today()).slice(0,7); const isCur=R.month>=curM;
+  const stM=D.storico.filter(p=>p.d<=R.month+"-31"); const patM=isCur?D.patrimonio:(stM.length?stM[stM.length-1].v:D.patrimonio);
   let h=`<div class="hero ${stato}">
-    <div class="lbl">Patrimonio della famiglia <i>Quinto</i></div>
-    <div class="big"><span class="cnt" data-v="${D.patrimonio}" data-d="2">${fmtIT(D.patrimonio)}</span> €</div>
+    <div class="lbl">Patrimonio della famiglia <i>Quinto</i>${isCur?"":" · fine "+monthLabel(R.month).toLowerCase()}</div>
+    <div class="big"><span class="cnt" data-v="${patM}" data-d="2">${fmtIT(patM)}</span> €</div>
     <div class="ytd">${stato==="ok"?"Spese del mese sotto la tua media":stato==="warn"?"Spese del mese in linea con la tua media":stato==="over"?"Spese del mese sopra la tua media":"Primo mese: nessuna media di confronto"}</div>`;
   if(ytd!=null) h+=`<div class="ytd">Da inizio anno <em class="${ytd<0?"neg":""}">${ytd>=0?"+":"−"}${fmtIT(Math.abs(ytd))} €</em></div>`;
+  if(!isCur) h+=`<div class="ytd" style="opacity:.8">Liquidità, carte e asset qui sotto sono quelli di oggi</div>`;
   h+=`<div class="grid3"><div><small>Liquidità</small><b><span class="cnt" data-v="${D.liquidita}">${fmt0(D.liquidita)}</span> €</b></div><div><small>Carte da addebitare</small><b><span class="cnt" data-v="${D.carteTot}">${fmt0(D.carteTot)}</span> €</b></div><div><small>Asset</small><b><span class="cnt" data-v="${D.assetTot}">${fmt0(D.assetTot)}</span> €</b></div>${D.trasferte.credito>0.005?`<div><small>Crediti trasferte</small><b>${fmt0(D.trasferte.credito)} €</b></div>`:""}</div></div>`;
   h+=`<div class="sync">${R.loading?"Aggiornamento in corso…":`Letto da Excel ${ago<1?"adesso":ago<60?ago+" min fa":"alle "+pad2(when.getHours())+":"+pad2(when.getMinutes())+" del "+shortDate(when)}`}<button id="rpRefresh">Aggiorna</button></div>`;
   // mese
@@ -2105,6 +2104,27 @@ function fireChart(P,pmt,rReal,anni,target){
 }
 function ipNum(id,label,val,unit,hint){ return `<div class="ip"><div class="r1"><label for="${id}">${label}</label><span class="v"><input type="text" id="${id}" inputmode="decimal" value="${val}"><span class="u">${unit}</span></span></div>${hint?`<div class="hint">${hint}</div>`:""}</div>`; }
 function ipRange(id,label,val,unit,min,max,step,hint){ return `<div class="ip"><div class="r1"><label for="${id}">${label}</label><span class="v"><input type="text" id="${id}" inputmode="decimal" value="${String(val).replace(".",",")}"><span class="u">${unit}</span></span></div><input type="range" id="${id}_r" min="${min}" max="${max}" step="${step}" value="${val}">${hint?`<div class="hint">${hint}</div>`:""}</div>`; }
+function fireLive(){
+  const f=fireCfg(), D=calc(); if(!D) return;
+  const rr=realRate(f.rate,f.infl), target=f.spesa*12/(f.swr/100), yFire=yearsTo(f.cap,f.pac,rr,target);
+  let hero="";
+  if(f.mode==="proj"){ const finale=fv(f.cap,f.pac,rr,f.anni), nom=fv(f.cap,f.pac,f.rate,f.anni), rendita=finale*(f.swr/100)/12;
+    hero=`<div class="lbl">Capitale fra ${f.anni} anni · potere d'acquisto di oggi</div><div class="big">${fmtIT(finale)} €</div>
+      <div class="sub">Rendita al ${String(f.swr).replace(".",",")}%: <em>${fmt0(rendita)} €/mese</em></div>
+      <div class="g2"><div><small>Obiettivo FIRE</small><b>${fmt0(target)} €</b></div><div><small>${yFire!=null?"Traguardo tra":"Traguardo"}</small><b>${yFire!=null?yFire.toFixed(1).replace(".",",")+" anni":"oltre 100 anni"}</b></div>
+      <div><small>Versato in ${f.anni} anni</small><b>${fmt0(f.pac*12*f.anni)} €</b></div><div><small>Valore nominale</small><b>${fmt0(nom)} €</b></div></div>`; }
+  else if(f.mode==="pmt"){ const need=pmtFor(f.cap,rr,f.anni,target), delta=need-f.pac;
+    hero=`<div class="lbl">Per arrivare a ${fmt0(target)} € in ${f.anni} anni</div><div class="big">${fmtIT(need)} €/mese</div>
+      <div class="sub">${Math.abs(delta)<1?"Sei esattamente in linea":(delta>0?`<em style="color:#F6A28C">${fmt0(delta)} € in più</em> di quanto investi oggi`:`<em>${fmt0(-delta)} € in meno</em> di quanto investi oggi`)}</div>
+      <div class="g2"><div><small>PAC attuale</small><b>${fmt0(f.pac)} €/mese</b></div><div><small>Rendimento reale</small><b>${rr.toFixed(1).replace(".",",")}%</b></div></div>`; }
+  else { const need=rateFor(f.cap,f.pac,f.anni,target);
+    hero=`<div class="lbl">Rendimento reale necessario in ${f.anni} anni</div><div class="big">${need==null?"non raggiungibile":need.toFixed(1).replace(".",",")+"%"}</div>
+      <div class="sub">${need==null?"Con questo PAC il traguardo non si raggiunge: aumenta versamento o anni":`Nominale con inflazione al ${String(f.infl).replace(".",",")}%: <em>${(((1+need/100)*(1+f.infl/100)-1)*100).toFixed(1).replace(".",",")}%</em>`}</div>
+      <div class="g2"><div><small>Obiettivo</small><b>${fmt0(target)} €</b></div><div><small>PAC</small><b>${fmt0(f.pac)} €/mese</b></div></div>`; }
+  const el=$("fireBody")&&$("fireBody").querySelector(".hero"); if(el) el.innerHTML=hero;
+  const hints=$("fireBody")&&$("fireBody").querySelectorAll(".ip .hint");
+  if(hints){ hints.forEach(hh=>{ if(/Rendimento reale/.test(hh.textContent)) hh.innerHTML=`Rendimento reale: <b>${rr.toFixed(1).replace(".",",")}%</b>`; if(/Capitale necessario/.test(hh.textContent)) hh.innerHTML=`Capitale necessario: <b>${fmt0(target)} €</b> (spesa annua ÷ ${String(f.swr).replace(".",",")}%)`; }); }
+}
 function renderFire(){
   const body=$("fireBody");
   if(!S.cache){ body.innerHTML=`<div class="card"><p class="note">Apri prima il Riepilogo per scaricare i dati dal file, poi torna qui.</p></div>`; return; }
@@ -2165,7 +2185,7 @@ function renderFire(){
   bindNum("f_cap","cap",true); bindNum("f_pac","pac",true); bindNum("f_spesa","spesa",true);
   bindNum("f_rate","rate"); bindNum("f_infl","infl"); bindNum("f_swr","swr"); bindNum("f_anni","anni",true);
   [["f_rate_r","rate"],["f_infl_r","infl"],["f_swr_r","swr"],["f_anni_r","anni"]].forEach(([id,key])=>{ const r=$(id); if(!r) return;
-    r.oninput=()=>{ f[key]=+r.value; const t=$(id.replace("_r","")); if(t) t.value=String(f[key]).replace(".",","); };
+    r.oninput=()=>{ f[key]=+r.value; const t=$(id.replace("_r","")); if(t) t.value=String(f[key]).replace(".",","); fireLive(); };
     r.onchange=()=>{ f[key]=+r.value; save(); renderFire(); }; });
 }
 
@@ -2215,6 +2235,10 @@ $("mvQ").onkeydown=e=>{ if(e.key==="Enter") e.target.blur(); };
 
 
 
+// niente zoom della pagina col pizzico (il grafico patrimonio gestisce il suo)
+document.addEventListener("gesturestart",e=>e.preventDefault(),{passive:false});
+document.addEventListener("touchmove",e=>{ if(e.touches.length>1&&!(e.target.closest&&e.target.closest("#patSvg"))) e.preventDefault(); },{passive:false});
+document.addEventListener("dblclick",e=>e.preventDefault(),{passive:false});
 // blocco verticale: su iOS il blocco vero non è concesso, si prova e si mostra l'invito
 try{ if(screen.orientation&&screen.orientation.lock) screen.orientation.lock("portrait").catch(()=>{}); }catch(e){}
 paintNav("main");
