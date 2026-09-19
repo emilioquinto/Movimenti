@@ -486,8 +486,24 @@
   }
 
   /* ================= PELLE "SUPERFICI PIENE" ================= */
-  :root{--surface:#FFFFFF;--surface-2:#F3F6FA;--hair:rgba(16,40,70,.08);--rr:22px}
+  :root{--surface:#FFFFFF;--surface-2:#F3F6FA;--hair:rgba(16,40,70,.08);--rr:22px;--hdr:calc(env(safe-area-inset-top) + 60px)}
   @media (prefers-color-scheme: dark){ :root{--bg:#0B0F14;--surface:#171C22;--surface-2:#1F262E;--hair:rgba(255,255,255,.06);--ink:#F2F5F8;--ink-2:#9AA6B5;--key:#232B34;--key-press:#2C3641;--line:#2A333D} html,body{background:var(--bg)} }
+  #hdr{position:fixed;top:0;left:0;right:0;z-index:55;margin:0!important;padding:calc(env(safe-area-inset-top) + 8px) 14px 8px!important;
+    display:flex;align-items:center;gap:6px;max-width:480px;margin-left:auto!important;margin-right:auto!important}
+  #hdr .navmini{order:2;flex:1 1 auto;min-width:0;position:relative}
+  #hdr .ic{order:1} #hdr .badge{order:3}
+  .app{padding-top:calc(var(--hdr) + 6px)!important}
+  .sheet{padding-top:calc(var(--hdr) + 8px)!important}
+  /* indicatore che scivola */
+  .navmini .ind{position:absolute;top:3px;bottom:3px;left:0;width:0;border-radius:11px;background:var(--go);
+    transition:transform .38s cubic-bezier(.22,1,.36,1),width .38s cubic-bezier(.22,1,.36,1);z-index:0}
+  .navmini button{position:relative;z-index:1;background:transparent!important;box-shadow:none!important;transition:color .25s}
+  .navmini button.on{color:#fff!important}
+  /* cambio pagina morbido: i pannelli non spariscono mai prima che il nuovo sia sopra */
+  .sheet{display:flex!important;opacity:0;visibility:hidden;transform:translateY(10px);pointer-events:none;
+    transition:opacity .28s ease,transform .32s cubic-bezier(.22,1,.36,1),visibility 0s linear .32s;animation:none!important}
+  .sheet.open{opacity:1;visibility:visible;transform:none;pointer-events:auto;z-index:42;transition:opacity .28s ease,transform .32s cubic-bezier(.22,1,.36,1),visibility 0s}
+  .sheet.leaving{opacity:1;visibility:visible;transform:none;z-index:41;transition:none}
   /* niente più vetro, niente riflessi, niente bordi blu */
   .field,.amount,.rp .card,.fire .card,.mv ul.list,.log li,.flash .fcard,.sheet .btn,.copy,.padwrap,.prow,.pacrow,.rules li,.skel,.pat,.chips button,.chips label,.pad button,.navmini,.top,.sheet,.toast{
     -webkit-backdrop-filter:none!important;backdrop-filter:none!important}
@@ -519,7 +535,7 @@
   .rp .card h3,.fire .card h3{font-size:17px;margin-bottom:12px}
   .rp .rows li,.fire .rows li{padding:11px 0;border-bottom:1px solid var(--hair)}
   /* fascia colorata di stato in cima al Riepilogo */
-  .rp .hero{border-radius:26px!important;padding:22px 18px 18px!important;text-align:center;
+  .rp .hero{border-radius:26px!important;padding:20px 18px 16px!important;text-align:left;
     background:linear-gradient(170deg,var(--hero1,#1F6FD0),var(--hero2,#123A6B))!important;box-shadow:none!important}
   .rp .hero.ok{--hero1:#2FB27A;--hero2:#1A6E4C} .rp .hero.warn{--hero1:#F0A030;--hero2:#B0641A} .rp .hero.over{--hero1:#E4572E;--hero2:#8E2E1B}
   .rp .hero .ring{width:172px;height:172px;margin:0 auto 6px;position:relative}
@@ -530,7 +546,7 @@
   .rp .hero .ring .in .big{font-size:30px!important;margin:0!important}
   .rp .hero .ring .in .lbl{font-size:10px!important;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.85)!important;margin-top:4px}
   .rp .hero .grid3{margin-top:14px}
-  .rp .hero .grid3 div{background:rgba(255,255,255,.14);text-align:left;border-radius:14px}
+  .rp .hero .grid3 div{background:rgba(255,255,255,.14);border-radius:14px}
   .rp .hero .ytd{margin-top:2px}
   /* selettore mese a pastiglia larga */
   .rp .mnav{background:var(--surface-2);border-radius:16px;padding:6px 8px;margin-bottom:12px!important}
@@ -543,6 +559,14 @@
   .mv .sum{background:var(--surface)!important;color:var(--ink)!important;border:1px solid var(--hair);border-radius:var(--rr)}
   .mv .sum span small{color:var(--ink-2)!important}
   .mv .day{font-size:15px;font-weight:700;color:var(--ink);margin:16px 0 8px}
+  /* Nuovo: tutto centrato e simmetrico */
+  .app .field label{text-align:center}
+  .app .chips{justify-content:center}
+  .app .field input[type=text]{text-align:center}
+  .app .sugg{justify-content:center}
+  .amount{justify-content:center;gap:14px}
+  .amount .tap{flex:0 1 auto;text-align:center}
+  #dateChips{flex-wrap:nowrap}
   /* storie: invariate */
   @media (prefers-reduced-motion:reduce){.toast,.padwrap{transition:none}.dictate.rec .mic{animation:none}}
 </style>
@@ -551,9 +575,8 @@
 <div id="splash" aria-hidden="true"><div class="sp"><div class="splogo"><i></i><i></i><i></i><b></b></div><div class="sptitle">Movimenti</div><div class="spsub">Famiglia <i>Quinto</i></div></div></div>
 <label id="hapt" aria-hidden="true"><input type="checkbox" switch></label>
 <div id="bg"></div><div id="bgveil"></div>
+<header id="hdr" class="top"></header>
 <div class="app" id="main">
-  <div class="top" id="topMain"></div>
-
   <div class="amount" id="amountBox">
     <button class="tap" id="amountTap">
       <span class="num" id="num"><span class="ph">0,00</span><span class="eur">€</span></span>
@@ -581,7 +604,7 @@
     <label>Conto</label>
     <div class="chips" id="conto"></div>
   </div>
-  <div class="field inline">
+  <div class="field">
     <label>Data</label>
     <div class="chips" id="dateChips">
       <button data-d="0" class="on">Oggi</button>
@@ -610,12 +633,12 @@
 
 <!-- ============ RIEPILOGO ============ -->
 <div class="sheet rp" id="sheetRp">
-  <div class="top" data-nav="rp"></div>
+  
   <div id="rpBody"></div>
 </div>
 
 <div class="sheet mv" id="sheetMv">
-  <div class="top" data-nav="mv"></div>
+  
   <div class="field"><input type="text" id="mvQ" placeholder="Cerca descrizione…" autocomplete="off" autocorrect="off" enterkeyhint="search"></div>
   <div class="field inline"><label>Mese</label><div class="chips" id="mvMonth"></div></div>
   <div class="field inline"><label>Cat.</label><div class="chips" id="mvCat"></div></div>
@@ -624,7 +647,7 @@
 </div>
 
 <div class="sheet fire" id="sheetFire">
-  <div class="top" data-nav="fire"></div>
+  
   <div class="modes" id="fireModes">
     <button data-m="proj" class="on">Proiezione</button>
     <button data-m="pmt">Quanto investire</button>
@@ -734,7 +757,7 @@
   </div>
   <div class="field">
     <label>Versione app</label>
-    <p><b>v46</b> · "Aggiorna da Trade" + border collie che insegue la pallina. Aggiunti conto Amex Siemens, categoria Trasferte elenco Movimenti, grafico patrimonio interattivo sezione FIRE ed export report PDF. Se non leggi "v39" qui, versione vecchia.</p>
+    <p><b>v47</b> · "Aggiorna da Trade" + border collie che insegue la pallina. Aggiunti conto Amex Siemens, categoria Trasferte elenco Movimenti, grafico patrimonio interattivo sezione FIRE ed export report PDF. Se non leggi "v39" qui, versione vecchia.</p>
   </div>
   <div class="field">
     <label>Dettatura</label>
@@ -1063,7 +1086,7 @@ $("btnWa").onclick=e=>{ if($("btnSend").disabled){ e.preventDefault(); toast("Co
   const r=currentRow(); e.currentTarget.href=waUrl(tsv(r)); learn(r); S.log.unshift({...r,ts:Date.now(),ok:true,wa:true}); save(); setTimeout(resetForm,300); };
 $("btnCopy").onclick=()=>{ if($("btnSend").disabled) return toast("Compila importo, descrizione, categoria e conto",true); const r=currentRow(); learn(r); S.log.unshift({...r,ts:Date.now(),ok:true,copied:true}); save(); copyText(tsv(r),"Riga copiata: incollala in Movimenti"); resetForm(); flashMovimento(r); };
 
-document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>$(b.dataset.close).classList.remove("open"));
+document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>{ const el=$(b.dataset.close); el.classList.remove("open"); const stillOpen=SHEETS.some(id=>$(id)&&$(id).classList.contains("open")); if(!stillOpen) setActiveNav("main"); });
 
 
 
@@ -1326,9 +1349,9 @@ function renderRp(){
   const ratio=avgSp?M.spese/avgSp:0; const stato=!avgSp?"":(ratio<=0.85?"ok":(ratio<=1.05?"warn":"over"));
   const pct=Math.max(0,Math.min(1,avgSp?M.spese/avgSp:0)); const C=2*Math.PI*78, off=C*(1-pct);
   let h=`<div class="hero ${stato}">
-    <div class="ring"><svg viewBox="0 0 172 172"><circle class="bgc" cx="86" cy="86" r="78"/><circle class="fgc" cx="86" cy="86" r="78" style="stroke-dasharray:${C.toFixed(1)};stroke-dashoffset:${C.toFixed(1)}" data-off="${off.toFixed(1)}"/></svg>
-      <div class="in"><div class="big"><span class="cnt" data-v="${D.patrimonio}">${fmt0(D.patrimonio)}</span> €</div><div class="lbl">patrimonio della famiglia Quinto</div></div></div>
-    <div class="ytd">${stato==="ok"?"Spese sotto la tua media: ottimo mese":stato==="warn"?"Spese in linea con la tua media":stato==="over"?"Spese sopra la tua media, occhio":"Primo mese: nessuna media di confronto"}${avgSp?` · ${Math.round(pct*100)}%`:""}</div>`;
+    <div class="lbl">Patrimonio della famiglia <i>Quinto</i></div>
+    <div class="big"><span class="cnt" data-v="${D.patrimonio}" data-d="2">${fmtIT(D.patrimonio)}</span> €</div>
+    <div class="ytd">${stato==="ok"?"Spese del mese sotto la tua media":stato==="warn"?"Spese del mese in linea con la tua media":stato==="over"?"Spese del mese sopra la tua media":"Primo mese: nessuna media di confronto"}</div>`;
   if(ytd!=null) h+=`<div class="ytd">Da inizio anno <em class="${ytd<0?"neg":""}">${ytd>=0?"+":"−"}${fmtIT(Math.abs(ytd))} €</em></div>`;
   h+=`<div class="grid3"><div><small>Liquidità</small><b><span class="cnt" data-v="${D.liquidita}">${fmt0(D.liquidita)}</span> €</b></div><div><small>Carte da addebitare</small><b><span class="cnt" data-v="${D.carteTot}">${fmt0(D.carteTot)}</span> €</b></div><div><small>Asset</small><b><span class="cnt" data-v="${D.assetTot}">${fmt0(D.assetTot)}</span> €</b></div>${D.trasferte.credito>0.005?`<div><small>Crediti trasferte</small><b>${fmt0(D.trasferte.credito)} €</b></div>`:""}</div></div>`;
   h+=`<div class="sync">${R.loading?"Aggiornamento in corso…":`Letto da Excel ${ago<1?"adesso":ago<60?ago+" min fa":"alle "+pad2(when.getHours())+":"+pad2(when.getMinutes())+" del "+shortDate(when)}`}<button id="rpRefresh">Aggiorna</button></div>`;
@@ -1365,7 +1388,6 @@ function renderRp(){
   if(D.storico.length>=2) h+=`<div class="pat" id="patCard"></div>`;
   body.innerHTML=`<div class="ptr ${R.loading?"on":""}"><span><i class="spin"></i>Aggiorno da Excel…</span></div>`+h;
   animateCounts(body);
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{ body.querySelectorAll(".ring .fgc").forEach(c=>c.style.strokeDashoffset=c.dataset.off); }));
   if(D.storico.length>=2){ const pc=$("patCard"); if(pc) pc._bound=false; initPat(D.storico); }
   const br=$("btnReport"); if(br) br.onclick=openReport;
   const bri=$("btnRimborso"); if(bri) bri.onclick=()=>{ $("sheetRp").classList.remove("open");
@@ -1382,13 +1404,13 @@ async function doRefresh(force){
   try{ await refreshExcel(force); }catch(e){ toast(e.message,true); }
   R.loading=false; renderRp();
 }
-function openRp(){ $("sheetRp").classList.add("open"); renderRp(); if(S.share) doRefresh(false); }
+function openRp(){ openSheet("sheetRp"); renderRp(); if(S.share) doRefresh(false); }
 function etfAssets(){ const C=S.cache; if(!C) return []; return C.assets.map((a,i)=>({...a,i})).filter(a=>a.qty!=null); }
 let pacParsed=null;
 function openPac(){
   if(!etfAssets().length){ toast("Prima aggiorna il Riepilogo: servono gli asset dal file",true); return; }
   $("pacTxt").value=""; $("pacPreview").innerHTML=""; pacParsed=null;
-  $("sheetPac").classList.add("open");
+  openSheet("sheetPac");
   navigator.clipboard?.readText?.().then(t=>{ if(t&&/pezzi/i.test(t)){ $("pacTxt").value=t; parsePac(); } }).catch(()=>{});
 }
 function numDE(x){ return parseFloat(String(x).replace(/\./g,"").replace(",",".")); }
@@ -1545,7 +1567,7 @@ function openPrezzi(){
   C.assets.forEach((a,i)=>{ ["pq_","pp_"].forEach(pre=>{ const el=$(pre+i); if(el) el.oninput=()=>rec(i); }); });
   $("prezziRows").querySelectorAll("[data-live]").forEach(b=>b.onclick=()=>{ const i=+b.dataset.live; $("pp_"+i).value=String(D.assets[i].price).replace(".",","); rec(i); });
   $("prezziNote").textContent=S.pac?"":"Manca il webhook PAC in ⚙︎: i valori verranno aggiornati solo nell'app, non in Excel.";
-  $("sheetPrezzi").classList.add("open");
+  openSheet("sheetPrezzi");
 }
 $("btnPrezziSave").onclick=async()=>{
   const C=S.cache; if(!C) return; const btn=$("btnPrezziSave"); btn.disabled=true; btn.textContent="Salvo…";
@@ -1630,27 +1652,39 @@ const NAV_ORDER=[["main","Nuovo"],["stories","Storie"],["rp","Riepilogo"],["mv",
 function navHTML(active){
   return `<div class="navmini">${NAV_ORDER.map(([k,t])=>`<button data-go="${k}" class="${k===active?"on":""}" aria-label="${t}">${NAV_ICONS[k]}<span>${t}</span></button>`).join("")}</div>`;
 }
-function paintNav(){
-  const main=$("topMain");
-  if(main) main.innerHTML=`<button class="ic" data-set aria-label="Impostazioni">${NAV_ICONS.set}</button>`+navHTML("main")+
-    `<button class="ic badge" data-log aria-label="Inviati">${NAV_ICONS.log}<span class="n" id="logN"${S.log.length?"":" hidden"}>${S.log.length}</span></button>`;
-  document.querySelectorAll('.sheet .top[data-nav]').forEach(t=>{
-    t.innerHTML=`<button class="ic" data-set aria-label="Impostazioni">${NAV_ICONS.set}</button>`+navHTML(t.dataset.nav)+
-      `<button class="ic badge" data-log aria-label="Inviati">${NAV_ICONS.log}<span class="n">${S.log.length}</span></button>`;
-    if(!S.log.length) t.querySelector(".badge .n").hidden=true;
-  });
-  document.querySelectorAll("[data-set]").forEach(b=>b.onclick=()=>{ haptic(); renderSettings(); $("sheetSettings").classList.add("open"); });
-  document.querySelectorAll("[data-log]").forEach(b=>b.onclick=()=>{ haptic(); renderLog(); $("sheetLog").classList.add("open"); });
-  document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>goTab(b.dataset.go));
-  
+function paintNav(active){
+  const h=$("hdr"); if(!h) return;
+  if(!h.dataset.built){ h.innerHTML=`<button class="ic" data-set aria-label="Impostazioni">${NAV_ICONS.set}</button>`+navHTML(active||"main")+
+      `<button class="ic badge" data-log aria-label="Inviati">${NAV_ICONS.log}<span class="n" id="logN" hidden>0</span></button>`;
+    h.querySelector(".navmini").insertAdjacentHTML("afterbegin",'<i class="ind"></i>');
+    h.dataset.built="1";
+    h.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>goTab(b.dataset.go));
+    h.querySelector("[data-set]").onclick=()=>{ haptic(); renderSettings(); openSheet("sheetSettings"); };
+    h.querySelector("[data-log]").onclick=()=>{ haptic(); renderLog(); openSheet("sheetLog"); };
+  }
+  const n=$("logN"); if(n){ n.hidden=!S.log.length; n.textContent=S.log.length; }
+  if(active) setActiveNav(active);
 }
-
+function setActiveNav(active){
+  const nav=$("hdr")&&$("hdr").querySelector(".navmini"); if(!nav) return;
+  nav.querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.go===active));
+  const b=nav.querySelector(`button[data-go="${active}"]`), ind=nav.querySelector(".ind"); if(!b||!ind) return;
+  const place=()=>{ ind.style.width=b.offsetWidth+"px"; ind.style.transform=`translateX(${b.offsetLeft}px)`; };
+  place(); requestAnimationFrame(place);
+}
+const SHEETS=["sheetRp","sheetMv","sheetFire","sheetLog","sheetSettings","sheetPac","sheetRep","sheetPrezzi"];
+function openSheet(id){
+  const target=$(id); if(!target) return;
+  SHEETS.forEach(sid=>{ const el=$(sid); if(!el||sid===id) return; if(el.classList.contains("open")){ el.classList.remove("open"); el.classList.add("leaving"); setTimeout(()=>el.classList.remove("leaving"),340); } });
+  target.scrollTop=0; target.classList.add("open");
+}
+window.addEventListener("resize",()=>{ const on=$("hdr")&&$("hdr").querySelector(".navmini button.on"); if(on) setActiveNav(on.dataset.go); });
 
 // ---------- finiture: splash, feedback aptico, numeri animati, gesti ----------
 window.addEventListener("load",()=>{ setTimeout(()=>{ const sp=$("splash"); if(sp) sp.classList.add("hide"); },650); });
 function haptic(kind){
   try{ if(navigator.vibrate) navigator.vibrate(kind==="ok"?[10,30,10]:8); }catch(e){}
-  try{ const sw=document.querySelector("#hapt input"); if(sw) sw.click(); }catch(e){} // iOS 18+: l'interruttore nascosto produce il tocco di sistema
+  try{ const sw=document.querySelector("#hapt input"); if(sw) sw.click(); }catch(e){}
 }
 function animateCounts(root){
   const els=(root||document).querySelectorAll(".cnt[data-v]");
@@ -1667,11 +1701,9 @@ const EMPTY_ART={
   list:`<svg class="emptyart" viewBox="0 0 120 80"><rect x="18" y="14" width="84" height="52" rx="8"/><path d="M30 30h44M30 42h60M30 54h36"/><circle cx="92" cy="26" r="6"/></svg>`,
   chart:`<svg class="emptyart" viewBox="0 0 120 80"><path d="M16 64h88"/><path d="M24 54l18-14 16 8 20-22 18 10" /><circle cx="42" cy="40" r="3"/><circle cx="78" cy="26" r="3"/></svg>`
 };
-// scorrimento dal bordo sinistro per tornare indietro
 document.querySelectorAll(".sheet").forEach(sh=>{ let x0=null,y0=null;
   sh.addEventListener("touchstart",e=>{ const t=e.touches[0]; x0=(t&&t.clientX<24)?t.clientX:null; y0=t?t.clientY:0; },{passive:true});
-  sh.addEventListener("touchend",e=>{ const t=e.changedTouches&&e.changedTouches[0]; if(x0!=null&&t&&t.clientX-x0>80&&Math.abs(t.clientY-y0)<60){ haptic(); goTab("main"); } x0=null; },{passive:true}); });
-// tastierino: trascina giù per chiudere
+  sh.addEventListener("touchend",e=>{ const t=e.changedTouches&&e.changedTouches[0]; if(x0!=null&&t&&t.clientX-x0>80&&Math.abs(t.clientY-y0)<60){ goTab("main"); } x0=null; },{passive:true}); });
 (()=>{ const pw=$("padwrap"); if(!pw) return; let y0=null;
   pw.addEventListener("touchstart",e=>{ y0=e.touches[0]?e.touches[0].clientY:null; },{passive:true});
   pw.addEventListener("touchmove",e=>{ if(y0==null) return; const dy=e.touches[0].clientY-y0; if(dy>0){ pw.style.transition="none"; pw.style.transform=`translateY(${dy}px)`; } },{passive:true});
@@ -1679,10 +1711,10 @@ document.querySelectorAll(".sheet").forEach(sh=>{ let x0=null,y0=null;
 
 // ---------- navigazione tra i fogli ----------
 function goTab(t){
-  haptic();
+  haptic(); setActiveNav(t);
+  if(t==="main"){ SHEETS.forEach(sid=>{ const el=$(sid); if(el&&el.classList.contains("open")) el.classList.remove("open"); }); paintNav(); return; }
+  if(t==="rp") openRp(); else if(t==="mv") openMv(); else if(t==="stories"){ setActiveNav("main"); openStories(); } else if(t==="fire"){ openSheet("sheetFire"); renderFire(); if(S.share) doRefresh(false); }
   paintNav();
-  ["sheetRp","sheetMv","sheetFire","sheetLog","sheetSettings","sheetPac","sheetRep","sheetPrezzi"].forEach(id=>$(id)&&$(id).classList.remove("open"));
-  if(t==="rp") openRp(); else if(t==="mv") openMv(); else if(t==="stories") openStories(); else if(t==="fire"){ $("sheetFire").classList.add("open"); renderFire(); if(S.share) doRefresh(false); }
 }
 
 // ---------- sfondo personale ----------
@@ -1720,7 +1752,7 @@ function openReport(){
   $("repMonths").innerHTML=ms.slice(0,12).map(m=>`<button class="${REP.month===m?"on":""}" data-m="${m}">${monthLabel(m)}</button>`).join("");
   $("repMonths").querySelectorAll("button").forEach(b=>b.onclick=()=>{ REP.month=b.dataset.m; openReport(); });
   $("repNote").textContent="";
-  $("sheetRep").classList.add("open");
+  openSheet("sheetRep");
 }
 const RP_BLUE=[31,111,208], RP_NAVY=[18,58,107], RP_INK=[22,40,58], RP_GREY=[90,108,128], RP_LINE=[207,220,234], RP_GREEN=[11,138,75], RP_RED=[194,74,44];
 const RP_PAL=[[31,111,208],[242,169,59],[43,182,115],[228,87,46],[142,91,217],[23,162,184],[214,70,154],[124,140,158],[163,198,68],[199,123,54]];
@@ -2102,7 +2134,7 @@ $("fireModes").onclick=e=>{ const b=e.target.closest("button"); if(!b) return; f
 let MV={q:"",month:null,cat:"",conto:"",limit:60};
 function openMv(){ if(!S.cache){ toast(S.share?"Apri prima il Riepilogo per scaricare i dati":"Manca l'indirizzo del relay in ⚙︎",true); return; }
   if(MV.month===null) MV.month=dateISO(today()).slice(0,7);
-  MV.limit=60; $("sheetMv").classList.add("open"); renderMv(); if(S.share) doRefresh(false).then?.(()=>{}); }
+  MV.limit=60; openSheet("sheetMv"); renderMv(); if(S.share) doRefresh(false).then?.(()=>{}); }
 function mvRows(){
   const rows=(S.cache&&S.cache.rows)||[]; const q=norm(MV.q);
   return rows.filter(r=> (!MV.month||r.d.startsWith(MV.month)) && (!MV.cat||r.cat===MV.cat) && (!MV.conto||r.conto===MV.conto) && (!q||norm(r.desc).includes(q)) )
@@ -2144,7 +2176,7 @@ $("mvQ").onkeydown=e=>{ if(e.key==="Enter") e.target.blur(); };
 
 // blocco verticale: su iOS il blocco vero non è concesso, si prova e si mostra l'invito
 try{ if(screen.orientation&&screen.orientation.lock) screen.orientation.lock("portrait").catch(()=>{}); }catch(e){}
-paintNav();
+paintNav("main");
 applyPic(loadPic());
 load().then(()=>{ render(); if(S.share&&S.cache&&Date.now()-S.cache.ts>4*3600e3) refreshExcel(false).catch(()=>{}); });
 </script>
