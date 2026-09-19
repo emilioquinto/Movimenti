@@ -13,8 +13,9 @@
     --bg:#EDF3F9; --paper:#FFFFFF; --ink:#16283A; --ink-2:#5A6C80; --line:#CFDCEA;
     --key:#DFE9F3; --key-press:#C3D4E6; --go:#1F6FD0; --go-press:#175AAB; --go-soft:#DCEBFB;
     --out:#16283A; --in:#1F6FD0; --warn:#C24A2C; --chip-on:#1F6FD0; --navy:#123A6B; --navy-2:#A9C3E6; --r:16px;
-    --glass:rgba(255,255,255,.60); --glass-strong:rgba(255,255,255,.78); --glass-brd:rgba(255,255,255,.65);
-    --glass-sh:0 8px 24px rgba(16,40,70,.10), inset 0 1px 0 rgba(255,255,255,.75);
+    --glass:rgba(255,255,255,.34); --glass-strong:rgba(255,255,255,.52); --glass-brd:rgba(255,255,255,.55);
+    --glass-sh:0 10px 30px rgba(14,36,64,.12), inset 0 1px 0 rgba(255,255,255,.85), inset 0 -1px 0 rgba(255,255,255,.25);
+    --blur:saturate(190%) blur(26px);
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
   html,body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.35 -apple-system,"SF Pro Text",system-ui,sans-serif;-webkit-font-smoothing:antialiased;overscroll-behavior:none}
@@ -26,6 +27,7 @@
   #bgveil.on{display:block}
   body.haspic{background:transparent}
   body.haspic .app{position:relative;z-index:2}
+  body.haspic .sheet{background:rgba(237,243,249,.30)}
   body.haspic .amount,body.haspic .field,body.haspic .rp .card,body.haspic .fire .card{box-shadow:0 1px 3px rgba(22,40,58,.10)}
   .fam{text-align:center;font-style:italic;font-size:13px;color:var(--ink);text-shadow:0 1px 2px rgba(255,255,255,.75);margin:-2px 0 8px;letter-spacing:.02em}
   .fam b{font-style:italic;font-weight:600;color:var(--navy)}
@@ -91,7 +93,13 @@
   .sugg button small{color:var(--ink-2);font-weight:500;margin-left:5px}
 
   .chips{display:flex;flex-wrap:wrap;gap:7px}
-  #cat{max-height:132px;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-right:2px}
+  #cat{max-height:104px;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:1px 2px 2px;gap:6px;
+    -webkit-mask-image:linear-gradient(180deg,#000 0,#000 78%,rgba(0,0,0,.25) 100%);
+    mask-image:linear-gradient(180deg,#000 0,#000 78%,rgba(0,0,0,.25) 100%)}
+  #cat button{padding:7px 11px;font-size:14px;min-height:34px}
+  .scrollhint{font-size:11.5px;color:var(--ink-2);text-align:center;margin-top:4px;letter-spacing:.02em}
+  .scrollhint span{display:inline-block;animation:nudge 1.8s ease-in-out infinite}
+  @keyframes nudge{0%,100%{transform:translateY(0);opacity:.55}50%{transform:translateY(3px);opacity:1}}
   .chips button,.chips label{background:var(--key);border-radius:999px;padding:9px 13px;font-size:15px;font-weight:600;min-height:40px;display:inline-flex;align-items:center}
   .chips .on{background:var(--chip-on);color:#fff}
   .chips button.more{background:transparent;color:var(--ink-2);text-decoration:underline;text-underline-offset:3px}
@@ -122,6 +130,44 @@
   .scrim{position:fixed;inset:0;z-index:29;display:none}
   .scrim.open{display:block}
 
+  .stories{position:fixed;inset:0;z-index:70;display:none;background:#0B1622;overflow:hidden}
+  .stories.open{display:block;animation:stIn .42s cubic-bezier(.22,1,.36,1)}
+  @keyframes stIn{from{opacity:0;transform:scale(1.04)}to{opacity:1;transform:none}}
+  .stories.closing{animation:stOut .34s cubic-bezier(.4,0,1,1) forwards}
+  @keyframes stOut{to{opacity:0;transform:translateY(-40px) scale(.96)}}
+  .stories::before{content:"";position:absolute;inset:-10%;background:var(--stbg,radial-gradient(circle at 30% 20%,#1F6FD0 0%,#123A6B 45%,#0B1622 100%));
+    filter:blur(0px);transition:background .6s ease}
+  .stwrap{position:relative;height:100%;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top) + 10px) 16px calc(env(safe-area-inset-bottom) + 16px);color:#fff}
+  .stbars{display:flex;gap:4px;margin-bottom:12px}
+  .stbars i{flex:1;height:2.5px;border-radius:2px;background:rgba(255,255,255,.3);overflow:hidden}
+  .stbars i b{display:block;height:100%;width:0;background:#fff;border-radius:2px}
+  .stbars i.done b{width:100%}
+  .stbars i.run b{animation:stFill var(--dur,6s) linear forwards}
+  .stories.paused .stbars i.run b{animation-play-state:paused}
+  @keyframes stFill{to{width:100%}}
+  .sttop{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+  .stwho{font-size:14px;font-weight:600;letter-spacing:.02em;opacity:.9;display:flex;align-items:center;gap:8px}
+  .stwho span{font-size:12px;opacity:.65;font-weight:500}
+  .stx{width:40px;height:40px;color:#fff;font-size:18px;opacity:.85}
+  .stcard{flex:1;display:flex;flex-direction:column;justify-content:center;gap:10px;animation:stCard .5s cubic-bezier(.22,1,.36,1)}
+  @keyframes stCard{from{opacity:0;transform:translateY(18px) scale(.97)}to{opacity:1;transform:none}}
+  .stcard .emo{font-size:52px;line-height:1}
+  .stcard .cat{font-size:26px;font-weight:700;letter-spacing:-.01em}
+  .stcard .kpi{font-family:ui-rounded,"SF Pro Rounded",-apple-system,system-ui,sans-serif;font-size:54px;font-weight:700;letter-spacing:-.03em;line-height:1}
+  .stcard .sub{font-size:14px;opacity:.75}
+  .stcard .delta{display:inline-flex;align-items:center;gap:6px;font-size:15px;font-weight:700;padding:7px 12px;border-radius:999px;
+    background:rgba(255,255,255,.14);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);align-self:flex-start;margin-top:2px}
+  .stcard .delta.up{color:#FFB4A0} .stcard .delta.down{color:#8BE0B5}
+  .stcard .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+  .stcard .grid div{background:rgba(255,255,255,.12);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+    border:1px solid rgba(255,255,255,.18);border-radius:16px;padding:12px 14px}
+  .stcard .grid small{display:block;font-size:11.5px;opacity:.7;margin-bottom:3px}
+  .stcard .grid b{font-size:19px;font-family:ui-rounded,-apple-system,system-ui,sans-serif}
+  .stcard .spark{display:flex;align-items:flex-end;gap:3px;height:44px;margin-top:14px}
+  .stcard .spark i{flex:1;background:rgba(255,255,255,.35);border-radius:2px;transform-origin:bottom;animation:sparkUp .6s cubic-bezier(.22,1,.36,1) both}
+  .stcard .spark i.cur{background:#fff}
+  @keyframes sparkUp{from{transform:scaleY(0)}to{transform:scaleY(1)}}
+  .sthint{text-align:center;font-size:11.5px;opacity:.5;margin-top:10px}
   .flash{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;padding:24px;
     background:rgba(16,28,40,.28);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);opacity:0;transition:opacity .45s ease}
   .flash.show{display:flex;opacity:1}
@@ -149,9 +195,16 @@
   .sheet .top{margin-bottom:12px;top:0}
   .sheet h2{font-size:20px;margin:0}
   .sheet .close{font-size:16px;font-weight:600;color:var(--go);padding:10px}
-  .navmini{display:flex;gap:4px;align-items:center}
-  .navmini button{width:40px;height:40px;border-radius:11px;background:var(--key);color:var(--ink-2);display:grid;place-items:center;font-size:16px}
-  .navmini button.home{background:var(--go);color:#fff}
+  .navmini{display:flex;gap:2px;align-items:center}
+  .navmini button{width:38px;height:38px;border-radius:12px;background:transparent;color:var(--ink-2);display:grid;place-items:center;
+    transition:transform .25s cubic-bezier(.22,1,.36,1),background .25s,color .25s}
+  .navmini button svg{width:21px;height:21px}
+  .navmini button:active{transform:scale(.88)}
+  .navmini button.on{color:var(--go);background:rgba(31,111,208,.12)}
+  .navmini button.on::after{content:"";position:absolute}
+  .top h1,.top h2{font-size:19px;font-weight:700;margin:0;letter-spacing:-.01em;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .top .badge{position:relative}
+  .top .badge .n{position:absolute;top:2px;right:2px;background:var(--go);color:#fff;font-size:10px;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:grid;place-items:center;padding:0 4px}
   .sheet .top h2{flex:1}
   .sheet .top{display:flex;align-items:center;gap:8px}
   .sheet .field{border-color:var(--line)}
@@ -286,40 +339,42 @@
   .rp .lg{display:flex;gap:14px;font-size:12.5px;color:var(--ink-2);margin-top:6px}
   .rp .lg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
 
-  /* --- effetto vetro --- */
-  .field,.amount,.dictate,.rp .card,.fire .card,.mv ul.list,.log li,.flash .fcard,.padwrap,.sheet .btn{
-    background:var(--glass);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);
-    box-shadow:var(--glass-sh)}
+  /* --- vetro --- */
+  .field,.amount,.dictate,.rp .card,.fire .card,.mv ul.list,.log li,.flash .fcard,.padwrap,.sheet .btn,.copy{
+    background:var(--glass);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);
+    box-shadow:var(--glass-sh);position:relative;overflow:hidden}
+  .field::before,.amount::before,.dictate::before,.rp .card::before,.fire .card::before,.flash .fcard::before{
+    content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;
+    background:linear-gradient(150deg,rgba(255,255,255,.45) 0%,rgba(255,255,255,.10) 38%,rgba(255,255,255,0) 60%)}
+  .field>*,.amount>*,.dictate>*{position:relative;z-index:1}
   .flash .fcard,.padwrap{background:var(--glass-strong)}
   .rp .card,.fire .card,.mv ul.list,.log li{border:1px solid var(--glass-brd)}
-  .field,.amount,.dictate{border:1.5px solid rgba(31,111,208,.55)}
-  .chips button,.chips label,.seg,.fire .modes,.navmini button,.pad button{
-    -webkit-backdrop-filter:saturate(160%) blur(12px);backdrop-filter:saturate(160%) blur(12px)}
-  .chips button,.chips label{background:rgba(223,233,243,.75)}
-  .pad button{background:var(--glass-strong);box-shadow:0 2px 6px rgba(16,40,70,.08)}
-  .go,.copy.wa{box-shadow:0 6px 18px rgba(31,111,208,.28)}
-  .copy{background:var(--glass-strong);box-shadow:var(--glass-sh)}
-  .rp .hero,.fire .hero,.fast{box-shadow:0 10px 30px rgba(18,58,107,.28)}
-  .sheet{background:rgba(237,243,249,.86);-webkit-backdrop-filter:saturate(180%) blur(24px);backdrop-filter:saturate(180%) blur(24px)}
-  .toast{-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);background:rgba(22,40,58,.88)}
+  .field,.amount,.dictate{border:1.5px solid rgba(31,111,208,.45)}
+  .chips button,.chips label,.pad button,.copy{-webkit-backdrop-filter:saturate(170%) blur(16px);backdrop-filter:saturate(170%) blur(16px)}
+  .chips button,.chips label{background:rgba(255,255,255,.42);border:1px solid rgba(255,255,255,.5);
+    transition:transform .22s cubic-bezier(.22,1,.36,1),background .22s}
+  .chips button:active,.chips label:active{transform:scale(.94)}
+  .chips .on{background:var(--chip-on);border-color:transparent;box-shadow:0 4px 12px rgba(31,111,208,.35)}
+  .pad button{background:var(--glass-strong);box-shadow:0 2px 8px rgba(14,36,64,.10),inset 0 1px 0 rgba(255,255,255,.8);
+    transition:transform .12s ease,background .12s}
+  .pad button:active{transform:scale(.93)}
+  .go{box-shadow:0 8px 22px rgba(31,111,208,.34);transition:transform .16s cubic-bezier(.22,1,.36,1)}
+  .go:active{transform:scale(.97)}
+  .copy.wa{box-shadow:0 8px 22px rgba(31,168,85,.30)}
+  .rp .hero,.fire .hero{box-shadow:0 14px 34px rgba(18,58,107,.30)}
+  .sheet{background:rgba(237,243,249,.42);-webkit-backdrop-filter:saturate(190%) blur(30px);backdrop-filter:saturate(190%) blur(30px)}
+  .sheet.open{animation:sheetIn .42s cubic-bezier(.22,1,.36,1)}
+  @keyframes sheetIn{from{opacity:0;transform:translateY(18px) scale(.985)}to{opacity:1;transform:none}}
+  .rp .card,.fire .card,.mv ul.list{animation:cardIn .5s cubic-bezier(.22,1,.36,1) both}
+  @keyframes cardIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  .toast{-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);background:rgba(22,40,58,.82)}
   @media (prefers-reduced-motion:reduce){.toast,.padwrap{transition:none}.dictate.rec .mic{animation:none}}
 </style>
 </head>
 <body>
 <div id="bg"></div><div id="bgveil"></div>
 <div class="app" id="main">
-  <div class="top">
-    <button class="ic" id="btnSettings" aria-label="Impostazioni">⚙︎</button>
-    <h1>Nuovo movimento</h1>
-    <div class="grp">
-      <button class="ic" id="btnRp" aria-label="Riepilogo"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></button>
-      <button class="ic" id="btnFire" aria-label="FIRE"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M13.5 2c.6 3-1 4.6-2.4 6C9.4 9.6 8 11.2 8 13.8A6.2 6.2 0 0 0 14.2 20a6 6 0 0 0 6-6c0-3.4-2.2-5-3.4-7.4-.3 1.3-1 2-1.8 2.5.6-2.4.3-5-1.5-7.1z" opacity=".9"/></svg></button>
-      <button class="ic" id="btnMv" aria-label="Movimenti"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10"/></svg></button>
-      <button class="ic badge" id="btnLog" aria-label="Inviati"><span>☰</span><span class="n" id="logN" hidden>0</span></button>
-    </div>
-  </div>
-
-  <div class="fam">Famiglia <b>Quinto</b> · <i>Emi</i>, <i>Ele</i>, <i>Leo</i> e <i>Grace</i></div>
+  <div class="top" id="topMain"></div>
 
   <button class="dictate" id="mic">
     <span class="mic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2.5" width="6" height="11" rx="3" fill="currentColor" stroke="none"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0"/><path d="M12 18v3.5"/><path d="M8.5 21.5h7"/></svg></span>
@@ -346,6 +401,7 @@
   <div class="field">
     <label>Categoria</label>
     <div class="chips" id="cat"></div>
+    <div class="scrollhint"><span>▾</span> scorri per tutte le categorie</div>
   </div>
 
   <div class="field">
@@ -381,12 +437,12 @@
 
 <!-- ============ RIEPILOGO ============ -->
 <div class="sheet rp" id="sheetRp">
-  <div class="top"><h2>Riepilogo</h2><div class="navmini"><button data-go="main" class="home" aria-label="Nuovo movimento">＋</button><button data-go="rp" aria-label="Riepilogo">📊</button><button data-go="mv" aria-label="Movimenti">☰</button><button data-go="fire" aria-label="FIRE">🔥</button></div></div>
+  <div class="top" data-nav="rp"><h2>Riepilogo</h2></div>
   <div id="rpBody"></div>
 </div>
 
 <div class="sheet mv" id="sheetMv">
-  <div class="top"><h2>Movimenti</h2><div class="navmini"><button data-go="main" class="home" aria-label="Nuovo movimento">＋</button><button data-go="rp" aria-label="Riepilogo">📊</button><button data-go="mv" aria-label="Movimenti">☰</button><button data-go="fire" aria-label="FIRE">🔥</button></div></div>
+  <div class="top" data-nav="mv"><h2>Movimenti</h2></div>
   <div class="field"><input type="text" id="mvQ" placeholder="Cerca descrizione…" autocomplete="off" autocorrect="off" enterkeyhint="search"></div>
   <div class="field inline"><label>Mese</label><div class="chips" id="mvMonth"></div></div>
   <div class="field inline"><label>Cat.</label><div class="chips" id="mvCat"></div></div>
@@ -395,7 +451,7 @@
 </div>
 
 <div class="sheet fire" id="sheetFire">
-  <div class="top"><h2>FIRE</h2><div class="navmini"><button data-go="main" class="home" aria-label="Nuovo movimento">＋</button><button data-go="rp" aria-label="Riepilogo">📊</button><button data-go="mv" aria-label="Movimenti">☰</button><button data-go="fire" aria-label="FIRE">🔥</button></div></div>
+  <div class="top" data-nav="fire"><h2>FIRE</h2></div>
   <div class="modes" id="fireModes">
     <button data-m="proj" class="on">Proiezione</button>
     <button data-m="pmt">Quanto investire</button>
@@ -497,11 +553,20 @@
   </div>
   <div class="field">
     <label>Versione app</label>
-    <p><b>v31</b> · "Aggiorna da Trade" + border collie che insegue la pallina. Aggiunti conto Amex Siemens, categoria Trasferte elenco Movimenti, grafico patrimonio interattivo sezione FIRE ed export report PDF. Se non leggi "v15" qui, versione vecchia.</p>
+    <p><b>v32</b> · "Aggiorna da Trade" + border collie che insegue la pallina. Aggiunti conto Amex Siemens, categoria Trasferte elenco Movimenti, grafico patrimonio interattivo sezione FIRE ed export report PDF. Se non leggi "v15" qui, versione vecchia.</p>
   </div>
   <div class="field">
     <label>Dettatura</label>
     <p>Tocca il pulsante del microfono e parla, ad esempio: <i>"Esselunga ottantacinque e trenta, spesa, BNL"</i> oppure <i>"pizzeria ventidue euro ieri"</i>. L'app estrae importo, descrizione, categoria, conto e data; tu controlli e premi Invia. Se il microfono non si attiva, usa quello della tastiera nel campo Descrizione: il testo dettato viene interpretato allo stesso modo.</p>
+  </div>
+</div>
+
+<div class="stories" id="stories">
+  <div class="stwrap">
+    <div class="stbars" id="stBars"></div>
+    <div class="sttop"><div class="stwho" id="stWho"></div><button class="stx" id="stClose" aria-label="Chiudi">✕</button></div>
+    <div class="stcard" id="stCard"></div>
+    <div class="sthint">tieni premuto per fermare · scorri in alto per uscire</div>
   </div>
 </div>
 
@@ -650,7 +715,7 @@ function render(){
   $("datePickTxt").textContent=F.dCustom?"📅 "+shortDate(fromISO(F.dCustom)):"📅 Altra…";
   $("btnSend").disabled=!(F.amt&&amtNum()>0&&F.desc.trim()&&F.cat&&F.conto);
   const wa=$("btnWa"); wa.classList.toggle("off",$("btnSend").disabled); wa.href=$("btnSend").disabled?"#":waUrl(tsv(currentRow()));
-  const ln=S.log.length; $("logN").hidden=!ln; $("logN").textContent=ln;
+  const ln=S.log.length, lg=$("logN"); if(lg){ lg.hidden=!ln; lg.textContent=ln; }
 }
 function renderDue(){
   if(!$("due")) return;
@@ -811,9 +876,9 @@ $("btnWa").onclick=e=>{ if($("btnSend").disabled){ e.preventDefault(); toast("Co
 $("btnCopy").onclick=()=>{ if($("btnSend").disabled) return toast("Compila importo, descrizione, categoria e conto",true); const r=currentRow(); learn(r); S.log.unshift({...r,ts:Date.now(),ok:true,copied:true}); save(); copyText(tsv(r),"Riga copiata: incollala in Movimenti"); resetForm(); flashMovimento(r); };
 
 document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>$(b.dataset.close).classList.remove("open"));
-$("btnLog").onclick=()=>{ renderLog(); $("sheetLog").classList.add("open"); };
-$("btnSettings").onclick=()=>{ renderSettings(); $("sheetSettings").classList.add("open"); };
-$("btnRp").onclick=()=>{ openRp(); };
+
+
+
 
 function renderLog(){
   const ul=$("logList");
@@ -1173,6 +1238,94 @@ async function sendPac(){
 
 
 
+
+// ================= STORIE =================
+let ST={list:[],i:0,timer:null,t0:0,left:0,dur:6000};
+function buildStories(){
+  const D=calc(); if(!D) return [];
+  const mese=dateISO(today()).slice(0,7), anno=mese.slice(0,4);
+  const rows=(S.cache&&S.cache.rows)||[];
+  const cats=(S.cache&&S.cache.cats)||[];
+  const info=n=>cats.find(c=>c.name===n)||{};
+  const mesiAnno=[...new Set(rows.filter(r=>r.d.startsWith(anno)).map(r=>r.d.slice(0,7)))].sort();
+  const mk=(name,tipo)=>{
+    const inAnno=rows.filter(r=>r.cat===name&&r.d.startsWith(anno));
+    const perMese=mesiAnno.map(m=>Math.abs(inAnno.filter(r=>r.d.startsWith(m)).reduce((a,r)=>a+r.imp,0)));
+    const corrente=Math.abs(inAnno.filter(r=>r.d.startsWith(mese)).reduce((a,r)=>a+r.imp,0));
+    const totale=perMese.reduce((a,v)=>a+v,0);
+    const conDati=perMese.filter(v=>v>0.005).length||1;
+    const media=totale/conDati;
+    return {name,tipo,emoji:info(name).emoji||(tipo==="Entrata"?"💰":"💸"),corrente,totale,media,
+      nMov:inAnno.length,perMese,mesi:mesiAnno,delta:media?((corrente-media)/media*100):null};
+  };
+  const out=[mk("Stipendio Ele","Entrata"),mk("Stipendio Emi","Entrata")];
+  const spese={}; rows.filter(r=>r.d.startsWith(anno)&&(info(r.cat).tipo||"Spesa")==="Spesa").forEach(r=>{ spese[r.cat]=(spese[r.cat]||0)+Math.abs(r.imp); });
+  Object.entries(spese).sort((a,b)=>b[1]-a[1]).slice(0,10).forEach(([n])=>out.push(mk(n,"Spesa")));
+  return out;
+}
+function openStories(){
+  if(!S.cache){ toast(S.share?"Apri il Riepilogo per scaricare i dati":"Manca l'indirizzo del relay in ⚙︎",true); return; }
+  ST.list=buildStories(); if(!ST.list.length){ toast("Non ci sono ancora dati per le storie",true); return; }
+  ST.i=0; $("stories").classList.add("open"); document.body.style.overflow="hidden";
+  $("stBars").innerHTML=ST.list.map(()=>`<i><b></b></i>`).join("");
+  showStory(0);
+}
+function closeStories(){ const el=$("stories"); clearTimeout(ST.timer); el.classList.add("closing");
+  setTimeout(()=>{ el.classList.remove("open","closing","paused"); document.body.style.overflow=""; },330); }
+function showStory(i){
+  if(i<0) i=0;
+  if(i>=ST.list.length){ closeStories(); return; }
+  ST.i=i; const s=ST.list[i], el=$("stories");
+  const entrata=s.tipo==="Entrata";
+  el.style.setProperty("--stbg",entrata
+    ? "radial-gradient(circle at 25% 15%,#13A26B 0%,#0E5E45 48%,#0B1622 100%)"
+    : "radial-gradient(circle at 25% 15%,#1F6FD0 0%,#123A6B 48%,#0B1622 100%)");
+  $("stWho").innerHTML=`<b>Famiglia Quinto</b><span>${monthLabel(dateISO(today()).slice(0,7))}</span>`;
+  const bars=[...$("stBars").children];
+  bars.forEach((b,k)=>{ b.className=k<i?"done":(k===i?"run":""); b.style.setProperty("--dur",(ST.dur/1000)+"s");
+    if(k===i){ const inner=b.querySelector("b"); inner.style.animation="none"; void inner.offsetWidth; inner.style.animation=""; } });
+  const max=Math.max(...s.perMese,1);
+  const spark=s.perMese.map((v,k)=>`<i class="${s.mesi[k]===dateISO(today()).slice(0,7)?"cur":""}" style="height:${Math.max(6,v/max*44).toFixed(0)}px;animation-delay:${k*45}ms"></i>`).join("");
+  const d=s.delta;
+  $("stCard").innerHTML=`
+    <div class="emo">${s.emoji}</div>
+    <div class="cat">${esc(s.name)}</div>
+    <div class="kpi">${fmt0(s.corrente)} €</div>
+    <div class="sub">${entrata?"incassati":"spesi"} questo mese</div>
+    ${d!=null?`<div class="delta ${d>=0?(entrata?"down":"up"):(entrata?"up":"down")}">${d>=0?"▲":"▼"} ${Math.abs(d).toFixed(0)}% rispetto alla media</div>`:""}
+    <div class="grid">
+      <div><small>Totale ${s.mesi.length?s.mesi[0].slice(0,4):""}</small><b>${fmt0(s.totale)} €</b></div>
+      <div><small>Movimenti nell'anno</small><b>${s.nMov}</b></div>
+      <div><small>Media mensile</small><b>${fmt0(s.media)} €</b></div>
+      <div><small>${entrata?"Peso sulle entrate":"Peso sulle spese"}</small><b>${pesoStoria(s)}%</b></div>
+    </div>
+    <div class="spark">${spark}</div>`;
+  // ri-anima la card
+  const c=$("stCard"); c.style.animation="none"; void c.offsetWidth; c.style.animation="";
+  startStoryTimer(ST.dur);
+}
+function pesoStoria(s){
+  const tot=ST.list.filter(x=>x.tipo===s.tipo).reduce((a,x)=>a+x.corrente,0);
+  return tot?Math.round(s.corrente/tot*100):0;
+}
+function startStoryTimer(ms){ clearTimeout(ST.timer); ST.t0=Date.now(); ST.left=ms; ST.timer=setTimeout(()=>showStory(ST.i+1),ms); }
+(function(){
+  const el=$("stories"); if(!el) return;
+  let x0=0,y0=0,t0=0,hold=null,paused=false;
+  el.addEventListener("pointerdown",e=>{ x0=e.clientX; y0=e.clientY; t0=Date.now();
+    hold=setTimeout(()=>{ paused=true; el.classList.add("paused"); clearTimeout(ST.timer); ST.left-=Date.now()-ST.t0; },260); });
+  el.addEventListener("pointerup",e=>{ clearTimeout(hold);
+    const dx=e.clientX-x0, dy=e.clientY-y0, dt=Date.now()-t0;
+    if(paused){ paused=false; el.classList.remove("paused"); startStoryTimer(Math.max(900,ST.left)); return; }
+    if(dy<-70&&Math.abs(dy)>Math.abs(dx)){ closeStories(); return; }
+    if(dy>90&&Math.abs(dy)>Math.abs(dx)){ closeStories(); return; }
+    if(dt<400&&Math.abs(dx)<40&&Math.abs(dy)<40){ showStory(e.clientX < window.innerWidth*0.33 ? ST.i-1 : ST.i+1); return; }
+    if(dx<-60) showStory(ST.i+1); else if(dx>60) showStory(ST.i-1);
+  });
+  el.addEventListener("pointercancel",()=>{ clearTimeout(hold); if(paused){ paused=false; el.classList.remove("paused"); startStoryTimer(Math.max(900,ST.left)); } });
+  $("stClose").onclick=e=>{ e.stopPropagation(); closeStories(); };
+})();
+
 // ---------- riepilogo a comparsa dopo ogni movimento ----------
 function meseTotali(r){
   const mese=r.DataISO.slice(0,7);
@@ -1225,12 +1378,29 @@ function flashMovimento(r){
 }
 function closeFlash(){ const f=$("flash"); if(!f) return; f.classList.remove("show"); clearTimeout(flashT); setTimeout(()=>{ if(!f.classList.contains("show")) f.className="flash"; },520); }
 
+const NAV_ICONS={"main": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><path d=\"M12 5v14M5 12h14\"/></svg>", "stories": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><circle cx=\"12\" cy=\"12\" r=\"4.2\"/><path d=\"M12 3.2a8.8 8.8 0 0 1 8.8 8.8M12 20.8A8.8 8.8 0 0 1 3.2 12\" stroke-linecap=\"round\"/></svg>", "rp": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><path d=\"M4 20V10M10 20V4M16 20v-7M22 20H2\"/></svg>", "mv": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><path d=\"M4 7h16M4 12h16M4 17h10\"/></svg>", "fire": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linejoin=\"round\"><path d=\"M13.6 2.6c.5 3-1 4.5-2.4 5.9C9.5 10 8.2 11.4 8.2 13.9A5.9 5.9 0 0 0 14.1 19.8a5.7 5.7 0 0 0 5.7-5.7c0-3.3-2.1-4.8-3.3-7.1-.3 1.2-.9 1.9-1.7 2.4.6-2.3.3-4.8-1.2-6.8z\"/></svg>", "log": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\"><path d=\"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z\"/></svg>", "set": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\"><circle cx=\"12\" cy=\"12\" r=\"3\"/><path d=\"M12 2.6v2.2M12 19.2v2.2M21.4 12h-2.2M4.8 12H2.6M18.6 5.4l-1.6 1.6M7 17l-1.6 1.6M18.6 18.6 17 17M7 7 5.4 5.4\" stroke-linecap=\"round\"/></svg>"};
+
+const NAV_ORDER=[["main","Nuovo"],["stories","Storie"],["rp","Riepilogo"],["mv","Movimenti"],["fire","FIRE"]];
+function navHTML(active){
+  return `<div class="navmini">${NAV_ORDER.map(([k,t])=>`<button data-go="${k}" class="${k===active?"on":""}" aria-label="${t}">${NAV_ICONS[k]}</button>`).join("")}</div>`;
+}
+function paintNav(){
+  const main=$("topMain");
+  if(main) main.innerHTML=`<button class="ic" id="btnSettings" aria-label="Impostazioni">${NAV_ICONS.set}</button><h1>Nuovo movimento</h1>`+navHTML("main")+
+    `<button class="ic badge" id="btnLog" aria-label="Inviati">${NAV_ICONS.log}<span class="n" id="logN" hidden>0</span></button>`;
+  document.querySelectorAll('.sheet .top[data-nav]').forEach(t=>{
+    if(!t.querySelector(".navmini")) t.insertAdjacentHTML("beforeend",navHTML(t.dataset.nav));
+    t.querySelectorAll(".navmini button").forEach(b=>b.classList.toggle("on",b.dataset.go===t.dataset.nav));
+  });
+    const bs=$("btnSettings"); if(bs) bs.onclick=()=>{ goTab("main"); renderSettings(); $("sheetSettings").classList.add("open"); };
+  const bl=$("btnLog"); if(bl) bl.onclick=()=>{ goTab("main"); renderLog(); $("sheetLog").classList.add("open"); };
+}
+
 // ---------- navigazione tra i fogli ----------
 function goTab(t){
   ["sheetRp","sheetMv","sheetFire","sheetLog","sheetSettings","sheetPac","sheetRep"].forEach(id=>$(id)&&$(id).classList.remove("open"));
-  if(t==="rp") openRp(); else if(t==="mv") openMv(); else if(t==="fire"){ $("sheetFire").classList.add("open"); renderFire(); if(S.share) doRefresh(false); }
+  if(t==="rp") openRp(); else if(t==="mv") openMv(); else if(t==="stories") openStories(); else if(t==="fire"){ $("sheetFire").classList.add("open"); renderFire(); if(S.share) doRefresh(false); }
 }
-document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>goTab(b.dataset.go));
 
 // ---------- sfondo personale ----------
 const PIC_KEY="movimenti:sfondo";
@@ -1642,7 +1812,7 @@ function renderFire(){
     r.oninput=()=>{ f[key]=+r.value; const t=$(id.replace("_r","")); if(t) t.value=String(f[key]).replace(".",","); };
     r.onchange=()=>{ f[key]=+r.value; save(); renderFire(); }; });
 }
-$("btnFire").onclick=()=>{ $("sheetFire").classList.add("open"); renderFire(); if(S.share) doRefresh(false); };
+
 $("fireModes").onclick=e=>{ const b=e.target.closest("button"); if(!b) return; fireCfg().mode=b.dataset.m; save(); renderFire(); };
 
 // ---------- elenco movimenti ----------
@@ -1681,12 +1851,13 @@ function renderMv(){
 }
 $("mvQ").oninput=e=>{ MV.q=e.target.value; MV.limit=60; renderMv(); };
 $("mvQ").onkeydown=e=>{ if(e.key==="Enter") e.target.blur(); };
-$("btnMv").onclick=openMv;
+
 // trascina in giù per aggiornare
 (()=>{ const sh=$("sheetRp"); let y0=null; sh.addEventListener("touchstart",e=>{ y0=(sh.scrollTop<=0&&e.touches[0])?e.touches[0].clientY:null; },{passive:true}); sh.addEventListener("touchend",e=>{ const t=e.changedTouches&&e.changedTouches[0]; if(y0!=null&&t&&t.clientY-y0>90) doRefresh(true); y0=null; },{passive:true}); })();
 
 
 
+paintNav();
 applyPic(loadPic());
 load().then(()=>{ render(); if(S.share&&S.cache&&Date.now()-S.cache.ts>4*3600e3) refreshExcel(false).catch(()=>{}); });
 </script>
