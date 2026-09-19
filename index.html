@@ -104,7 +104,20 @@
   #cat{flex:1 1 0;min-height:52px;margin-bottom:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:1px 2px 2px;gap:6px;
     -webkit-mask-image:linear-gradient(180deg,#000 0,#000 68%,rgba(0,0,0,.22) 100%);
     mask-image:linear-gradient(180deg,#000 0,#000 68%,rgba(0,0,0,.22) 100%)}
-  #cat button{padding:8px 13px;font-size:14.5px;min-height:38px;border-radius:999px}
+  #cat button{padding:8px 12px;font-size:14.5px;min-height:38px;border-radius:999px;flex:1 1 auto;text-align:center}
+  #cat .sep{flex:1 0 100%}
+  #catField{position:relative}
+  .catsearch{position:absolute;top:6px;right:8px;height:34px;width:34px;border-radius:12px;background:#fff;border:1px solid var(--hair);
+    display:flex;align-items:center;overflow:hidden;z-index:3;box-shadow:0 2px 8px rgba(0,0,0,.14);
+    transition:width .42s cubic-bezier(.22,1,.36,1),box-shadow .3s}
+  .catsearch.open{width:calc(100% - 16px);box-shadow:0 6px 18px rgba(0,0,0,.22)}
+  .catsearch .lens{flex:0 0 34px;height:34px;display:grid;place-items:center;color:#16283A}
+  .catsearch .lens svg{width:17px;height:17px}
+  .catsearch input{flex:1;min-width:0;border:0!important;background:transparent!important;padding:0 4px!important;font-size:15px!important;font-weight:600;color:#16283A!important;outline:0;opacity:0;transition:opacity .25s .15s}
+  .catsearch.open input{opacity:1}
+  .catsearch .clr{flex:0 0 32px;height:34px;color:#5A6C80;font-size:14px;font-weight:700;opacity:0;transition:opacity .25s .15s}
+  .catsearch.open .clr{opacity:1}
+  #catField label{padding-right:44px}
   #cat button.fav{border-color:rgba(31,111,208,.55);font-weight:700}
   #cat button.fav::before{content:"★";font-size:10px;margin-right:5px;color:var(--go);vertical-align:1px}
   #cat button.fav.on::before{color:#fff}
@@ -559,13 +572,27 @@
   .mv .sum{background:var(--surface)!important;color:var(--ink)!important;border:1px solid var(--hair);border-radius:var(--rr)}
   .mv .sum span small{color:var(--ink-2)!important}
   .mv .day{font-size:15px;font-weight:700;color:var(--ink);margin:16px 0 8px}
+  /* icona Storie con anello stile Instagram */
+  .navmini button.st .stwrapi{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;border:2px solid var(--ink-2);box-sizing:border-box;margin-top:-3px}
+  .navmini button.st .stwrapi svg{width:14px;height:14px}
+  .navmini button.st.new .stwrapi{border-color:transparent;background:linear-gradient(var(--surface-2),var(--surface-2)) padding-box,linear-gradient(45deg,#F9CE34,#EE2A7B,#6228D7) border-box;animation:stpulse 2.2s ease-in-out infinite}
+  .navmini button.st.on .stwrapi{border-color:#fff}
+  .navmini button.st.on.new .stwrapi{background:linear-gradient(var(--go),var(--go)) padding-box,linear-gradient(45deg,#F9CE34,#EE2A7B,#6228D7) border-box;border-color:transparent}
+  @keyframes stpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+  /* dove si scrive, interno chiaro */
+  .app .field input[type=text]:not(#catSearch),.mv .field input[type=text]{background:#fff!important;color:#16283A!important;border-radius:12px!important;padding:9px 12px!important;border:1px solid var(--hair)!important}
+  .app .field input[type=text]::placeholder,#catSearch::placeholder,.mv .field input[type=text]::placeholder{color:#8A97A8!important}
   /* Nuovo: tutto centrato e simmetrico */
   .app .field label{text-align:center}
   .app .chips{justify-content:center}
   .app .field input[type=text]{text-align:center}
   .app .sugg{justify-content:center}
-  .amount{justify-content:center;gap:14px}
-  .amount .tap{flex:0 1 auto;text-align:center}
+  .amount{justify-content:center;gap:12px}
+  .amount .tap{flex:1 1 auto;text-align:center;background:#fff;border-radius:14px;padding:6px 12px;min-height:50px;display:flex;align-items:center;justify-content:center;border:1px solid var(--hair)}
+  .amount .num{color:#16283A!important}
+  .amount .num.in{color:#0B8A4B!important}
+  .amount .num .ph{color:#B7C2CF!important}
+  .amount .num .eur{color:#5A6C80!important}
   #dateChips{flex-wrap:nowrap}
   /* storie: invariate */
   @media (prefers-reduced-motion:reduce){.toast,.padwrap{transition:none}.dictate.rec .mic{animation:none}}
@@ -596,6 +623,11 @@
 
   <div class="field" id="catField">
     <label>Categoria</label>
+    <div class="catsearch" id="catSearchBox">
+      <button class="lens" id="catLens" aria-label="Cerca categoria"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg></button>
+      <input type="text" id="catSearch" placeholder="Cerca categoria…" autocomplete="off" autocorrect="off" enterkeyhint="done">
+      <button class="clr" id="catClear" aria-label="Chiudi ricerca">✕</button>
+    </div>
     <div class="chips" id="cat"></div>
     <div class="scrollhint"><span>▾</span> scorri per tutte le categorie</div>
   </div>
@@ -757,7 +789,7 @@
   </div>
   <div class="field">
     <label>Versione app</label>
-    <p><b>v47</b> · "Aggiorna da Trade" + border collie che insegue la pallina. Aggiunti conto Amex Siemens, categoria Trasferte elenco Movimenti, grafico patrimonio interattivo sezione FIRE ed export report PDF. Se non leggi "v39" qui, versione vecchia.</p>
+    <p><b>v49</b> · "Aggiorna da Trade" + border collie che insegue la pallina. Aggiunti conto Amex Siemens, categoria Trasferte elenco Movimenti, grafico patrimonio interattivo sezione FIRE ed export report PDF. Se non leggi "v39" qui, versione vecchia.</p>
   </div>
   <div class="field">
     <label>Dettatura</label>
@@ -946,14 +978,16 @@ function renderSugg(){
   box.querySelectorAll("button").forEach(b=>b.onclick=()=>applyEntry(hits[+b.dataset.i],true));
 }
 function renderCats(){
-  const box=$("cat"); const cc=catCounts();
-  const fav=[...CATS].filter(c=>cc[c]).sort((a,b)=>cc[b]-cc[a]).slice(0,4);
-  const resto=[...CATS].filter(c=>!fav.includes(c)).sort((a,b)=>a.localeCompare(b,"it"));
+  const box=$("cat"); const cc=catCounts(); const q=norm(($("catSearch")||{}).value||"");
+  const match=c=>!q||norm(c).includes(q);
+  const fav=q?[]:[...CATS].filter(c=>cc[c]).sort((a,b)=>cc[b]-cc[a]).slice(0,4);
+  const resto=[...CATS].filter(c=>!fav.includes(c)&&match(c)).sort((a,b)=>a.localeCompare(b,"it"));
   box.innerHTML=fav.map(c=>`<button class="${c===F.cat?"on":""} fav" data-c="${c}">${c}</button>`).join("")
     +(fav.length?`<span class="sep"></span>`:"")
     +resto.map(c=>`<button class="${c===F.cat?"on":""}" data-c="${c}">${c}</button>`).join("");
-  box.querySelectorAll("button[data-c]").forEach(b=>b.onclick=()=>{ F.cat=b.dataset.c; F.sign=IN_CATS.has(F.cat)?1:-1; haptic(); render(); });
-  const sel=box.querySelector("button.on"); if(sel) sel.scrollIntoView({block:"nearest"});
+  box.querySelectorAll("button[data-c]").forEach(b=>b.onclick=()=>{ F.cat=b.dataset.c; F.sign=IN_CATS.has(F.cat)?1:-1; haptic(); if(q){ $("catSearch").value=""; $("catSearchBox").classList.remove("open"); } render(); });
+  if(q&&!resto.length) box.innerHTML=`<span class="scrollhint" style="width:100%">Nessuna categoria con "${esc(q)}"</span>`;
+  const sel=box.querySelector("button.on"); if(sel&&!q&&sel.scrollIntoView) sel.scrollIntoView({block:"nearest"});
 }
 function renderConti(){
   const box=$("conto");
@@ -1051,7 +1085,7 @@ function learn(r){
   S.catN[r.Categoria]=(S.catN[r.Categoria]||0)+1;
   S.hist.push({k,desc:r.Descrizione,cat:r.Categoria,conto:r.Conto,imp:Math.abs(r.Importo),d:r.DataISO}); S.hist=S.hist.slice(-600);
 }
-function resetForm(){ F.amt=""; F.desc=""; $("desc").value=""; $("desc").placeholder="Es. Esselunga"; F.cat=""; F.conto=S.defConto; F.dOff=0; F.dCustom=""; $("dateIn").value=""; F.showAllCat=false; closePad(); render(); }
+function resetForm(){ F.amt=""; F.desc=""; $("desc").value=""; if($("catSearch")){ $("catSearch").value=""; $("catSearchBox").classList.remove("open"); } $("desc").placeholder="Es. Esselunga"; F.cat=""; F.conto=S.defConto; F.dOff=0; F.dCustom=""; $("dateIn").value=""; F.showAllCat=false; closePad(); render(); }
 async function send(){
   const r=currentRow();
   if(!S.hook){ toast("Manca l'indirizzo webhook: aggiungilo in ⚙︎",true); return; }
@@ -1079,6 +1113,11 @@ $("desc").oninput=e=>{ F.desc=e.target.value; const ex=allDict()[norm(F.desc)]; 
 $("desc").onkeydown=e=>{ if(e.key==="Enter") e.target.blur(); };
 $("desc").onblur=()=>{ const v=$("desc").value; if(/\d/.test(v)||/ euro /.test(" "+v.toLowerCase()+" ")) applySpeech(v); };
 $("desc").onfocus=closePad;
+$("catSearch").oninput=()=>renderCats();
+$("catLens").onclick=()=>{ const b=$("catSearchBox"); if(b.classList.contains("open")){ $("catSearch").focus(); return; } haptic(); b.classList.add("open"); setTimeout(()=>$("catSearch").focus(),380); };
+$("catClear").onclick=()=>{ const b=$("catSearchBox"); $("catSearch").value=""; $("catSearch").blur(); b.classList.remove("open"); renderCats(); };
+$("catSearch").onblur=()=>{ setTimeout(()=>{ if(!$("catSearch").value) $("catSearchBox").classList.remove("open"); },150); };
+$("catSearch").onkeydown=e=>{ if(e.key==="Enter"){ e.target.blur(); const first=$("cat").querySelector("button[data-c]"); if(first&&$("cat").querySelectorAll("button[data-c]").length===1){ F.cat=first.dataset.c; F.sign=IN_CATS.has(F.cat)?1:-1; $("catSearch").value=""; render(); } } };
 $("dateChips").onclick=e=>{ const b=e.target.closest("button"); if(!b) return; F.dOff=+b.dataset.d; F.dCustom=""; $("dateIn").value=""; render(); };
 $("dateIn").onchange=e=>{ F.dCustom=e.target.value; render(); };
 $("btnSend").onclick=send;
@@ -1489,6 +1528,7 @@ function openStories(){
   if(!S.cache){ toast(S.share?"Apri il Riepilogo per scaricare i dati":"Manca l'indirizzo del relay in ⚙︎",true); return; }
   const o=today(), pm=new Date(o.getFullYear(),o.getMonth()-1,1); ST.mese=`${pm.getFullYear()}-${pad2(pm.getMonth()+1)}`;
   ST.list=buildStories(); if(!ST.list.length){ toast("Non ci sono ancora dati per le storie",true); return; }
+  markStoriesSeen();
   ST.i=0; $("stories").classList.add("open"); document.body.style.overflow="hidden";
   $("stBars").innerHTML=ST.list.map(()=>`<i><b></b></i>`).join("");
   showStory(0);
@@ -1648,9 +1688,11 @@ function closeFlash(){ const f=$("flash"); if(!f) return; f.classList.remove("sh
 
 const NAV_ICONS={"main": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><path d=\"M12 5v14M5 12h14\"/></svg>", "stories": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><circle cx=\"12\" cy=\"12\" r=\"4.2\"/><path d=\"M12 3.2a8.8 8.8 0 0 1 8.8 8.8M12 20.8A8.8 8.8 0 0 1 3.2 12\" stroke-linecap=\"round\"/></svg>", "rp": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><path d=\"M4 20V10M10 20V4M16 20v-7M22 20H2\"/></svg>", "mv": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><path d=\"M4 7h16M4 12h16M4 17h10\"/></svg>", "fire": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linejoin=\"round\"><path d=\"M13.6 2.6c.5 3-1 4.5-2.4 5.9C9.5 10 8.2 11.4 8.2 13.9A5.9 5.9 0 0 0 14.1 19.8a5.7 5.7 0 0 0 5.7-5.7c0-3.3-2.1-4.8-3.3-7.1-.3 1.2-.9 1.9-1.7 2.4.6-2.3.3-4.8-1.2-6.8z\"/></svg>", "log": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.9\" stroke-linecap=\"round\"><path d=\"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z\"/></svg>", "set": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.7\"><circle cx=\"12\" cy=\"12\" r=\"3.1\"/><path d=\"M19.4 14a1.5 1.5 0 0 0 .3 1.65l.04.04a1.8 1.8 0 1 1-2.55 2.55l-.04-.04a1.5 1.5 0 0 0-2.55 1.06V19.5a1.8 1.8 0 1 1-3.6 0v-.1A1.5 1.5 0 0 0 9.1 18.1a1.5 1.5 0 0 0-1.65.3l-.04.04a1.8 1.8 0 1 1-2.55-2.55l.04-.04A1.5 1.5 0 0 0 5.9 13.3a1.5 1.5 0 0 0-1.37-.9H4.5a1.8 1.8 0 1 1 0-3.6h.1A1.5 1.5 0 0 0 5.9 7.85a1.5 1.5 0 0 0-.3-1.65l-.04-.04A1.8 1.8 0 1 1 8.11 3.6l.04.04a1.5 1.5 0 0 0 1.65.3h.07A1.5 1.5 0 0 0 10.78 2.6V2.5a1.8 1.8 0 1 1 3.6 0v.1a1.5 1.5 0 0 0 .9 1.37 1.5 1.5 0 0 0 1.65-.3l.04-.04a1.8 1.8 0 1 1 2.55 2.55l-.04.04a1.5 1.5 0 0 0-.3 1.65v.07a1.5 1.5 0 0 0 1.37.9h.1a1.8 1.8 0 1 1 0 3.6h-.1a1.5 1.5 0 0 0-1.37.9z\"/></svg>"};
 
-const NAV_ORDER=[["main","Nuovo"],["stories","Storie"],["rp","Riepilogo"],["mv","Movimenti"],["fire","FIRE"]];
+function storiesUnseen(){ const o=today(), pm=new Date(o.getFullYear(),o.getMonth()-1,1); return S.storiesSeen!==`${pm.getFullYear()}-${pad2(pm.getMonth()+1)}`; }
+function markStoriesSeen(){ const o=today(), pm=new Date(o.getFullYear(),o.getMonth()-1,1); S.storiesSeen=`${pm.getFullYear()}-${pad2(pm.getMonth()+1)}`; save(); const h=$("hdr"); if(h){ const b=h.querySelector('button[data-go="stories"]'); if(b) b.classList.remove("new"); } }
+const NAV_ORDER=[["main","Nuovo"],["rp","Riepilogo"],["mv","Movimenti"],["fire","FIRE"],["stories","Storie"]];
 function navHTML(active){
-  return `<div class="navmini">${NAV_ORDER.map(([k,t])=>`<button data-go="${k}" class="${k===active?"on":""}" aria-label="${t}">${NAV_ICONS[k]}<span>${t}</span></button>`).join("")}</div>`;
+  return `<div class="navmini">${NAV_ORDER.map(([k,t])=>`<button data-go="${k}" class="${k===active?"on":""}${k==="stories"?" st"+(storiesUnseen()?" new":""):""}" aria-label="${t}">${k==="stories"?`<span class="stwrapi">${NAV_ICONS[k]}</span>`:NAV_ICONS[k]}<span>${t}</span></button>`).join("")}</div>`;
 }
 function paintNav(active){
   const h=$("hdr"); if(!h) return;
