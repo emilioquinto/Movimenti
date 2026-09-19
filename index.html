@@ -61,7 +61,11 @@
   .due .none{color:var(--navy-2);font-size:14px;padding:2px 0}
   .manual{font-size:13px;color:var(--ink-2);text-align:center;margin:4px 0 8px}
 
-  .dictate{display:flex;align-items:center;gap:10px;width:100%;background:#fff;color:var(--navy);border:1.5px solid var(--go);border-radius:var(--r);padding:7px 10px;text-align:left;min-height:52px;margin-bottom:8px}
+  .micbtn{flex:0 0 auto;width:50px;height:50px;border-radius:14px;background:var(--navy);color:#fff;display:grid;place-items:center;
+    box-shadow:0 6px 16px rgba(18,58,107,.32);transition:transform .2s cubic-bezier(.22,1,.36,1)}
+  .micbtn:active{transform:scale(.92)}
+  .micbtn .txt{display:none}
+  .micbtn.rec{background:var(--warn);animation:pulse 1s infinite}
   .dictate .mic{flex:0 0 auto;width:38px;height:38px;border-radius:12px;background:var(--navy);color:#fff;display:grid;place-items:center}
   .dictate .txt b{display:block;font-size:15px;font-weight:700}
   .dictate .txt small{display:block;font-size:11.5px;color:var(--ink-2);margin-top:2px;line-height:1.3}
@@ -72,20 +76,20 @@
 
   .amount{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--paper);border-radius:var(--r);padding:8px 14px;margin-bottom:8px;border:1.5px solid var(--go)}
   .amount.open{border-color:var(--go);box-shadow:0 0 0 3px rgba(31,111,208,.15)}
-  .amount .tap{flex:1;text-align:left;min-height:44px}
+  .amount .tap{flex:1;text-align:left;min-height:50px}
   .amount .hint{font-size:13px;color:var(--ink-2);display:block;margin-bottom:2px}
-  .amount .num{font-family:ui-rounded,"SF Pro Rounded",-apple-system,system-ui,sans-serif;font-size:33px;font-weight:700;letter-spacing:-.02em;line-height:1;display:flex;align-items:baseline;gap:6px;color:var(--out)}
+  .amount .num{font-family:ui-rounded,"SF Pro Rounded",-apple-system,system-ui,sans-serif;font-size:39px;font-weight:700;letter-spacing:-.02em;line-height:1;display:flex;align-items:baseline;gap:6px;color:var(--out)}
   .amount .num.in{color:var(--in)}
   .amount .num .eur{font-size:20px;color:var(--ink-2);font-weight:600}
   .amount .num .ph{color:#B9C8D8}
   .seg{display:flex;background:var(--key);border-radius:11px;padding:3px}
-  .seg button{padding:7px 11px;border-radius:9px;font-size:13.5px;font-weight:600;color:var(--ink-2);min-height:34px}
+  .seg button{padding:9px 13px;border-radius:9px;font-size:14.5px;font-weight:600;color:var(--ink-2);min-height:38px}
   .seg button.on{background:var(--paper);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
   .seg button.on.in{color:var(--in)}
 
   .field{background:var(--paper);border:1.5px solid var(--go);border-radius:var(--r);padding:7px 12px;margin-bottom:8px}
-  .field label{display:block;font-size:12px;color:var(--ink-2);margin-bottom:4px}
-  .field input[type=text]{width:100%;border:0;outline:0;background:transparent;font-size:17px;font-weight:600;padding:2px 0}
+  .field label{display:block;font-size:12.5px;color:var(--ink-2);margin-bottom:5px}
+  .field input[type=text]{width:100%;border:0;outline:0;background:transparent;font-size:18px;font-weight:600;padding:4px 0}
   .field input[type=text]::placeholder{color:#9FB0C3;font-weight:500}
   .sugg{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin-top:6px}
   .sugg::-webkit-scrollbar{display:none}
@@ -93,11 +97,12 @@
   .sugg button small{color:var(--ink-2);font-weight:500;margin-left:5px}
 
   .chips{display:flex;flex-wrap:wrap;gap:7px}
-  #cat{max-height:68px;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:1px 2px 2px;gap:6px;
+  #cat{flex:1 1 auto;min-height:74px;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:1px 2px 2px;gap:6px;
     -webkit-mask-image:linear-gradient(180deg,#000 0,#000 68%,rgba(0,0,0,.22) 100%);
     mask-image:linear-gradient(180deg,#000 0,#000 68%,rgba(0,0,0,.22) 100%)}
-  #cat button{padding:5px 10px;font-size:13px;min-height:30px;border-radius:999px}
-  .scrollhint{font-size:10.5px;color:var(--ink-2);text-align:center;margin-top:2px;letter-spacing:.02em}
+  #cat button{padding:8px 13px;font-size:14.5px;min-height:38px;border-radius:999px}
+  #catField{flex:1 1 auto;display:flex;flex-direction:column;min-height:0}
+  .scrollhint{flex:0 0 auto;font-size:10.5px;color:var(--ink-2);text-align:center;margin-top:2px;letter-spacing:.02em}
   .scrollhint span{display:inline-block;animation:nudge 1.8s ease-in-out infinite}
   @keyframes nudge{0%,100%{transform:translateY(0);opacity:.55}50%{transform:translateY(3px);opacity:1}}
   .chips button,.chips label{background:var(--key);border-radius:999px;padding:9px 13px;font-size:15px;font-weight:600;min-height:40px;display:inline-flex;align-items:center}
@@ -106,16 +111,16 @@
   .chips label.pick{position:relative;overflow:hidden;gap:6px}
   .chips label.pick input{position:absolute;inset:0;opacity:0;width:100%;height:100%}
   .field.inline{display:flex;align-items:center;gap:12px}
-  .field.inline label{margin:0;flex:0 0 auto;font-size:13.5px;color:var(--ink);font-weight:600}
+  .field.inline label{margin:0;flex:0 0 auto;font-size:14.5px;color:var(--ink);font-weight:600}
   .field.inline .chips{flex:1;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
   .field.inline .chips::-webkit-scrollbar{display:none}
   .field.inline .chips button,.field.inline .chips label{white-space:nowrap}
 
-  .actions{display:grid;grid-template-columns:1fr auto auto;gap:8px;margin-top:auto}
-  .go{background:var(--go);color:#fff;border-radius:var(--r);font-size:18px;font-weight:700;height:54px}
+  .actions{display:grid;grid-template-columns:1fr auto auto;gap:8px;margin-top:auto;padding-top:8px}
+  .go{background:var(--go);color:#fff;border-radius:var(--r);font-size:19px;font-weight:700;height:58px}
   .go:active{background:var(--go-press)}
   .go:disabled{background:#A9C4E4;color:#F0F5FB}
-  .copy{background:var(--paper);border-radius:var(--r);font-size:14px;font-weight:600;color:var(--ink-2);height:54px;display:flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;padding:0 14px}
+  .copy{background:var(--paper);border-radius:var(--r);font-size:14.5px;font-weight:600;color:var(--ink-2);height:58px;display:flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;padding:0 14px}
   .copy.wa{color:#fff;background:#1FA855;font-size:15px;font-weight:700}
   .copy.wa.off{background:#B9D9C6}
 
@@ -130,7 +135,14 @@
   .scrim{position:fixed;inset:0;z-index:29;display:none}
   .scrim.open{display:block}
 
-  .stories{position:fixed;inset:0;z-index:70;display:none;background:#0B1622;overflow:hidden}
+  .rotate{position:fixed;inset:0;z-index:90;display:none;place-items:center;background:var(--navy);color:#fff;text-align:center;padding:24px}
+  .rotate .roticon{font-size:42px;animation:rot 2.4s ease-in-out infinite}
+  @keyframes rot{0%,100%{transform:rotate(0)}50%{transform:rotate(-90deg)}}
+  .rotate b{display:block;font-size:19px;margin-top:10px}
+  .rotate span{display:block;font-size:14px;opacity:.7;margin-top:4px}
+  @media (orientation:landscape) and (max-height:520px){ .rotate{display:grid} }
+  .stories{position:fixed;inset:0;z-index:70;display:none;background:#0B1622;overflow:hidden;
+    -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:none}
   .stories.open{display:block;animation:stIn .42s cubic-bezier(.22,1,.36,1)}
   @keyframes stIn{from{opacity:0;transform:scale(1.04)}to{opacity:1;transform:none}}
   .stories.closing{animation:stOut .34s cubic-bezier(.4,0,1,1) forwards}
@@ -364,7 +376,7 @@
   .rp .card,.fire .card,.mv ul.list,.log li{border:1px solid var(--glass-brd)}
   .field,.amount,.dictate{border:1.5px solid rgba(31,111,208,.45)}
   .chips button,.chips label,.pad button,.copy{-webkit-backdrop-filter:saturate(170%) blur(16px);backdrop-filter:saturate(170%) blur(16px)}
-  .chips button,.chips label{background:rgba(255,255,255,.42);border:1px solid rgba(255,255,255,.5);
+  .chips button,.chips label{background:rgba(255,255,255,.42);border:1px solid rgba(255,255,255,.5);font-size:15.5px;min-height:40px;padding:10px 14px;
     transition:transform .22s cubic-bezier(.22,1,.36,1),background .22s}
   .chips button:active,.chips label:active{transform:scale(.94)}
   .chips .on{background:var(--chip-on);border-color:transparent;box-shadow:0 4px 12px rgba(31,111,208,.35)}
@@ -389,16 +401,11 @@
 <div class="app" id="main">
   <div class="top" id="topMain"></div>
 
-  <button class="dictate" id="mic">
-    <span class="mic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2.5" width="6" height="11" rx="3" fill="currentColor" stroke="none"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0"/><path d="M12 18v3.5"/><path d="M8.5 21.5h7"/></svg></span>
-    <span class="txt"><b id="micTitle">Detta il movimento</b><small id="micSub">Di' tutto in una frase: «Esselunga 85 e 30, spesa, BNL»</small></span>
-  </button>
-
   <div class="amount" id="amountBox">
     <button class="tap" id="amountTap">
-      <span class="hint" id="amountHint">Tocca per inserire l'importo</span>
       <span class="num" id="num"><span class="ph">0,00</span><span class="eur">€</span></span>
     </button>
+    <button class="micbtn" id="mic" aria-label="Detta il movimento"><span class="mic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="2.5" width="6" height="11" rx="3" fill="currentColor" stroke="none"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0"/><path d="M12 18v3.5"/><path d="M8.5 21.5h7"/></svg></span><span class="txt"><b id="micTitle"></b><small id="micSub"></small></span></button>
     <div class="seg">
       <button id="segOut" class="on">Uscita</button>
       <button id="segIn">Entrata</button>
@@ -411,7 +418,7 @@
     <div class="sugg" id="sugg"></div>
   </div>
 
-  <div class="field">
+  <div class="field" id="catField">
     <label>Categoria</label>
     <div class="chips" id="cat"></div>
     <div class="scrollhint"><span>▾</span> scorri per tutte le categorie</div>
@@ -566,12 +573,16 @@
   </div>
   <div class="field">
     <label>Versione app</label>
-    <p><b>v34</b> · "Aggiorna da Trade" + border collie che insegue la pallina. Aggiunti conto Amex Siemens, categoria Trasferte elenco Movimenti, grafico patrimonio interattivo sezione FIRE ed export report PDF. Se non leggi "v15" qui, versione vecchia.</p>
+    <p><b>v36</b> · "Aggiorna da Trade" + border collie che insegue la pallina. Aggiunti conto Amex Siemens, categoria Trasferte elenco Movimenti, grafico patrimonio interattivo sezione FIRE ed export report PDF. Se non leggi "v15" qui, versione vecchia.</p>
   </div>
   <div class="field">
     <label>Dettatura</label>
     <p>Tocca il pulsante del microfono e parla, ad esempio: <i>"Esselunga ottantacinque e trenta, spesa, BNL"</i> oppure <i>"pizzeria ventidue euro ieri"</i>. L'app estrae importo, descrizione, categoria, conto e data; tu controlli e premi Invia. Se il microfono non si attiva, usa quello della tastiera nel campo Descrizione: il testo dettato viene interpretato allo stesso modo.</p>
   </div>
+</div>
+
+<div class="rotate" id="rotate">
+  <div class="rotmsg"><div class="roticon">⟳</div><b>Ruota il telefono</b><span>Movimenti si usa in verticale</span></div>
 </div>
 
 <div class="stories" id="stories">
@@ -720,7 +731,6 @@ function render(){
   const num=$("num");
   num.className="num"+(F.sign>0?" in":"");
   num.innerHTML=(F.amt?`<span>${F.sign<0?"−":"+"}${F.amt}</span>`:`<span class="ph">0,00</span>`)+`<span class="eur">€</span>`;
-  $("amountHint").textContent=F.amt?"Importo (tocca per modificare)":"Tocca per inserire l'importo";
   $("segOut").className=F.sign<0?"on":""; $("segIn").className=F.sign>0?"on in":"";
   renderSugg(); renderCats(); renderConti();
   $("dateChips").querySelectorAll("button").forEach(b=>b.classList.toggle("on",!F.dCustom&&+b.dataset.d===F.dOff));
@@ -833,10 +843,10 @@ $("mic").onclick=()=>{
   if(rec){ rec.stop(); return; }
   if(!SR){ $("desc").placeholder="Detta qui con il microfono della tastiera"; $("desc").focus(); toast("Usa il microfono della tastiera, poi premi Fine"); return; }
   rec=new SR(); rec.lang="it-IT"; rec.interimResults=false; rec.maxAlternatives=1;
-  $("mic").classList.add("rec"); $("mic").querySelector(".mic").innerHTML=STOP_SVG; $("micTitle").textContent="Sto ascoltando…"; $("micSub").textContent="Parla, poi tocca per fermare";
+  $("mic").classList.add("rec"); $("mic").querySelector(".mic").innerHTML=STOP_SVG; toast("Sto ascoltando…");
   rec.onresult=e=>{ applySpeech(e.results[0][0].transcript); };
   rec.onerror=e=>{ toast(e.error==="not-allowed"?"Microfono non consentito: usa quello della tastiera":"Dettatura non riuscita, riprova",true); };
-  rec.onend=()=>{ rec=null; $("mic").classList.remove("rec"); $("mic").querySelector(".mic").innerHTML=MIC_SVG; $("micTitle").textContent="Detta il movimento"; $("micSub").textContent="Di' tutto in una frase: «Esselunga 85 e 30, spesa, BNL»"; };
+  rec.onend=()=>{ rec=null; $("mic").classList.remove("rec"); $("mic").querySelector(".mic").innerHTML=MIC_SVG; };
   try{ rec.start(); }catch(e){ rec=null; }
 };
 
@@ -1873,6 +1883,9 @@ $("mvQ").onkeydown=e=>{ if(e.key==="Enter") e.target.blur(); };
 
 
 
+
+// blocco verticale: su iOS il blocco vero non è concesso, si prova e si mostra l'invito
+try{ if(screen.orientation&&screen.orientation.lock) screen.orientation.lock("portrait").catch(()=>{}); }catch(e){}
 paintNav();
 applyPic(loadPic());
 load().then(()=>{ render(); if(S.share&&S.cache&&Date.now()-S.cache.ts>4*3600e3) refreshExcel(false).catch(()=>{}); });
