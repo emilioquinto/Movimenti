@@ -6,7 +6,11 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Movimenti">
-<meta name="theme-color" content="#EDF3F9">
+<meta name="theme-color" content="#EDF3F9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0F1B2A" media="(prefers-color-scheme: dark)">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+<link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Movimenti%20%C2%B7%20Famiglia%20Quinto%22%2C%22short_name%22%3A%22Movimenti%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23123A6B%22%2C%22theme_color%22%3A%22%23123A6B%22%2C%22start_url%22%3A%22.%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22icon-512.png%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fpng%22%7D%5D%7D">
 <title>Movimenti</title>
 <style>
   :root{
@@ -256,6 +260,14 @@
   .pacrow .in2 label{font-size:12px;color:var(--ink-2);display:block;margin-bottom:3px}
   .pacrow .in2 input{width:100%;border:0;background:var(--key);border-radius:10px;padding:10px 12px;font-size:17px;font-weight:600;outline:0}
   .live{color:#0B8A4B;font-weight:600}
+  .prow{background:var(--glass-strong);border:1px solid var(--glass-brd);border-radius:var(--r);padding:12px 14px;margin-bottom:10px}
+  .prow b{display:block;font-size:15px;margin-bottom:2px}
+  .prow small{color:var(--ink-2);font-size:12.5px}
+  .prow .in2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+  .prow .in2 label{font-size:12px;color:var(--ink-2);display:block;margin-bottom:3px}
+  .prow .in2 input{width:100%;border:1px solid var(--line);background:rgba(255,255,255,.8);border-radius:10px;padding:10px 12px;font-size:17px;font-weight:600;outline:0;font-family:ui-rounded,-apple-system,system-ui,sans-serif}
+  .prow .val{margin-top:8px;font-size:13px;color:var(--ink-2)}
+  .prow .val b{display:inline;font-size:15px;color:var(--ink);font-family:ui-rounded,-apple-system,system-ui,sans-serif}
 
   /* ---- Riepilogo ---- */
   .rp .hero{background:var(--navy);color:#fff;border-radius:18px;padding:14px 16px;margin-bottom:10px}
@@ -394,10 +406,82 @@
   .rp .card,.fire .card,.mv ul.list{animation:cardIn .5s cubic-bezier(.22,1,.36,1) both}
   @keyframes cardIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
   .toast{-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);background:rgba(22,40,58,.82)}
+
+  /* --- splash --- */
+  #splash{position:fixed;inset:0;z-index:200;background:linear-gradient(160deg,#123A6B,#1F6FD0);display:grid;place-items:center;color:#fff;
+    transition:opacity .5s ease,visibility .5s;}
+  #splash.hide{opacity:0;visibility:hidden}
+  #splash .sp{text-align:center;animation:spIn .7s cubic-bezier(.22,1,.36,1)}
+  @keyframes spIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
+  .splogo{position:relative;width:76px;height:76px;margin:0 auto 14px;border-radius:22px;background:rgba(255,255,255,.14);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 12px 30px rgba(0,0,0,.25);display:flex;align-items:flex-end;justify-content:center;gap:6px;padding:0 0 16px}
+  .splogo i{width:9px;border-radius:5px;background:#fff;animation:spBar .9s cubic-bezier(.22,1,.36,1) both}
+  .splogo i:nth-child(1){height:22px;animation-delay:.1s}.splogo i:nth-child(2){height:36px;animation-delay:.2s}.splogo i:nth-child(3){height:29px;animation-delay:.3s}
+  .splogo b{position:absolute;top:14px;right:14px;width:11px;height:11px;border-radius:50%;background:#8BE0B5;animation:spDot .6s .45s both}
+  @keyframes spBar{from{transform:scaleY(0);transform-origin:bottom}to{transform:scaleY(1)}}
+  @keyframes spDot{from{transform:scale(0)}to{transform:scale(1)}}
+  .sptitle{font-size:22px;font-weight:700;letter-spacing:-.01em}
+  .spsub{font-size:13px;opacity:.75;margin-top:2px}
+  .spsub i{font-style:italic}
+  #hapt{position:fixed;left:-9999px;top:0;width:1px;height:1px;overflow:hidden}
+
+  /* --- caricamento: scheletri e indicatore --- */
+  .skel{background:var(--glass);border-radius:var(--r);padding:14px;margin-bottom:10px;border:1px solid var(--glass-brd)}
+  .skel i{display:block;height:12px;border-radius:6px;margin:8px 0;background:linear-gradient(90deg,rgba(0,0,0,.05) 25%,rgba(0,0,0,.11) 37%,rgba(0,0,0,.05) 63%);background-size:400% 100%;animation:shimmer 1.4s ease infinite}
+  .skel i.w60{width:60%}.skel i.w40{width:40%}.skel i.h28{height:28px;width:55%}.skel i.h80{height:80px}
+  @keyframes shimmer{0%{background-position:100% 0}100%{background-position:0 0}}
+  .ptr{position:sticky;top:96px;z-index:11;height:0;display:flex;justify-content:center;pointer-events:none}
+  .ptr span{display:inline-flex;align-items:center;gap:8px;background:var(--glass-strong);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);
+    border:1px solid var(--glass-brd);border-radius:999px;padding:6px 12px;font-size:12.5px;color:var(--ink-2);transform:translateY(-14px) scale(.9);opacity:0;transition:.3s}
+  .ptr.on span{transform:none;opacity:1}
+  .spin{width:14px;height:14px;border:2px solid rgba(31,111,208,.25);border-top-color:var(--go);border-radius:50%;animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* --- numeri che contano, barre a molla --- */
+  .cnt{font-variant-numeric:tabular-nums}
+  .rp .bar i,.flash .bar i{transition:width .9s cubic-bezier(.22,1,.36,1) .15s}
+
+  /* --- tipografia: numeri arrotondati ovunque, etichette in maiuscoletto --- */
+  .v,.kpi b,.rows li b,.legend li b,.hero .big,.hero .g2 b,.hero .grid3 b,.sum b,.fire .hero .big,.stcard .kpi,.pat .val,.mv ul.list li .v{font-family:ui-rounded,"SF Pro Rounded",-apple-system,system-ui,sans-serif;font-variant-numeric:tabular-nums}
+  .field label,.rp .card h3 small,.fire .ip label,.kpi small,.hero .lbl,.hero .g2 small,.hero .grid3 small{letter-spacing:.06em;text-transform:uppercase;font-size:11px;font-weight:600}
+  .field.inline label{text-transform:none;letter-spacing:0;font-size:14.5px}
+
+  /* --- stati vuoti --- */
+  .emptyart{display:block;width:120px;height:80px;margin:0 auto 8px;opacity:.75}
+  .emptyart *{stroke:var(--ink-2);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+
+  /* --- modalità scura --- */
+  @media (prefers-color-scheme: dark){
+    :root{--bg:#0F1B2A;--paper:#172637;--ink:#EAF1F8;--ink-2:#9FB1C4;--line:#2B3D52;--key:#22354B;--key-press:#2E4560;
+      --go:#4A90E8;--go-press:#3A7BD0;--go-soft:#1D3552;--out:#EAF1F8;--in:#8BE0B5;--warn:#F08A6A;--chip-on:#4A90E8;--navy:#0B1622;--navy-2:#7FA0C8;
+      --glass:rgba(23,38,55,.48);--glass-strong:rgba(23,38,55,.72);--glass-brd:rgba(255,255,255,.12);
+      --glass-sh:0 10px 30px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.10)}
+    html,body{background:var(--bg)}
+    #bgveil{background:linear-gradient(180deg,rgba(15,27,42,.55) 0%,rgba(15,27,42,.72) 45%,rgba(15,27,42,.88) 100%)}
+    .top{background:rgba(15,27,42,.62);border-bottom-color:rgba(255,255,255,.08)}
+    .sheet{background:rgba(15,27,42,.55)}
+    .field::before,.amount::before,.rp .card::before,.fire .card::before,.flash .fcard::before{background:linear-gradient(150deg,rgba(255,255,255,.10),rgba(255,255,255,.02) 40%,transparent 60%)}
+    .chips button,.chips label{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.10);color:var(--ink)}
+    .navmini{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.10)}
+    .pad button{background:rgba(30,46,66,.9);color:var(--ink)}
+    .seg{background:rgba(255,255,255,.08)} .seg button.on{background:#2A3E56;color:var(--ink)}
+    .amount .num .ph{color:#4C617A}
+    .field input[type=text]::placeholder{color:#5F7590}
+    .sheet .field input[type=text],.sheet textarea,.prow .in2 input,.fire .ip input[type=text]{background:rgba(255,255,255,.06);color:var(--ink);border-color:var(--line)}
+    .copy{background:rgba(30,46,66,.85);color:var(--ink)}
+    .rp .kpi div,.mv .sum{background:rgba(255,255,255,.06)}
+    .rp .hero,.fire .hero{background:#0B1622}
+    .flash .fcard{background:rgba(23,38,55,.9)}
+    .toast{background:rgba(234,241,248,.92);color:#0F1B2A}
+    .rules li,.log li,.pacrow,.prow,.skel{background:var(--glass)}
+    #splash{background:linear-gradient(160deg,#0B1622,#123A6B)}
+  }
   @media (prefers-reduced-motion:reduce){.toast,.padwrap{transition:none}.dictate.rec .mic{animation:none}}
 </style>
 </head>
 <body>
+<div id="splash" aria-hidden="true"><div class="sp"><div class="splogo"><i></i><i></i><i></i><b></b></div><div class="sptitle">Movimenti</div><div class="spsub">Famiglia <i>Quinto</i></div></div></div>
+<label id="hapt" aria-hidden="true"><input type="checkbox" switch></label>
 <div id="bg"></div><div id="bgveil"></div>
 <div class="app" id="main">
   <div class="top" id="topMain"></div>
@@ -489,6 +573,14 @@
   <p id="repNote" style="margin-top:10px"></p>
 </div>
 
+<div class="sheet" id="sheetPrezzi">
+  <div class="top"><h2>Aggiorna valori</h2><button class="close" data-close="sheetPrezzi">Chiudi</button></div>
+  <p>Modifica quantità o prezzo di ogni asset e salva: i valori vengono scritti nel foglio Patrimonio e il Riepilogo si aggiorna subito.</p>
+  <div id="prezziRows"></div>
+  <button class="go" id="btnPrezziSave" style="width:100%">Salva in Excel</button>
+  <p id="prezziNote" style="margin-top:10px"></p>
+</div>
+
 <!-- ============ PAC ============ -->
 <div class="sheet" id="sheetPac">
   <div class="top"><h2>Aggiorna da Trade</h2><button class="close" data-close="sheetPac">Chiudi</button></div>
@@ -574,7 +666,7 @@
   </div>
   <div class="field">
     <label>Versione app</label>
-    <p><b>v37</b> · "Aggiorna da Trade" + border collie che insegue la pallina. Aggiunti conto Amex Siemens, categoria Trasferte elenco Movimenti, grafico patrimonio interattivo sezione FIRE ed export report PDF. Se non leggi "v15" qui, versione vecchia.</p>
+    <p><b>v39</b> · "Aggiorna da Trade" + border collie che insegue la pallina. Aggiunti conto Amex Siemens, categoria Trasferte elenco Movimenti, grafico patrimonio interattivo sezione FIRE ed export report PDF. Se non leggi "v39" qui, versione vecchia.</p>
   </div>
   <div class="field">
     <label>Dettatura</label>
@@ -666,7 +758,7 @@ function serialISO(n){ const ms=Date.UTC(1899,11,30)+Math.round(n)*86400000; con
 function fromISO(s){ return new Date(s+"T12:00:00"); }
 function daysBetween(a,b){ return Math.round((b-a)/86400000); }
 function norm(s){ return String(s||"").trim().toLowerCase().replace(/\s+/g," "); }
-function haptic(){ if(navigator.vibrate) navigator.vibrate(8); }
+
 function shortDate(d){ return d.toLocaleDateString("it-IT",{day:"numeric",month:"short"}); }
 function esc(s){ return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
 
@@ -877,6 +969,7 @@ async function send(){
   S.log.unshift({...r,ts:Date.now(),ok}); S.log=S.log.slice(0,60);
   learn(r); save();
   toast(ok?`Inviato: ${r.Descrizione} ${r.ImportoIT} €`:"Invio non riuscito: riga salvata in elenco",!ok);
+  haptic(ok?"ok":"");
   resetForm(); flashMovimento(r);
 }
 async function copyText(t,msg){
@@ -1153,26 +1246,27 @@ function lineSVG(points){ // [{d,v}]
 }
 function renderRp(){
   const body=$("rpBody"); const D=calc();
-  if(!D){ body.innerHTML=`<div class="card"><div class="empty"><b>${R.loading?"Sto leggendo Excel…":"Nessun dato ancora"}</b>${R.loading?"":(S.share?"Trascina in giù o tocca Aggiorna per leggere il file.":"In ⚙︎ incolla l'indirizzo del relay, poi torna qui.")}</div></div>`; return; }
+  if(!D){ body.innerHTML=R.loading?skeletonHTML():`<div class="card"><div class="empty">${EMPTY_ART.chart}<b>Nessun dato ancora</b>${S.share?"Trascina in giù o tocca Aggiorna per leggere il file.":"In ⚙︎ incolla l'indirizzo del relay, poi torna qui."}</div></div>`; return; }
   if(!R.month) R.month=D.months.length?D.months[D.months.length-1]:dateISO(today()).slice(0,7);
   const M=D.month(R.month); const ytd=D.inizioAnno!=null?D.patrimonio-D.inizioAnno:null;
   const when=new Date(D.ts); const ago=Math.round((Date.now()-D.ts)/60000);
-  let h=`<div class="hero"><div class="lbl">Patrimonio della famiglia <i>Quinto</i>${D.livePrices?` · <span class="live">prezzi live</span>`:(D.assetDate?` · prezzi asset al ${dateIT(fromISO(D.assetDate))}`:"")}</div><div class="big">${fmtIT(D.patrimonio)} €</div>`;
+  let h=`<div class="hero"><div class="lbl">Patrimonio della famiglia <i>Quinto</i>${D.livePrices?` · <span class="live">prezzi live</span>`:(D.assetDate?` · prezzi asset al ${dateIT(fromISO(D.assetDate))}`:"")}</div><div class="big"><span class="cnt" data-v="${D.patrimonio}" data-d="2">${fmtIT(D.patrimonio)}</span> €</div>`;
   if(ytd!=null) h+=`<div class="ytd">Da inizio anno <em class="${ytd<0?"neg":""}">${ytd>=0?"+":"−"}${fmtIT(Math.abs(ytd))} €</em></div>`;
-  h+=`<div class="grid3"><div><small>Liquidità</small><b>${fmt0(D.liquidita)} €</b></div><div><small>Carte da addebitare</small><b>${fmt0(D.carteTot)} €</b></div><div><small>Asset</small><b>${fmt0(D.assetTot)} €</b></div>${D.trasferte.credito>0.005?`<div><small>Crediti trasferte</small><b>${fmt0(D.trasferte.credito)} €</b></div>`:""}</div></div>`;
+  h+=`<div class="grid3"><div><small>Liquidità</small><b><span class="cnt" data-v="${D.liquidita}">${fmt0(D.liquidita)}</span> €</b></div><div><small>Carte da addebitare</small><b><span class="cnt" data-v="${D.carteTot}">${fmt0(D.carteTot)}</span> €</b></div><div><small>Asset</small><b><span class="cnt" data-v="${D.assetTot}">${fmt0(D.assetTot)}</span> €</b></div>${D.trasferte.credito>0.005?`<div><small>Crediti trasferte</small><b>${fmt0(D.trasferte.credito)} €</b></div>`:""}</div></div>`;
   h+=`<div class="sync">${R.loading?"Aggiornamento in corso…":`Letto da Excel ${ago<1?"adesso":ago<60?ago+" min fa":"alle "+pad2(when.getHours())+":"+pad2(when.getMinutes())+" del "+shortDate(when)}`}<button id="rpRefresh">Aggiorna</button></div>`;
   // mese
   h+=`<div class="card"><div class="mnav"><button id="mPrev">‹</button><b>${monthLabel(R.month)}</b><button id="mNext">›</button></div>
-    <div class="kpi"><div><small>Entrate</small><b>${fmt0(M.entrate)} €</b></div><div><small>Spese</small><b>${fmt0(M.spese)} €</b></div><div><small>Investiti</small><b>${fmt0(M.investiti)} €</b></div><div><small>Risparmio · ${Math.round(M.tasso*100)}%</small><b>${fmt0(M.risparmio)} €</b></div></div></div>`;
+    <div class="kpi"><div><small>Entrate</small><b><span class="cnt" data-v="${M.entrate}">${fmt0(M.entrate)}</span> €</b></div><div><small>Spese</small><b><span class="cnt" data-v="${M.spese}">${fmt0(M.spese)}</span> €</b></div><div><small>Investiti</small><b><span class="cnt" data-v="${M.investiti}">${fmt0(M.investiti)}</span> €</b></div><div><small>Risparmio · ${Math.round(M.tasso*100)}%</small><b><span class="cnt" data-v="${M.risparmio}">${fmt0(M.risparmio)}</span> €</b></div></div></div>`;
   // entrate del mese
   if(M.byCatIn.length) h+=`<div class="card"><h3>Entrate<small>${monthLabel(R.month)}</small></h3><ul class="rows">${M.byCatIn.map(c=>`<li><span>${c.emoji?c.emoji+" ":""}${esc(c.name)}</span><b style="color:var(--in)">${fmtIT(c.incassato)} €</b></li>`).join("")}${M.byCatInv.length?M.byCatInv.map(c=>`<li><span>${c.emoji?c.emoji+" ":""}${esc(c.name)}<small>versato, non una spesa</small></span><b>${fmtIT(c.versato)} €</b></li>`).join(""):""}<li class="tot"><span>Totale entrate</span><b style="color:var(--in)">${fmtIT(M.entrate)} €</b></li></ul></div>`;
   // torta
   const top=M.byCat.slice(0,9); const rest=M.byCat.slice(9); const items=rest.length?[...top,{name:"Altre",emoji:"…",speso:rest.reduce((a,c)=>a+c.speso,0),budget:0}]:top;
   h+=`<div class="card"><h3>Spese per categoria<small>${monthLabel(R.month)}</small></h3>`;
-  if(!items.length) h+=`<div class="empty">Nessuna spesa registrata in questo mese.</div>`;
+  if(!items.length) h+=`<div class="empty">${EMPTY_ART.chart}Nessuna spesa registrata in questo mese.</div>`;
   else{ h+=`<div class="donutwrap">${donutSVG(items,M.spese)}<ul class="legend">${items.map((c,i)=>`<li><i style="background:${PALETTE[i%PALETTE.length]}"></i><span>${c.emoji?c.emoji+" ":""}${esc(c.name)}</span><b>${fmt0(c.speso)} €<small>${Math.round(c.speso/M.spese*100)}%</small></b></li>`).join("")}</ul></div>`;
     h+=`<ul class="rows" style="margin-top:10px">${M.byCat.map(c=>`<li><span>${c.emoji?c.emoji+" ":""}${esc(c.name)}<small>budget ${fmt0(c.budget)} €</small><div class="bar"><i class="${c.budget&&c.speso>c.budget?"over":""}" style="width:${c.budget?Math.min(100,c.speso/c.budget*100):0}%"></i></div></span><b>${fmtIT(c.speso)} €</b></li>`).join("")}</ul>`; }
   h+=`</div>`;
+  setTimeout(()=>{ body.querySelectorAll(".rows .bar i").forEach(i=>{ const w=i.style.width; i.style.width="0"; requestAnimationFrame(()=>requestAnimationFrame(()=>{ i.style.width=w; })); }); },0);
   // saldi
   h+=`<div class="card"><h3>Saldo per conto</h3><ul class="rows">${D.saldi.map(a=>`<li><span>${esc(lbl(a.name))}</span><b>${fmtIT(a.saldo)} €</b></li>`).join("")}<li class="tot"><span>Totale liquidità</span><b>${fmtIT(D.liquidita)} €</b></li>${D.carte.map(c=>c.pend.length?c.pend.map(p=>`<li><span>${esc(lbl(c.name))} · spese di ${p.mese.toLowerCase()}<small>addebito su ${esc(lbl(c.addebita))} il ${dateIT(p.due)}</small></span><b>${fmtIT(p.amount)} €</b></li>`).join(""):`<li><span>${esc(lbl(c.name))}<small>nessuna spesa da addebitare</small></span><b>0,00 €</b></li>`).join("")}</ul></div>`;
   // trasferte Siemens
@@ -1183,7 +1277,7 @@ function renderRp(){
     ${D.trasferte.credito>0.005?`<button class="btn" id="btnRimborso" style="width:100%;margin-top:10px">Registra rimborso di ${fmtIT(D.trasferte.credito)} €</button>`:""}
     <p style="font-size:12.5px;color:#5A6C80;margin:8px 0 0">Non entra nelle spese del mese né nel patrimonio: l'uscita è compensata dal rimborso. L'indennità di trasferta va registrata a parte come Stipendio Emi, perché è reddito e non un rimborso.</p></div>`;
   // investimenti
-  h+=`<div class="card"><h3>Investimenti e asset<small>${D.livePrices?`<span class="live">prezzi live</span>`:(D.assetDate?"al "+dateIT(fromISO(D.assetDate)):"")}</small></h3><ul class="rows">${D.assets.map(a=>`<li><span>${esc(a.name)}${a.qty!=null?`<small>${a.qty.toLocaleString("it-IT",{maximumFractionDigits:4})} × ${fmtIT(a.price)} €${a.live?" · live":""}</small>`:""}</span><b>${fmtIT(a.value)} €</b></li>`).join("")}<li class="tot"><span>Totale asset</span><b>${fmtIT(D.assetTot)} €</b></li></ul><button class="btn" id="btnPacOpen" style="margin-top:10px">📥 Aggiorna da Trade (incolla screenshot)</button></div>`;
+  h+=`<div class="card"><h3>Investimenti e asset<small>${D.livePrices?`<span class="live">prezzi live</span>`:(D.assetDate?"al "+dateIT(fromISO(D.assetDate)):"")}</small></h3><ul class="rows">${D.assets.map(a=>`<li><span>${esc(a.name)}${a.qty!=null?`<small>${a.qty.toLocaleString("it-IT",{maximumFractionDigits:4})} × ${fmtIT(a.price)} €${a.live?" · live":""}</small>`:""}</span><b>${fmtIT(a.value)} €</b></li>`).join("")}<li class="tot"><span>Totale asset</span><b>${fmtIT(D.assetTot)} €</b></li></ul><div style="display:flex;gap:8px;margin-top:10px"><button class="btn" id="btnPrezziOpen" style="flex:1;margin:0">✎ Aggiorna valori</button><button class="btn" id="btnPacOpen" style="flex:1;margin:0">📥 Da Trade</button></div></div>`;
   // confronto mesi
   const yearNow=today().getFullYear(); const ms=D.months.filter(m=>m.startsWith(String(yearNow))).slice(-12);
   const series=ms.map(m=>{ const x=D.month(m); return {label:MESI_S[+m.slice(5,7)-1],a:x.entrate,b:x.spese}; });
@@ -1191,7 +1285,8 @@ function renderRp(){
   h+=`<div class="card"><h3>Report PDF</h3><p style="font-size:13.5px;color:#5A6C80;margin:0 0 10px">Un resoconto completo del mese chiuso: patrimonio, spese per categoria, trend, investimenti e stato FIRE.</p><button class="btn" id="btnReport" style="width:100%">📄 Genera report PDF</button></div>`;
   // storico patrimonio
   if(D.storico.length>=2) h+=`<div class="pat" id="patCard"></div>`;
-  body.innerHTML=h;
+  body.innerHTML=`<div class="ptr ${R.loading?"on":""}"><span><i class="spin"></i>Aggiorno da Excel…</span></div>`+h;
+  animateCounts(body);
   if(D.storico.length>=2){ const pc=$("patCard"); if(pc) pc._bound=false; initPat(D.storico); }
   const br=$("btnReport"); if(br) br.onclick=openReport;
   const bri=$("btnRimborso"); if(bri) bri.onclick=()=>{ $("sheetRp").classList.remove("open");
@@ -1199,6 +1294,7 @@ function renderRp(){
     render(); toast("Controlla l'importo: l'indennità va registrata a parte come Stipendio Emi"); };
   $("rpRefresh").onclick=()=>doRefresh(true);
   const bp=$("btnPacOpen"); if(bp) bp.onclick=openPac;
+  const bz=$("btnPrezziOpen"); if(bz) bz.onclick=openPrezzi;
   $("mPrev").onclick=()=>{ R.month=shiftMonth(R.month,-1); renderRp(); };
   $("mNext").onclick=()=>{ R.month=shiftMonth(R.month,1); renderRp(); };
 }
@@ -1352,6 +1448,42 @@ function startStoryTimer(ms){ clearTimeout(ST.timer); ST.t0=Date.now(); ST.left=
   $("stClose").onclick=e=>{ e.stopPropagation(); closeStories(); };
 })();
 
+
+function numIT(v){ const n=parseFloat(String(v||"").trim().replace(/\./g,"").replace(",",".")); return isNaN(n)?0:n; }
+// ---------- aggiorna valori asset ----------
+function openPrezzi(){
+  const C=S.cache; if(!C||!C.assets.length){ toast("Prima aggiorna il Riepilogo: servono gli asset dal file",true); return; }
+  const D=calc();
+  $("prezziRows").innerHTML=C.assets.map((a,i)=>{ const live=D.assets[i]&&D.assets[i].live?D.assets[i].price:null;
+    return `<div class="prow" data-i="${i}"><b>${esc(a.name)}</b><small>riga ${31+i} del foglio Patrimonio${live?` · prezzo live ${fmtIT(live)} €`:""}</small>
+    <div class="in2">
+      <div><label>Quantità</label><input inputmode="decimal" id="pq_${i}" value="${a.qty!=null?String(a.qty).replace(".",","):""}" ${a.qty==null?"disabled placeholder=\"—\"":""}></div>
+      <div><label>${a.qty!=null?"Prezzo unitario €":"Valore €"}</label><input inputmode="decimal" id="pp_${i}" value="${String(a.qty!=null?a.price:a.value).replace(".",",")}"></div>
+    </div>
+    <div class="val">Controvalore: <b id="pv_${i}">${fmtIT(a.value)} €</b>${live?` <button class="btn" data-live="${i}" style="margin:0 0 0 8px;padding:6px 10px;min-height:32px;font-size:13px">usa live</button>`:""}</div></div>`; }).join("");
+  const rec=i=>{ const a=C.assets[i]; const q=a.qty!=null?numIT($("pq_"+i).value):null, pz=numIT($("pp_"+i).value);
+    $("pv_"+i).textContent=fmtIT(q!=null?q*pz:pz)+" €"; };
+  C.assets.forEach((a,i)=>{ ["pq_","pp_"].forEach(pre=>{ const el=$(pre+i); if(el) el.oninput=()=>rec(i); }); });
+  $("prezziRows").querySelectorAll("[data-live]").forEach(b=>b.onclick=()=>{ const i=+b.dataset.live; $("pp_"+i).value=String(D.assets[i].price).replace(".",","); rec(i); });
+  $("prezziNote").textContent=S.pac?"":"Manca il webhook PAC in ⚙︎: i valori verranno aggiornati solo nell'app, non in Excel.";
+  $("sheetPrezzi").classList.add("open");
+}
+$("btnPrezziSave").onclick=async()=>{
+  const C=S.cache; if(!C) return; const btn=$("btnPrezziSave"); btn.disabled=true; btn.textContent="Salvo…";
+  const pp=new URLSearchParams({Agg:String(dateSerial(today()))}); let cambiati=0;
+  C.assets.forEach((a,i)=>{ const q=a.qty!=null?numIT($("pq_"+i).value):null, pz=numIT($("pp_"+i).value); if(pz<=0) return;
+    const n=i+1; pp.set("N"+n,a.name); pp.set("Riga"+n,String(31+i));
+    if(a.qty!=null){ pp.set("Q"+n,q.toFixed(6)); pp.set("P"+n,pz.toFixed(4)); if(Math.abs(q-a.qty)>1e-6||Math.abs(pz-a.price)>1e-4) cambiati++; a.qty=q; a.price=pz; a.value=Math.round(q*pz*100)/100; }
+    else { pp.set("P"+n,pz.toFixed(2)); if(Math.abs(pz-a.value)>0.004) cambiati++; a.price=pz; a.value=Math.round(pz*100)/100; } });
+  C.assetDate=dateISO(today()); R.prices=null; save();
+  let ok=true;
+  if(S.pac){ try{ await fetch(S.pac+(S.pac.includes("?")?"&":"?")+pp.toString(),{method:"POST",mode:"no-cors"}); }catch(e){ ok=false; } }
+  btn.disabled=false; btn.textContent="Salva in Excel";
+  $("sheetPrezzi").classList.remove("open"); renderRp();
+  toast(ok?(cambiati?`${cambiati} asset aggiornati${S.pac?", Excel in aggiornamento":""}`:"Nessuna modifica"):"Invio a Excel non riuscito: valori aggiornati solo nell'app",!ok);
+  if(S.pac&&cambiati) setTimeout(()=>doRefresh(true),6000);
+};
+
 // ---------- riepilogo a comparsa dopo ogni movimento ----------
 function meseTotali(r){
   const mese=r.DataISO.slice(0,7);
@@ -1423,9 +1555,42 @@ function paintNav(){
   const bl=$("btnLog"); if(bl) bl.onclick=()=>{ goTab("main"); renderLog(); $("sheetLog").classList.add("open"); };
 }
 
+
+// ---------- finiture: splash, feedback aptico, numeri animati, gesti ----------
+window.addEventListener("load",()=>{ setTimeout(()=>{ const sp=$("splash"); if(sp) sp.classList.add("hide"); },650); });
+function haptic(kind){
+  try{ if(navigator.vibrate) navigator.vibrate(kind==="ok"?[10,30,10]:8); }catch(e){}
+  try{ const l=$("hapt"); if(l&&window.matchMedia&&window.matchMedia("(hover: none)").matches) l.click(); }catch(e){} // iOS: interruttore nascosto = vibrazione di sistema
+}
+function animateCounts(root){
+  const els=(root||document).querySelectorAll(".cnt[data-v]");
+  const reduce=!!(window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  els.forEach(el=>{ const v=parseFloat(el.dataset.v), dec=+el.dataset.d||0, suf=el.dataset.s||"";
+    if(reduce||isNaN(v)){ el.textContent=(dec?fmtIT(v):fmt0(v))+suf; return; }
+    const t0=performance.now(), dur=750, from=0;
+    const step=now=>{ const p=Math.min(1,(now-t0)/dur), e=1-Math.pow(1-p,3); const cur=from+(v-from)*e;
+      el.textContent=(dec?fmtIT(cur):fmt0(cur))+suf; if(p<1) requestAnimationFrame(step); };
+    requestAnimationFrame(step); });
+}
+function skeletonHTML(){ return `<div class="skel"><i class="w40"></i><i class="h28"></i><i class="w60"></i></div><div class="skel"><i class="w40"></i><i class="h80"></i></div><div class="skel"><i class="w60"></i><i></i><i class="w40"></i></div>`; }
+const EMPTY_ART={
+  list:`<svg class="emptyart" viewBox="0 0 120 80"><rect x="18" y="14" width="84" height="52" rx="8"/><path d="M30 30h44M30 42h60M30 54h36"/><circle cx="92" cy="26" r="6"/></svg>`,
+  chart:`<svg class="emptyart" viewBox="0 0 120 80"><path d="M16 64h88"/><path d="M24 54l18-14 16 8 20-22 18 10" /><circle cx="42" cy="40" r="3"/><circle cx="78" cy="26" r="3"/></svg>`
+};
+// scorrimento dal bordo sinistro per tornare indietro
+document.querySelectorAll(".sheet").forEach(sh=>{ let x0=null,y0=null;
+  sh.addEventListener("touchstart",e=>{ const t=e.touches[0]; x0=(t&&t.clientX<24)?t.clientX:null; y0=t?t.clientY:0; },{passive:true});
+  sh.addEventListener("touchend",e=>{ const t=e.changedTouches&&e.changedTouches[0]; if(x0!=null&&t&&t.clientX-x0>80&&Math.abs(t.clientY-y0)<60){ haptic(); goTab("main"); } x0=null; },{passive:true}); });
+// tastierino: trascina giù per chiudere
+(()=>{ const pw=$("padwrap"); if(!pw) return; let y0=null;
+  pw.addEventListener("touchstart",e=>{ y0=e.touches[0]?e.touches[0].clientY:null; },{passive:true});
+  pw.addEventListener("touchmove",e=>{ if(y0==null) return; const dy=e.touches[0].clientY-y0; if(dy>0){ pw.style.transition="none"; pw.style.transform=`translateY(${dy}px)`; } },{passive:true});
+  pw.addEventListener("touchend",e=>{ const t=e.changedTouches[0]; pw.style.transition=""; pw.style.transform=""; if(y0!=null&&t&&t.clientY-y0>70) closePad(); y0=null; },{passive:true}); })();
+
 // ---------- navigazione tra i fogli ----------
 function goTab(t){
-  ["sheetRp","sheetMv","sheetFire","sheetLog","sheetSettings","sheetPac","sheetRep"].forEach(id=>$(id)&&$(id).classList.remove("open"));
+  haptic();
+  ["sheetRp","sheetMv","sheetFire","sheetLog","sheetSettings","sheetPac","sheetRep","sheetPrezzi"].forEach(id=>$(id)&&$(id).classList.remove("open"));
   if(t==="rp") openRp(); else if(t==="mv") openMv(); else if(t==="stories") openStories(); else if(t==="fire"){ $("sheetFire").classList.add("open"); renderFire(); if(S.share) doRefresh(false); }
 }
 
@@ -1865,7 +2030,7 @@ function renderMv(){
   $("mvConto").querySelectorAll("button").forEach(b=>b.onclick=()=>{ MV.conto=b.dataset.c; MV.limit=60; renderMv(); });
   const rows=mvRows(); const inTot=rows.filter(r=>r.imp>0).reduce((a,r)=>a+r.imp,0), outTot=-rows.filter(r=>r.imp<0).reduce((a,r)=>a+r.imp,0);
   let h=`<div class="sum"><span><small>${rows.length} movimenti</small><b>${fmtIT(inTot-outTot)} €</b></span><span><small>Entrate</small><b>${fmt0(inTot)} €</b></span><span><small>Uscite</small><b>${fmt0(outTot)} €</b></span></div>`;
-  if(!rows.length) h+=`<div class="empty">Niente da vedere qui, <i>Leo</i> ne approva.</div>`;
+  if(!rows.length) h+=`<div class="empty">${EMPTY_ART.list}Niente da vedere qui, <i>Leo</i> ne approva.</div>`;
   else{ let day=null;
     const shown=rows.slice(0,MV.limit);
     for(const r of shown){ if(r.d!==day){ if(day)h+=`</ul>`; day=r.d; h+=`<div class="day">${fromISO(r.d).toLocaleDateString("it-IT",{weekday:"short",day:"numeric",month:"long"})}</div><ul class="list">`; }
