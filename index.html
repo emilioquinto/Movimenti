@@ -105,9 +105,9 @@
     -webkit-mask-image:linear-gradient(180deg,#000 0,#000 68%,rgba(0,0,0,.22) 100%);
     mask-image:linear-gradient(180deg,#000 0,#000 68%,rgba(0,0,0,.22) 100%)}
   #cat button{padding:8px 13px;font-size:14.5px;min-height:38px;border-radius:999px}
-  #cat button.top{border-color:rgba(31,111,208,.55);font-weight:700}
-  #cat button.top::before{content:"★";font-size:10px;margin-right:5px;color:var(--go);vertical-align:1px}
-  #cat button.top.on::before{color:#fff}
+  #cat button.fav{border-color:rgba(31,111,208,.55);font-weight:700}
+  #cat button.fav::before{content:"★";font-size:10px;margin-right:5px;color:var(--go);vertical-align:1px}
+  #cat button.fav.on::before{color:#fff}
   #cat .sep{flex:1 0 100%;height:1px;background:var(--line);margin:3px 0}
   .app>.field,.app>.amount,.app>.actions,.app>.fam{flex:0 0 auto}
   #catField{flex:1 1 0;display:flex;flex-direction:column;min-height:96px;max-height:calc(100% - 96px)}
@@ -125,12 +125,12 @@
   .field.inline .chips::-webkit-scrollbar{display:none}
   .field.inline .chips button,.field.inline .chips label{white-space:nowrap}
 
-  .actions{display:grid;grid-template-columns:1fr auto auto;gap:8px;margin-top:auto;padding-top:8px}
+  .actions{display:grid;grid-template-columns:2fr 1fr 2fr;gap:8px;margin-top:auto;padding-top:8px}
   .go{background:var(--go);color:#fff;border-radius:var(--r);font-size:19px;font-weight:700;height:58px}
   .go:active{background:var(--go-press)}
   .go:disabled{background:#A9C4E4;color:#F0F5FB}
-  .copy{background:var(--paper);border-radius:var(--r);font-size:14.5px;font-weight:600;color:var(--ink-2);height:58px;display:flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;padding:0 14px}
-  .copy.wa{color:#fff;background:#1FA855;font-size:15px;font-weight:700}
+  .copy{background:var(--paper);border-radius:var(--r);font-size:14.5px;font-weight:600;color:var(--ink-2);height:58px;display:flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;padding:0 8px;min-width:0}
+  .copy.wa{color:#fff;background:#1FA855;font-size:15px;font-weight:700;white-space:nowrap}
   .copy.wa.off{background:#B9D9C6}
 
   .padwrap{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--bg);box-shadow:0 -6px 24px rgba(0,0,0,.12);padding:10px 14px calc(env(safe-area-inset-bottom) + 12px);transform:translateY(105%);transition:transform .22s}
@@ -213,7 +213,7 @@
 
   .sheet{position:fixed;inset:0;background:var(--bg);z-index:40;display:none;flex-direction:column;padding:calc(env(safe-area-inset-top) + 10px) 14px calc(env(safe-area-inset-bottom) + 12px);overflow-y:auto;-webkit-overflow-scrolling:touch}
   .sheet.open{display:flex}
-  .sheet .top{margin-bottom:12px;top:0}
+  .sheet .top{margin-bottom:12px;top:0;flex-wrap:wrap;row-gap:6px}
   .sheet h2{font-size:20px;margin:0}
   .sheet .close{font-size:16px;font-weight:600;color:var(--go);padding:10px}
   .navmini{display:flex;gap:2px;align-items:center;flex:1;order:2;min-width:0;justify-content:space-between;
@@ -227,16 +227,16 @@
   .navmini button:active{transform:scale(.88)}
   .navmini button.on{color:#fff;background:var(--go);box-shadow:0 4px 12px rgba(31,111,208,.35)}
   .navmini button.on::after{content:"";position:absolute}
-  .top h1,.top h2{font-size:18px;font-weight:700;margin:0;letter-spacing:-.01em;flex:1;order:2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .top .ic{order:1;width:32px;height:32px;border-radius:10px;flex:0 0 auto}
   .top .ic svg{width:19px;height:19px}
-  .top .badge{order:3;margin-left:0;flex:0 0 auto}
-  .navmini{order:4}
-  .sheet .top .close{order:5;margin-left:auto}
-  .top .badge{position:relative}
+  .top .badge{order:3;flex:0 0 auto;position:relative}
   .top .badge .n{position:absolute;top:0;right:0;background:var(--go);color:#fff;font-size:10px;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:grid;place-items:center;padding:0 4px}
-  .sheet .top h2{flex:1}
-  .sheet .top{display:flex;align-items:center;gap:8px}
+  /* schermata Nuovo: ingranaggio · nav · messaggi su una riga */
+  #topMain .navmini{order:2;flex:1 1 auto;min-width:0}
+  #topMain .ic{order:1} #topMain .badge{order:3}
+  /* pannelli: titolo e chiudi in alto, nav su una riga tutta sua */
+  .sheet .top{display:flex;align-items:center;gap:6px;flex-wrap:nowrap}
+  .sheet .top .navmini{order:2;flex:1 1 auto;min-width:0}
   .sheet .field{border-color:var(--line);overflow:visible;padding:14px 16px;margin-bottom:12px;background:var(--glass-strong)}
   .sheet .field::before{display:none}
   .sheet .field label{font-size:14px;font-weight:600;color:var(--ink);margin-bottom:8px}
@@ -550,12 +550,12 @@
 
 <!-- ============ RIEPILOGO ============ -->
 <div class="sheet rp" id="sheetRp">
-  <div class="top" data-nav="rp"><h2>Riepilogo</h2></div>
+  <div class="top" data-nav="rp"></div>
   <div id="rpBody"></div>
 </div>
 
 <div class="sheet mv" id="sheetMv">
-  <div class="top" data-nav="mv"><h2>Movimenti</h2></div>
+  <div class="top" data-nav="mv"></div>
   <div class="field"><input type="text" id="mvQ" placeholder="Cerca descrizione…" autocomplete="off" autocorrect="off" enterkeyhint="search"></div>
   <div class="field inline"><label>Mese</label><div class="chips" id="mvMonth"></div></div>
   <div class="field inline"><label>Cat.</label><div class="chips" id="mvCat"></div></div>
@@ -564,7 +564,7 @@
 </div>
 
 <div class="sheet fire" id="sheetFire">
-  <div class="top" data-nav="fire"><h2>FIRE</h2></div>
+  <div class="top" data-nav="fire"></div>
   <div class="modes" id="fireModes">
     <button data-m="proj" class="on">Proiezione</button>
     <button data-m="pmt">Quanto investire</button>
@@ -674,7 +674,7 @@
   </div>
   <div class="field">
     <label>Versione app</label>
-    <p><b>v43</b> · "Aggiorna da Trade" + border collie che insegue la pallina. Aggiunti conto Amex Siemens, categoria Trasferte elenco Movimenti, grafico patrimonio interattivo sezione FIRE ed export report PDF. Se non leggi "v39" qui, versione vecchia.</p>
+    <p><b>v45</b> · "Aggiorna da Trade" + border collie che insegue la pallina. Aggiunti conto Amex Siemens, categoria Trasferte elenco Movimenti, grafico patrimonio interattivo sezione FIRE ed export report PDF. Se non leggi "v39" qui, versione vecchia.</p>
   </div>
   <div class="field">
     <label>Dettatura</label>
@@ -864,10 +864,10 @@ function renderSugg(){
 }
 function renderCats(){
   const box=$("cat"); const cc=catCounts();
-  const top=[...CATS].filter(c=>cc[c]).sort((a,b)=>cc[b]-cc[a]).slice(0,4);
-  const resto=[...CATS].filter(c=>!top.includes(c)).sort((a,b)=>a.localeCompare(b,"it"));
-  box.innerHTML=top.map(c=>`<button class="${c===F.cat?"on":""} top" data-c="${c}">${c}</button>`).join("")
-    +(top.length?`<span class="sep"></span>`:"")
+  const fav=[...CATS].filter(c=>cc[c]).sort((a,b)=>cc[b]-cc[a]).slice(0,4);
+  const resto=[...CATS].filter(c=>!fav.includes(c)).sort((a,b)=>a.localeCompare(b,"it"));
+  box.innerHTML=fav.map(c=>`<button class="${c===F.cat?"on":""} fav" data-c="${c}">${c}</button>`).join("")
+    +(fav.length?`<span class="sep"></span>`:"")
     +resto.map(c=>`<button class="${c===F.cat?"on":""}" data-c="${c}">${c}</button>`).join("");
   box.querySelectorAll("button[data-c]").forEach(b=>b.onclick=()=>{ F.cat=b.dataset.c; F.sign=IN_CATS.has(F.cat)?1:-1; haptic(); render(); });
   const sel=box.querySelector("button.on"); if(sel) sel.scrollIntoView({block:"nearest"});
@@ -1564,15 +1564,17 @@ function navHTML(active){
 }
 function paintNav(){
   const main=$("topMain");
-  if(main) main.innerHTML=`<button class="ic" id="btnSettings" aria-label="Impostazioni">${NAV_ICONS.set}</button>`+navHTML("main")+
-    `<button class="ic badge" id="btnLog" aria-label="Inviati">${NAV_ICONS.log}<span class="n" id="logN" hidden>0</span></button>`;
+  if(main) main.innerHTML=`<button class="ic" data-set aria-label="Impostazioni">${NAV_ICONS.set}</button>`+navHTML("main")+
+    `<button class="ic badge" data-log aria-label="Inviati">${NAV_ICONS.log}<span class="n" id="logN"${S.log.length?"":" hidden"}>${S.log.length}</span></button>`;
   document.querySelectorAll('.sheet .top[data-nav]').forEach(t=>{
-    if(!t.querySelector(".navmini")) t.insertAdjacentHTML("beforeend",navHTML(t.dataset.nav));
-    t.querySelectorAll(".navmini button").forEach(b=>b.classList.toggle("on",b.dataset.go===t.dataset.nav));
+    t.innerHTML=`<button class="ic" data-set aria-label="Impostazioni">${NAV_ICONS.set}</button>`+navHTML(t.dataset.nav)+
+      `<button class="ic badge" data-log aria-label="Inviati">${NAV_ICONS.log}<span class="n">${S.log.length}</span></button>`;
+    if(!S.log.length) t.querySelector(".badge .n").hidden=true;
   });
+  document.querySelectorAll("[data-set]").forEach(b=>b.onclick=()=>{ haptic(); renderSettings(); $("sheetSettings").classList.add("open"); });
+  document.querySelectorAll("[data-log]").forEach(b=>b.onclick=()=>{ haptic(); renderLog(); $("sheetLog").classList.add("open"); });
   document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>goTab(b.dataset.go));
-    const bs=$("btnSettings"); if(bs) bs.onclick=()=>{ goTab("main"); renderSettings(); $("sheetSettings").classList.add("open"); };
-  const bl=$("btnLog"); if(bl) bl.onclick=()=>{ goTab("main"); renderLog(); $("sheetLog").classList.add("open"); };
+  
 }
 
 
@@ -1610,6 +1612,7 @@ document.querySelectorAll(".sheet").forEach(sh=>{ let x0=null,y0=null;
 // ---------- navigazione tra i fogli ----------
 function goTab(t){
   haptic();
+  paintNav();
   ["sheetRp","sheetMv","sheetFire","sheetLog","sheetSettings","sheetPac","sheetRep","sheetPrezzi"].forEach(id=>$(id)&&$(id).classList.remove("open"));
   if(t==="rp") openRp(); else if(t==="mv") openMv(); else if(t==="stories") openStories(); else if(t==="fire"){ $("sheetFire").classList.add("open"); renderFire(); if(S.share) doRefresh(false); }
 }
