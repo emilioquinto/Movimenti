@@ -669,7 +669,7 @@
   </div>
   <div class="field">
     <label>Versione app</label>
-    <p><b>v40</b> · "Aggiorna da Trade" + border collie che insegue la pallina. Aggiunti conto Amex Siemens, categoria Trasferte elenco Movimenti, grafico patrimonio interattivo sezione FIRE ed export report PDF. Se non leggi "v39" qui, versione vecchia.</p>
+    <p><b>v41</b> · "Aggiorna da Trade" + border collie che insegue la pallina. Aggiunti conto Amex Siemens, categoria Trasferte elenco Movimenti, grafico patrimonio interattivo sezione FIRE ed export report PDF. Se non leggi "v39" qui, versione vecchia.</p>
   </div>
   <div class="field">
     <label>Dettatura</label>
@@ -1498,9 +1498,9 @@ function meseTotali(r){
   const uniq=[...base]; locali.forEach(h=>{ const k=h.d+"|"+h.k+"|"+h.imp.toFixed(2); if(!seen.has(k)){ seen.add(k); uniq.push(h); } });
   const kNew=r.DataISO+"|"+norm(r.Descrizione)+"|"+r.Importo.toFixed(2);
   if(!uniq.some(h=>h.d+"|"+h.k+"|"+h.imp.toFixed(2)===kNew)) uniq.push({k:norm(r.Descrizione),desc:r.Descrizione,cat:r.Categoria,conto:r.Conto,imp:r.Importo,d:r.DataISO});
-  const entrata=tipo(r.Categoria)==="Entrata";
+  const tp=tipo(r.Categoria); const entrata=tp==="Entrata";
   const cat=uniq.filter(h=>h.cat===r.Categoria).reduce((a,h)=>a+h.imp,0);
-  const tot=uniq.filter(h=>tipo(h.cat)===(entrata?"Entrata":"Spesa")).reduce((a,h)=>a+h.imp,0);
+  const tot=uniq.filter(h=>tipo(h.cat)===tp).reduce((a,h)=>a+h.imp,0);
   const budget=(cats.find(c=>c.name===r.Categoria)||{}).budget||0;
   return {mese,entrata,cat,tot,budget};
 }
@@ -1510,6 +1510,8 @@ function flashMovimento(r){
   const f=$("flash"), c=$("fcard"); if(!f) return;
   const T=meseTotali(r); const emo=((S.cache&&S.cache.cats)||[]).find(x=>x.name===r.Categoria);
   const mLabel=monthLabel(T.mese);
+  const catsF=(S.cache&&S.cache.cats)||[]; const tipoF=n=>{ const c=catsF.find(c=>c.name===n); return c?c.tipo:(IN_CATS.has(n)?"Entrata":"Spesa"); };
+  const isSpesa=tipoF(r.Categoria)==="Spesa";
   if(T.entrata){
     c.innerHTML=`<div class="em">${emo&&emo.emoji?emo.emoji:"✨"}</div>
       <div class="k">Ottimo, incassati</div>
@@ -1519,6 +1521,13 @@ function flashMovimento(r){
       <div class="sep"></div>
       <div class="m">Entrate totali di ${mLabel}<b>${fmtIT(T.tot)} €</b></div>`;
     f.className="flash in show";
+  } else if(!isSpesa){
+    // trasferimenti / investimenti: mostra la voce senza confonderla con le spese del mese
+    c.innerHTML=`<div class="em">${emo&&emo.emoji?emo.emoji:"🔄"}</div>
+      <div class="k">Registrato in ${esc(r.Categoria)}</div>
+      <div class="n">${fmtIT(Math.abs(T.cat))} €</div>
+      <div class="m">in ${mLabel}</div>`;
+    f.className="flash show";
   } else {
     const speso=Math.abs(T.cat), totale=Math.abs(T.tot);
     const perc=T.budget?Math.min(100,speso/T.budget*100):Math.min(100,speso/Math.max(1,totale)*100);
