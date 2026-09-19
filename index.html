@@ -36,8 +36,8 @@
   .pic .prev{width:56px;height:56px;border-radius:12px;background:var(--key) center/cover;flex:0 0 auto}
   .app{position:relative;z-index:1;max-width:480px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top) + 10px) 14px calc(env(safe-area-inset-bottom) + 12px)}
 
-  .top{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;
-    position:sticky;top:0;z-index:12;margin-left:-14px;margin-right:-14px;padding:6px 14px;
+  .top{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:8px;
+    position:sticky;top:0;z-index:12;margin-left:-14px;margin-right:-14px;padding:6px 14px 4px;
     background:rgba(237,243,249,.62);-webkit-backdrop-filter:saturate(180%) blur(20px);backdrop-filter:saturate(180%) blur(20px);
     border-bottom:1px solid rgba(255,255,255,.55)}
   body.haspic .top{background:rgba(237,243,249,.42)}
@@ -93,10 +93,10 @@
   .sugg button small{color:var(--ink-2);font-weight:500;margin-left:5px}
 
   .chips{display:flex;flex-wrap:wrap;gap:7px}
-  #cat{max-height:104px;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:1px 2px 2px;gap:6px;
-    -webkit-mask-image:linear-gradient(180deg,#000 0,#000 78%,rgba(0,0,0,.25) 100%);
-    mask-image:linear-gradient(180deg,#000 0,#000 78%,rgba(0,0,0,.25) 100%)}
-  #cat button{padding:7px 11px;font-size:14px;min-height:34px}
+  #cat{max-height:74px;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:1px 2px 2px;gap:6px;
+    -webkit-mask-image:linear-gradient(180deg,#000 0,#000 68%,rgba(0,0,0,.22) 100%);
+    mask-image:linear-gradient(180deg,#000 0,#000 68%,rgba(0,0,0,.22) 100%)}
+  #cat button{padding:5px 10px;font-size:13px;min-height:30px;border-radius:999px}
   .scrollhint{font-size:11.5px;color:var(--ink-2);text-align:center;margin-top:4px;letter-spacing:.02em}
   .scrollhint span{display:inline-block;animation:nudge 1.8s ease-in-out infinite}
   @keyframes nudge{0%,100%{transform:translateY(0);opacity:.55}50%{transform:translateY(3px);opacity:1}}
@@ -195,16 +195,22 @@
   .sheet .top{margin-bottom:12px;top:0}
   .sheet h2{font-size:20px;margin:0}
   .sheet .close{font-size:16px;font-weight:600;color:var(--go);padding:10px}
-  .navmini{display:flex;gap:2px;align-items:center}
-  .navmini button{width:38px;height:38px;border-radius:12px;background:transparent;color:var(--ink-2);display:grid;place-items:center;
+  .navmini{display:flex;gap:2px;align-items:center;width:100%;order:3;justify-content:space-between;
+    background:rgba(255,255,255,.34);-webkit-backdrop-filter:saturate(180%) blur(16px);backdrop-filter:saturate(180%) blur(16px);
+    border:1px solid rgba(255,255,255,.55);border-radius:14px;padding:3px}
+  .navmini button{flex:1;height:42px;border-radius:11px;background:transparent;color:var(--ink-2);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-size:9.5px;font-weight:600;letter-spacing:.01em;
     transition:transform .25s cubic-bezier(.22,1,.36,1),background .25s,color .25s}
-  .navmini button svg{width:21px;height:21px}
+  .navmini button svg{width:19px;height:19px}
   .navmini button:active{transform:scale(.88)}
-  .navmini button.on{color:var(--go);background:rgba(31,111,208,.12)}
+  .navmini button.on{color:#fff;background:var(--go);box-shadow:0 4px 12px rgba(31,111,208,.35)}
   .navmini button.on::after{content:"";position:absolute}
-  .top h1,.top h2{font-size:19px;font-weight:700;margin:0;letter-spacing:-.01em;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .top h1,.top h2{font-size:18px;font-weight:700;margin:0;letter-spacing:-.01em;flex:1;order:2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .top .ic{order:1}
+  .top .badge{order:3}
+  .sheet .top .navmini{order:3}
   .top .badge{position:relative}
-  .top .badge .n{position:absolute;top:2px;right:2px;background:var(--go);color:#fff;font-size:10px;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:grid;place-items:center;padding:0 4px}
+  .top .badge .n{position:absolute;top:0;right:0;background:var(--go);color:#fff;font-size:10px;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:grid;place-items:center;padding:0 4px}
   .sheet .top h2{flex:1}
   .sheet .top{display:flex;align-items:center;gap:8px}
   .sheet .field{border-color:var(--line)}
@@ -340,14 +346,16 @@
   .rp .lg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
 
   /* --- vetro --- */
-  .field,.amount,.dictate,.rp .card,.fire .card,.mv ul.list,.log li,.flash .fcard,.padwrap,.sheet .btn,.copy{
+  .field,.amount,.dictate,.rp .card,.fire .card,.mv ul.list,.log li,.flash .fcard,.sheet .btn,.copy{
     background:var(--glass);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);
     box-shadow:var(--glass-sh);position:relative;overflow:hidden}
   .field::before,.amount::before,.dictate::before,.rp .card::before,.fire .card::before,.flash .fcard::before{
     content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;
     background:linear-gradient(150deg,rgba(255,255,255,.45) 0%,rgba(255,255,255,.10) 38%,rgba(255,255,255,0) 60%)}
   .field>*,.amount>*,.dictate>*{position:relative;z-index:1}
-  .flash .fcard,.padwrap{background:var(--glass-strong)}
+  .flash .fcard{background:var(--glass-strong)}
+  .padwrap{background:var(--glass-strong);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);
+    box-shadow:0 -10px 30px rgba(14,36,64,.16),inset 0 1px 0 rgba(255,255,255,.8)}
   .rp .card,.fire .card,.mv ul.list,.log li{border:1px solid var(--glass-brd)}
   .field,.amount,.dictate{border:1.5px solid rgba(31,111,208,.45)}
   .chips button,.chips label,.pad button,.copy{-webkit-backdrop-filter:saturate(170%) blur(16px);backdrop-filter:saturate(170%) blur(16px)}
@@ -553,7 +561,7 @@
   </div>
   <div class="field">
     <label>Versione app</label>
-    <p><b>v32</b> · "Aggiorna da Trade" + border collie che insegue la pallina. Aggiunti conto Amex Siemens, categoria Trasferte elenco Movimenti, grafico patrimonio interattivo sezione FIRE ed export report PDF. Se non leggi "v15" qui, versione vecchia.</p>
+    <p><b>v33</b> · "Aggiorna da Trade" + border collie che insegue la pallina. Aggiunti conto Amex Siemens, categoria Trasferte elenco Movimenti, grafico patrimonio interattivo sezione FIRE ed export report PDF. Se non leggi "v15" qui, versione vecchia.</p>
   </div>
   <div class="field">
     <label>Dettatura</label>
@@ -1382,7 +1390,7 @@ const NAV_ICONS={"main": "<svg viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"curr
 
 const NAV_ORDER=[["main","Nuovo"],["stories","Storie"],["rp","Riepilogo"],["mv","Movimenti"],["fire","FIRE"]];
 function navHTML(active){
-  return `<div class="navmini">${NAV_ORDER.map(([k,t])=>`<button data-go="${k}" class="${k===active?"on":""}" aria-label="${t}">${NAV_ICONS[k]}</button>`).join("")}</div>`;
+  return `<div class="navmini">${NAV_ORDER.map(([k,t])=>`<button data-go="${k}" class="${k===active?"on":""}" aria-label="${t}">${NAV_ICONS[k]}<span>${t}</span></button>`).join("")}</div>`;
 }
 function paintNav(){
   const main=$("topMain");
@@ -1392,6 +1400,7 @@ function paintNav(){
     if(!t.querySelector(".navmini")) t.insertAdjacentHTML("beforeend",navHTML(t.dataset.nav));
     t.querySelectorAll(".navmini button").forEach(b=>b.classList.toggle("on",b.dataset.go===t.dataset.nav));
   });
+  document.querySelectorAll("[data-go]").forEach(b=>b.onclick=()=>goTab(b.dataset.go));
     const bs=$("btnSettings"); if(bs) bs.onclick=()=>{ goTab("main"); renderSettings(); $("sheetSettings").classList.add("open"); };
   const bl=$("btnLog"); if(bl) bl.onclick=()=>{ goTab("main"); renderLog(); $("sheetLog").classList.add("open"); };
 }
