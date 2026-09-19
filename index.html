@@ -484,6 +484,66 @@
     .rules li,.log li,.pacrow,.prow,.skel{background:var(--glass)}
     #splash{background:linear-gradient(160deg,#0B1622,#123A6B)}
   }
+
+  /* ================= PELLE "SUPERFICI PIENE" ================= */
+  :root{--surface:#FFFFFF;--surface-2:#F3F6FA;--hair:rgba(16,40,70,.08);--rr:22px}
+  @media (prefers-color-scheme: dark){ :root{--bg:#0B0F14;--surface:#171C22;--surface-2:#1F262E;--hair:rgba(255,255,255,.06);--ink:#F2F5F8;--ink-2:#9AA6B5;--key:#232B34;--key-press:#2C3641;--line:#2A333D} html,body{background:var(--bg)} }
+  /* niente più vetro, niente riflessi, niente bordi blu */
+  .field,.amount,.rp .card,.fire .card,.mv ul.list,.log li,.flash .fcard,.sheet .btn,.copy,.padwrap,.prow,.pacrow,.rules li,.skel,.pat,.chips button,.chips label,.pad button,.navmini,.top,.sheet,.toast{
+    -webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+  .field::before,.amount::before,.dictate::before,.rp .card::before,.fire .card::before,.flash .fcard::before{display:none!important}
+  .field,.amount,.rp .card,.fire .card,.mv ul.list,.log li,.flash .fcard,.prow,.pacrow,.rules li,.skel,.pat{
+    background:var(--surface)!important;border:1px solid var(--hair)!important;border-radius:var(--rr)!important;box-shadow:0 2px 10px rgba(0,0,0,.06)!important}
+  .amount.open{box-shadow:0 0 0 3px rgba(31,111,208,.25)!important}
+  .sheet{background:var(--bg)!important}
+  .sheet .field{background:var(--surface)!important}
+  .top{background:var(--bg)!important;border-bottom:1px solid var(--hair)!important}
+  body.haspic .top{background:rgba(11,15,20,.72)!important}
+  .navmini{background:var(--surface-2)!important;border:1px solid var(--hair)!important;border-radius:16px!important}
+  .navmini button.on{background:var(--go)!important;color:#fff!important;box-shadow:none!important}
+  .chips button,.chips label{background:var(--surface-2)!important;border:1px solid var(--hair)!important;color:var(--ink)!important}
+  .chips .on{background:var(--go)!important;color:#fff!important;border-color:transparent!important}
+  .pad button{background:var(--surface)!important;border:1px solid var(--hair)!important;box-shadow:none!important}
+  .padwrap{background:var(--bg)!important;box-shadow:0 -8px 30px rgba(0,0,0,.35)!important}
+  .copy{background:var(--surface)!important;border:1px solid var(--hair)!important;box-shadow:none!important;color:var(--ink)!important}
+  .copy.wa{background:#1FA855!important;color:#fff!important;border-color:transparent!important}
+  .go{box-shadow:none!important}
+  .toast{background:var(--surface)!important;color:var(--ink)!important;border:1px solid var(--hair);box-shadow:0 8px 24px rgba(0,0,0,.3)}
+  /* la foto resta solo dietro la schermata Nuovo, con velatura decisa */
+  #bgveil{background:linear-gradient(180deg,rgba(11,15,20,.55) 0%,rgba(11,15,20,.82) 40%,rgba(11,15,20,.94) 100%)!important}
+  @media (prefers-color-scheme: light){ #bgveil{background:linear-gradient(180deg,rgba(243,246,250,.55) 0%,rgba(243,246,250,.86) 40%,rgba(243,246,250,.96) 100%)!important} }
+  body.haspic .app>.field,body.haspic .app>.amount{box-shadow:0 6px 24px rgba(0,0,0,.28)!important}
+  /* tipografia: più aria, etichette in maiuscoletto grigio, numeri grandi */
+  .field{padding:10px 14px!important}
+  .field label{letter-spacing:.08em;font-size:11px;color:var(--ink-2)}
+  .rp .card h3,.fire .card h3{font-size:17px;margin-bottom:12px}
+  .rp .rows li,.fire .rows li{padding:11px 0;border-bottom:1px solid var(--hair)}
+  /* fascia colorata di stato in cima al Riepilogo */
+  .rp .hero{border-radius:26px!important;padding:22px 18px 18px!important;text-align:center;
+    background:linear-gradient(170deg,var(--hero1,#1F6FD0),var(--hero2,#123A6B))!important;box-shadow:none!important}
+  .rp .hero.ok{--hero1:#2FB27A;--hero2:#1A6E4C} .rp .hero.warn{--hero1:#F0A030;--hero2:#B0641A} .rp .hero.over{--hero1:#E4572E;--hero2:#8E2E1B}
+  .rp .hero .ring{width:172px;height:172px;margin:0 auto 6px;position:relative}
+  .rp .hero .ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+  .rp .hero .ring circle{fill:none;stroke-width:9;stroke-linecap:round}
+  .rp .hero .ring .bgc{stroke:rgba(255,255,255,.18)} .rp .hero .ring .fgc{stroke:#fff;stroke-dasharray:1 1;transition:stroke-dashoffset 1.1s cubic-bezier(.22,1,.36,1)}
+  .rp .hero .ring .in{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;transform:none}
+  .rp .hero .ring .in .big{font-size:30px!important;margin:0!important}
+  .rp .hero .ring .in .lbl{font-size:10px!important;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.85)!important;margin-top:4px}
+  .rp .hero .grid3{margin-top:14px}
+  .rp .hero .grid3 div{background:rgba(255,255,255,.14);text-align:left;border-radius:14px}
+  .rp .hero .ytd{margin-top:2px}
+  /* selettore mese a pastiglia larga */
+  .rp .mnav{background:var(--surface-2);border-radius:16px;padding:6px 8px;margin-bottom:12px!important}
+  .rp .mnav button{background:transparent!important;font-size:22px;width:44px}
+  .rp .mnav b{font-size:17px}
+  /* icone rotonde nell'elenco movimenti */
+  .mv ul.list li{padding:12px 14px!important;gap:12px}
+  .mv ul.list li .cico{flex:0 0 40px;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-size:19px;color:#fff}
+  .mv ul.list li .txt{flex:1;min-width:0}
+  .mv .sum{background:var(--surface)!important;color:var(--ink)!important;border:1px solid var(--hair);border-radius:var(--rr)}
+  .mv .sum span small{color:var(--ink-2)!important}
+  .mv .day{font-size:15px;font-weight:700;color:var(--ink);margin:16px 0 8px}
+  /* storie: invariate */
   @media (prefers-reduced-motion:reduce){.toast,.padwrap{transition:none}.dictate.rec .mic{animation:none}}
 </style>
 </head>
@@ -674,7 +734,7 @@
   </div>
   <div class="field">
     <label>Versione app</label>
-    <p><b>v45</b> · "Aggiorna da Trade" + border collie che insegue la pallina. Aggiunti conto Amex Siemens, categoria Trasferte elenco Movimenti, grafico patrimonio interattivo sezione FIRE ed export report PDF. Se non leggi "v39" qui, versione vecchia.</p>
+    <p><b>v46</b> · "Aggiorna da Trade" + border collie che insegue la pallina. Aggiunti conto Amex Siemens, categoria Trasferte elenco Movimenti, grafico patrimonio interattivo sezione FIRE ed export report PDF. Se non leggi "v39" qui, versione vecchia.</p>
   </div>
   <div class="field">
     <label>Dettatura</label>
@@ -1261,7 +1321,14 @@ function renderRp(){
   if(!R.month) R.month=D.months.length?D.months[D.months.length-1]:dateISO(today()).slice(0,7);
   const M=D.month(R.month); const ytd=D.inizioAnno!=null?D.patrimonio-D.inizioAnno:null;
   const when=new Date(D.ts); const ago=Math.round((Date.now()-D.ts)/60000);
-  let h=`<div class="hero"><div class="lbl">Patrimonio della famiglia <i>Quinto</i>${D.livePrices?` · <span class="live">prezzi live</span>`:(D.assetDate?` · prezzi asset al ${dateIT(fromISO(D.assetDate))}`:"")}</div><div class="big"><span class="cnt" data-v="${D.patrimonio}" data-d="2">${fmtIT(D.patrimonio)}</span> €</div>`;
+  // stato del mese rispetto alla spesa media degli ultimi 12 mesi
+  const msPrev=D.months.filter(x=>x<R.month).slice(-12); const avgSp=msPrev.length?msPrev.reduce((a,x)=>a+D.month(x).spese,0)/msPrev.length:0;
+  const ratio=avgSp?M.spese/avgSp:0; const stato=!avgSp?"":(ratio<=0.85?"ok":(ratio<=1.05?"warn":"over"));
+  const pct=Math.max(0,Math.min(1,avgSp?M.spese/avgSp:0)); const C=2*Math.PI*78, off=C*(1-pct);
+  let h=`<div class="hero ${stato}">
+    <div class="ring"><svg viewBox="0 0 172 172"><circle class="bgc" cx="86" cy="86" r="78"/><circle class="fgc" cx="86" cy="86" r="78" style="stroke-dasharray:${C.toFixed(1)};stroke-dashoffset:${C.toFixed(1)}" data-off="${off.toFixed(1)}"/></svg>
+      <div class="in"><div class="big"><span class="cnt" data-v="${D.patrimonio}">${fmt0(D.patrimonio)}</span> €</div><div class="lbl">patrimonio della famiglia Quinto</div></div></div>
+    <div class="ytd">${stato==="ok"?"Spese sotto la tua media: ottimo mese":stato==="warn"?"Spese in linea con la tua media":stato==="over"?"Spese sopra la tua media, occhio":"Primo mese: nessuna media di confronto"}${avgSp?` · ${Math.round(pct*100)}%`:""}</div>`;
   if(ytd!=null) h+=`<div class="ytd">Da inizio anno <em class="${ytd<0?"neg":""}">${ytd>=0?"+":"−"}${fmtIT(Math.abs(ytd))} €</em></div>`;
   h+=`<div class="grid3"><div><small>Liquidità</small><b><span class="cnt" data-v="${D.liquidita}">${fmt0(D.liquidita)}</span> €</b></div><div><small>Carte da addebitare</small><b><span class="cnt" data-v="${D.carteTot}">${fmt0(D.carteTot)}</span> €</b></div><div><small>Asset</small><b><span class="cnt" data-v="${D.assetTot}">${fmt0(D.assetTot)}</span> €</b></div>${D.trasferte.credito>0.005?`<div><small>Crediti trasferte</small><b>${fmt0(D.trasferte.credito)} €</b></div>`:""}</div></div>`;
   h+=`<div class="sync">${R.loading?"Aggiornamento in corso…":`Letto da Excel ${ago<1?"adesso":ago<60?ago+" min fa":"alle "+pad2(when.getHours())+":"+pad2(when.getMinutes())+" del "+shortDate(when)}`}<button id="rpRefresh">Aggiorna</button></div>`;
@@ -1298,6 +1365,7 @@ function renderRp(){
   if(D.storico.length>=2) h+=`<div class="pat" id="patCard"></div>`;
   body.innerHTML=`<div class="ptr ${R.loading?"on":""}"><span><i class="spin"></i>Aggiorno da Excel…</span></div>`+h;
   animateCounts(body);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{ body.querySelectorAll(".ring .fgc").forEach(c=>c.style.strokeDashoffset=c.dataset.off); }));
   if(D.storico.length>=2){ const pc=$("patCard"); if(pc) pc._bound=false; initPat(D.storico); }
   const br=$("btnReport"); if(br) br.onclick=openReport;
   const bri=$("btnRimborso"); if(bri) bri.onclick=()=>{ $("sheetRp").classList.remove("open");
@@ -2057,7 +2125,8 @@ function renderMv(){
   else{ let day=null;
     const shown=rows.slice(0,MV.limit);
     for(const r of shown){ if(r.d!==day){ if(day)h+=`</ul>`; day=r.d; h+=`<div class="day">${fromISO(r.d).toLocaleDateString("it-IT",{weekday:"short",day:"numeric",month:"long"})}</div><ul class="list">`; }
-      h+=`<li><span><b>${esc(r.desc)}</b><small>${esc(r.cat)} · ${esc(lbl(r.conto))}</small></span><span class="v ${r.imp>0?"in":""}">${fmtIT(r.imp)} €</span></li>`; }
+      const ci=(C.cats.find(c=>c.name===r.cat)||{}); const col=PALETTE[[...r.cat].reduce((a,ch)=>a+ch.charCodeAt(0),0)%PALETTE.length];
+      h+=`<li><span class="cico" style="background:${col}">${ci.emoji||"•"}</span><span class="txt"><b>${esc(r.desc)}</b><small>${esc(r.cat)} · ${esc(lbl(r.conto))}</small></span><span class="v ${r.imp>0?"in":""}">${fmtIT(r.imp)} €</span></li>`; }
     h+=`</ul>`;
     if(rows.length>MV.limit) h+=`<button class="more2" id="mvMore">Mostra altri ${Math.min(60,rows.length-MV.limit)} (di ${rows.length-MV.limit})</button>`;
   }
