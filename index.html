@@ -34,7 +34,7 @@
   .sheet .fam{margin-bottom:12px}
   .pic{display:flex;gap:10px;align-items:center;margin-top:6px}
   .pic .prev{width:56px;height:56px;border-radius:12px;background:var(--key) center/cover;flex:0 0 auto}
-  .app{position:relative;z-index:1;max-width:480px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top) + 10px) 14px calc(env(safe-area-inset-bottom) + 12px)}
+  .app{position:relative;z-index:1;max-width:480px;margin:0 auto;height:100vh;height:100dvh;overflow:hidden;display:flex;flex-direction:column;padding:calc(env(safe-area-inset-top) + 6px) 14px calc(env(safe-area-inset-bottom) + 8px)}
 
   .top{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:8px;
     position:sticky;top:0;z-index:12;margin-left:-14px;margin-right:-14px;padding:6px 14px 4px;
@@ -97,11 +97,12 @@
   .sugg button small{color:var(--ink-2);font-weight:500;margin-left:5px}
 
   .chips{display:flex;flex-wrap:wrap;gap:7px}
-  #cat{flex:1 1 auto;min-height:74px;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:1px 2px 2px;gap:6px;
+  #cat{flex:1 1 0;min-height:56px;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:1px 2px 2px;gap:6px;
     -webkit-mask-image:linear-gradient(180deg,#000 0,#000 68%,rgba(0,0,0,.22) 100%);
     mask-image:linear-gradient(180deg,#000 0,#000 68%,rgba(0,0,0,.22) 100%)}
   #cat button{padding:8px 13px;font-size:14.5px;min-height:38px;border-radius:999px}
-  #catField{flex:1 1 auto;display:flex;flex-direction:column;min-height:0}
+  .app>.field,.app>.amount,.app>.actions,.app>.fam{flex:0 0 auto}
+  #catField{flex:1 1 0;display:flex;flex-direction:column;min-height:96px}
   .scrollhint{flex:0 0 auto;font-size:10.5px;color:var(--ink-2);text-align:center;margin-top:2px;letter-spacing:.02em}
   .scrollhint span{display:inline-block;animation:nudge 1.8s ease-in-out infinite}
   @keyframes nudge{0%,100%{transform:translateY(0);opacity:.55}50%{transform:translateY(3px);opacity:1}}
@@ -573,7 +574,7 @@
   </div>
   <div class="field">
     <label>Versione app</label>
-    <p><b>v36</b> · "Aggiorna da Trade" + border collie che insegue la pallina. Aggiunti conto Amex Siemens, categoria Trasferte elenco Movimenti, grafico patrimonio interattivo sezione FIRE ed export report PDF. Se non leggi "v15" qui, versione vecchia.</p>
+    <p><b>v37</b> · "Aggiorna da Trade" + border collie che insegue la pallina. Aggiunti conto Amex Siemens, categoria Trasferte elenco Movimenti, grafico patrimonio interattivo sezione FIRE ed export report PDF. Se non leggi "v15" qui, versione vecchia.</p>
   </div>
   <div class="field">
     <label>Dettatura</label>
