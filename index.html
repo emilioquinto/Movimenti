@@ -382,6 +382,7 @@
   .pat .hd{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px;min-height:58px}
   .pat .hd .val{font-family:ui-rounded,-apple-system,system-ui,sans-serif;font-size:22px;font-weight:700;line-height:1.1;white-space:nowrap}
   .pat .hd .sub{font-size:12.5px;color:var(--ink-2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:62vw}
+  .pat .hd .sub.wrap{white-space:normal;overflow:visible;text-overflow:clip;max-width:none;line-height:1.35}
   .pat .lg{display:flex;flex-wrap:wrap;gap:10px;font-size:11.5px;color:var(--ink-2);margin-top:6px}
   .pat .lg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
   .pat .hd .dlt{font-size:14px;font-weight:700;text-align:right;white-space:nowrap;flex:0 0 auto}
@@ -792,7 +793,7 @@
   </div>
   <div class="field">
     <label>Versione app</label>
-    <p><b>v53</b> · "Aggiorna da Trade" + border collie che insegue la pallina. Aggiunti conto Amex Siemens, categoria Trasferte elenco Movimenti, grafico patrimonio interattivo sezione FIRE ed export report PDF. Se non leggi "v39" qui, versione vecchia.</p>
+    <p><b>v54</b> · Composizione del patrimonio con contanti, conti correnti, investimenti e cripto dal 2023 (storico del vecchio file incorporato nell'app). Se non leggi "v54" qui, versione vecchia.</p>
   </div>
   <div class="field">
     <label>Dettatura</label>
@@ -834,6 +835,11 @@ const MESI_S=["Gen","Feb","Mar","Apr","Mag","Giu","Lug","Ago","Set","Ott","Nov",
 const KEY="movimenti:state";
 const XLSX_CDN="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
 const PALETTE=["#1F6FD0","#F2A93B","#2BB673","#E4572E","#8E5BD9","#17A2B8","#D6469A","#7C8C9E","#A3C644","#C77B36","#5A6C80","#3DBFD8"];
+
+// Composizione mensile del patrimonio presa dal vecchio file (foglio "2026", righe ago 2023 → apr 2026):
+// [mese, contanti, conti correnti (Allianz+BNL+BPER+deposito Trade), cripto, investimenti (ETF + piano pensione)].
+// Dal 2026 in poi liquidità e totale vengono da Finanze2026; da qui si prende solo il rapporto cripto/investimenti finché disponibile.
+const STORICO_PRE=[["2023-08",8270,75589,11400,12010],["2023-09",2050,47108,12186,32199],["2023-10",4000,30670,12415.04,52325.53],["2023-11",4600,23275.06,18023.22,74634.96],["2023-12",2000,30438.06,22069.74,74634.96],["2024-01",500.66,50003.44,22246.64,78499.09],["2024-02",1288.16,47446.99,32125.81,81840.31],["2024-03",1119.88,51676.11,33121.03,87265.11],["2024-04",591.18,47599.57,29631.95,89137.79],["2024-05",935.81,49712.88,31840.88,92596.12],["2024-06",65.24,48416.8,28910.39,97834.17],["2024-07",96.2,48016.04,30718.52,99799.45],["2024-08",262,50385.84,27689.96,102609.68],["2024-09",1129.83,52145.38,29406.29,105400.85],["2024-10",1681.13,52472.91,31565.08,110538.82],["2024-11",4560.78,46875.22,44197.02,124070.37],["2024-12",319.83,49037.91,46062.67,127045.65],["2025-01",280.03,45470.15,50068.51,134644.47],["2025-02",60.93,43916.57,37293.78,137073.05],["2025-03",304.13,41350.88,38127.63,133540.68],["2025-04",1071.5,30603.49,41936.65,136457.35],["2025-05",580.75,27925.64,46237.42,146419.32],["2025-06",106.65,27300.19,47393.76,150845.26],["2025-07",448.35,19847.1,51712.27,159139.65],["2025-08",84.6,15847.02,48469.68,161623.83],["2025-09",844.27,14567,55335.42,168150.68],["2025-10",970.67,42640.72,46849.91,168150.68],["2025-11",970.67,46707.22,41311.29,168150.68],["2025-12",970.67,19268.19,39297.24,168150.68],["2026-01",-50.3,17158.33,35846.85,153870.71],["2026-02",-57.8,15513.48,29394.83,157376.6],["2026-03",1000,17166.65,30897.6,154786.28],["2026-04",1000,17166.65,38953.78,148363.76]];
 
 const SEED_RULES=[
   {id:"stip_emi",desc:"Stipendio Emi",cat:"Stipendio Emi",conto:"BNL",type:"monthly",from:25,hint:"a fine mese"},
@@ -1225,6 +1231,13 @@ async function refreshExcel(force){
   S.cache=data; lastRefresh=Date.now(); save(); render();
 }
 
+// ---------- storico unito: mesi del vecchio file che mancano in Finanze2026 ----------
+function mergeStorico(st){
+  const out=(st||[]).map(p=>({...p})); const have=new Set(out.map(p=>p.d.slice(0,7)));
+  for(const r of STORICO_PRE){ if(have.has(r[0])) continue; out.push({d:r[0]+"-01",v:Math.round((r[1]+r[2]+r[3]+r[4])*100)/100,pre:true}); }
+  return out.sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:0);
+}
+
 // ---------- calcoli (replica delle formule del file) ----------
 function calc(){
   const C=S.cache; if(!C) return null;
@@ -1250,7 +1263,8 @@ function calc(){
   const assets=C.assets.map(a=>{ const lp=R.prices&&R.prices[a.name]; if(typeof lp==="number"&&lp>0){ livePrices=true; const value=a.qty!=null?a.qty*lp:(a.price!=null?a.value/a.price*lp:a.value); return {...a,price:lp,value:Math.round(value*100)/100,live:true}; } return a; });
   const assetTot=assets.reduce((a,x)=>a+x.value,0);
   const patrimonio=liquidita+carteTot+assetTot+trasfCredito;
-  const inizioAnno=(C.storico.find(s=>s.d===`${yearNow}-01-01`)||{}).v;
+  const storico=mergeStorico(C.storico);
+  const inizioAnno=(storico.find(s=>s.d===`${yearNow}-01-01`)||{}).v;
   const etf=assets.filter(a=>/etf|ftse|msci/i.test(a.name)).reduce((a,x)=>a+x.value,0);
   const crypto=assets.filter(a=>/bitcoin|btc|cronos|cro|crypto|eth/i.test(a.name)).reduce((a,x)=>a+x.value,0);
   const pensione=assets.filter(a=>/pension/i.test(a.name)).reduce((a,x)=>a+x.value,0);
@@ -1263,15 +1277,19 @@ function calc(){
     const byCatInv=C.cats.filter(c=>c.tipo==="Investimento").map(c=>({name:c.name,emoji:c.emoji,versato:-sum(r=>inM(r)&&r.cat===c.name)})).filter(c=>Math.abs(c.versato)>0.005);
     return {entrate,spese,investiti,varLiq,risparmio,tasso:entrate?risparmio/entrate:0,byCat,byCatIn,byCatInv}; };
   const months=[...new Set(rows.map(r=>r.d.slice(0,7)))].sort();
-  return {saldi:liquid,carte,trasferte,liquidita,carteTot,assetTot,patrimonio,inizioAnno,etf,crypto,pensione,assets,livePrices,assetDate:C.assetDate,storico:C.storico,month,months,ts:C.ts};
+  return {saldi:liquid,carte,trasferte,liquidita,carteTot,assetTot,patrimonio,inizioAnno,etf,crypto,pensione,assets,livePrices,assetDate:C.assetDate,storico,month,months,ts:C.ts};
 }
 
 
 // ---------- composizione del patrimonio nel tempo + previsione FIRE ----------
+// Ogni punto: tot, contanti, conti (conti correnti al netto delle carte da addebitare), inv (ETF + pensione), crypto.
+// Prima del 2026 le quattro voci vengono da STORICO_PRE; dal 2026 liquidità e contanti si ricostruiscono dai movimenti,
+// il rapporto cripto/investimenti viene da STORICO_PRE finché c'è, poi si interpola fino alla ripartizione di oggi (stima).
 function serieComposizione(){
   const D=calc(); if(!D) return null;
   const C=S.cache, rows=C.rows, f=fireDefaults();
   const liquidNames=D.saldi.map(a=>a.name), cards=D.carte;
+  const acc0=name=>{ const a=C.accounts.find(x=>x.name===name); return a?a.saldo0:0; };
   const saldo0=C.accounts.filter(a=>!a.addebita&&!CARTE_EXTRA.some(x=>x.name===a.name)&&liquidNames.includes(a.name)).reduce((a,x)=>a+x.saldo0,0);
   const liqAt=iso=>{ // liquidità all'inizio del giorno iso (movimenti precedenti + addebiti carte già passati)
     let v=saldo0+rows.filter(r=>liquidNames.includes(r.conto)&&r.d<iso).reduce((a,r)=>a+r.imp,0);
@@ -1279,17 +1297,29 @@ function serieComposizione(){
       for(let m=0;m<12;m++){ const spend=rows.filter(r=>r.conto===c.name&&r.d.startsWith(`2026-${pad2(m+1)}`)).reduce((a,r)=>a+r.imp,0);
         const add=dateISO(new Date(2026,m+lag,gg)); if(add<iso) v+=spend; } });
     return v; };
+  const contAt=iso=>acc0("Contanti")+rows.filter(r=>r.conto==="Contanti"&&r.d<iso).reduce((a,r)=>a+r.imp,0);
   const carteAt=iso=>{ let v=0; cards.forEach(c=>{ const gg=c.giorno||15, lag=MESI_RITARDO[c.name]||1;
       for(let m=0;m<12;m++){ const spend=rows.filter(r=>r.conto===c.name&&r.d.startsWith(`2026-${pad2(m+1)}`)&&r.d<iso).reduce((a,r)=>a+r.imp,0);
         const add=dateISO(new Date(2026,m+lag,gg)); if(add>=iso) v+=spend; } }); return v; };
+  const PRE={}; STORICO_PRE.forEach(r=>{ PRE[r[0]]={contanti:r[1],conti:r[2],crypto:r[3],inv:r[4]}; });
+  const t=today(), tISO=dateISO(t), tM=tISO.slice(0,7);
+  const shareNow=D.assetTot>0?D.crypto/D.assetTot:0;
+  const lastPre=STORICO_PRE[STORICO_PRE.length-1], lastPreM=lastPre[0];
+  const lastPreShare=(lastPre[3]+lastPre[4])>0?lastPre[3]/(lastPre[3]+lastPre[4]):shareNow;
+  const mIdx=m=>{ const [y,mm]=m.split("-").map(Number); return y*12+mm; };
+  const shareAt=m=>{ const q=PRE[m]; if(q&&(q.crypto+q.inv)>0) return {s:q.crypto/(q.crypto+q.inv),stima:false};
+    const span=mIdx(tM)-mIdx(lastPreM); if(span<=0) return {s:shareNow,stima:true};
+    const k=Math.max(0,Math.min(1,(mIdx(m)-mIdx(lastPreM))/span)); return {s:lastPreShare+(shareNow-lastPreShare)*k,stima:true}; };
   const pts=[];
-  D.storico.forEach(p=>{ const split=p.d>="2026-01-01";
-    const liq=split?liqAt(p.d):null, carte=split?carteAt(p.d):null;
-    pts.push({d:p.d,tot:p.v,liq,carte,asset:split?p.v-liq-carte:null,kind:"hist"}); });
+  D.storico.forEach(p=>{ const m=p.d.slice(0,7); let c=null;
+    if(m>="2026-01"&&!p.pre){ const liq=liqAt(p.d), carte=carteAt(p.d), cont=contAt(p.d); const asset=p.v-liq-carte; const sh=shareAt(m); const cry=asset*sh.s;
+      c={liq,carte,asset,contanti:cont,conti:liq-cont+carte,inv:asset-cry,crypto:cry,stima:sh.stima}; }
+    else if(PRE[m]){ const q=PRE[m]; const sum=q.contanti+q.conti+q.crypto+q.inv; const k=sum>0&&Math.abs(sum-p.v)>1?p.v/sum:1;
+      c={liq:(q.contanti+q.conti)*k,carte:0,asset:(q.crypto+q.inv)*k,contanti:q.contanti*k,conti:q.conti*k,inv:q.inv*k,crypto:q.crypto*k,stima:false}; }
+    pts.push({d:p.d,tot:p.v,kind:"hist",...(c||{liq:null,asset:null,contanti:null})}); });
   // punto di oggi
-  const t=today(), tISO=dateISO(t);
-  if(!pts.length||pts[pts.length-1].d<tISO.slice(0,7)+"-01") {}
-  pts.push({d:tISO,tot:D.patrimonio,liq:D.liquidita,carte:D.carteTot,asset:D.assetTot,kind:"now"});
+  const contNow=(D.saldi.find(a=>a.name==="Contanti")||{}).saldo||0;
+  pts.push({d:tISO,tot:D.patrimonio,liq:D.liquidita,carte:D.carteTot,asset:D.assetTot,contanti:contNow,conti:D.liquidita-contNow+D.carteTot+D.trasferte.credito,inv:D.assetTot-D.crypto,crypto:D.crypto,stima:false,kind:"now"});
   // previsione mensile dalle impostazioni FIRE (capitale di partenza = patrimonio totale di oggi)
   const rr=realRate(f.rate,f.infl), mesi=Math.round((f.anni||20)*12);
   for(let k=1;k<=mesi;k++){ const dd=new Date(t.getFullYear(),t.getMonth()+k,1); pts.push({d:dateISO(dd),tot:fv(D.patrimonio,f.pac,rr,k/12),kind:"proj"}); }
@@ -1389,29 +1419,36 @@ let COMP=null;
 function initComp(){
   const card=$("compCard"); if(!card) return; const SC=serieComposizione(); if(!SC) return;
   const {pts,nowIdx,target}=SC; const n=pts.length;
-  card.innerHTML=`<div class="hd"><div><div class="val" id="compVal"></div><div class="sub" id="compSub"></div></div><div class="dlt" id="compDlt"></div></div>
+  card.innerHTML=`<div class="hd"><div><div class="val" id="compVal"></div><div class="sub wrap" id="compSub"></div></div><div class="dlt" id="compDlt"></div></div>
     <svg viewBox="0 0 440 210" preserveAspectRatio="none" id="compSvg"></svg>
-    <div class="lg"><span><i style="background:#3B82F6"></i>Liquidità</span><span><i style="background:#2FB27A"></i>Investimenti</span><span><i style="background:#7C8C9E"></i>Totale (prima del 2026)</span><span><i style="background:#F2A93B"></i>Previsione FIRE</span></div>
+    <div class="lg"><span><i style="background:#17A2B8"></i>Contanti</span><span><i style="background:#3B82F6"></i>Conti correnti</span><span><i style="background:#2FB27A"></i>Investimenti</span><span><i style="background:#8E5BD9"></i>Cripto</span><span><i style="background:#7C8C9E"></i>Totale (senza dettaglio)</span><span><i style="background:#F2A93B"></i>Previsione FIRE</span></div>
     <div class="ranges" id="compRanges"><button data-r="12">12M</button><button data-r="24" class="on">24M</button><button data-r="hist">Storico</button><button data-r="all">Con previsione</button></div>
     <div class="tip">Scorri col dito per i valori · pizzica per zoomare · due dita per spostarti</div>`;
+  const comp=i=>pts[i].kind==="hist"&&pts[i].contanti!=null;
   const getY=(i,key)=>{ const p=pts[i];
     if(key==="tot") return p.tot;
-    if(key==="liq") return p.liq!=null?p.liq:null;
-    if(key==="asset") return p.asset!=null?p.liq+p.asset+(p.carte||0):null;   // impilato sopra la liquidità
-    if(key==="old") return (p.kind==="hist"&&p.liq==null)?p.tot:null;
+    if(key==="c1") return comp(i)?p.contanti:null;                                   // contanti
+    if(key==="c2") return comp(i)?p.contanti+p.conti:null;                           // + conti correnti
+    if(key==="c3") return comp(i)?p.contanti+p.conti+p.inv:null;                     // + investimenti
+    if(key==="c4") return comp(i)?p.contanti+p.conti+p.inv+p.crypto:null;            // + cripto (= totale)
+    // totale grigio dove manca il dettaglio; include il primo punto dettagliato per non lasciare buchi
+    if(key==="old") return (p.kind==="hist"&&(!comp(i)||(i>0&&!comp(i-1))))?p.tot:null;
     if(key==="proj") return (p.kind==="proj"||p.kind==="now")?p.tot:null;
     return null; };
   COMP=makeTimeChart({host:card,id:"comp",n,nowIdx,
     series:[{key:"old",color:"#7C8C9E",area:true,alpha:.28,stroke:"#7C8C9E",width:1.6},
-            {key:"liq",color:"#3B82F6",area:true,alpha:.45,stroke:"#3B82F6",width:1.6},
-            {key:"asset",color:"#2FB27A",area:true,alpha:.40,stroke:"#2FB27A",width:1.6,baseKey:"liq"},
+            {key:"c1",color:"#17A2B8",area:true,alpha:.55,stroke:"#17A2B8",width:1.2},
+            {key:"c2",color:"#3B82F6",area:true,alpha:.45,stroke:"#3B82F6",width:1.2,baseKey:"c1"},
+            {key:"c3",color:"#2FB27A",area:true,alpha:.40,stroke:"#2FB27A",width:1.2,baseKey:"c2"},
+            {key:"c4",color:"#8E5BD9",area:true,alpha:.40,stroke:"#8E5BD9",width:1.8,baseKey:"c3"},
             {key:"proj",color:"#F2A93B",area:false,stroke:"#F2A93B",width:2,dash:"6 5"}],
     getY, topAt:i=>pts[i].tot, labelAt:i=>{ const p=pts[i]; return MESI_S[+p.d.slice(5,7)-1]+" "+p.d.slice(2,4); },
     hline:{v:target,label:"obiettivo FIRE "+fmt0(target)+" €",color:"#F2A93B"},
     onPaint:(i,sel)=>{ const p=pts[i]; const val=$("compVal"),sub=$("compSub"),dlt=$("compDlt"); if(!val) return;
       val.textContent=fmtIT(p.tot)+" €";
       const when=p.kind==="now"?"oggi":fromISO(p.d).toLocaleDateString("it-IT",{month:"short",year:"2-digit"});
-      sub.textContent=p.kind==="proj"?`${when} · previsione FIRE`:(p.liq!=null?`${when} · liquidità ${fmt0(p.liq)} € · investimenti ${fmt0(p.asset)} €`:`${when} · solo totale disponibile`);
+      sub.textContent=p.kind==="proj"?`${when} · previsione FIRE`
+        :(p.contanti!=null?`${when} · contanti ${fmt0(p.contanti)} · conti ${fmt0(p.conti)} · investimenti ${fmt0(p.inv)} · cripto ${p.stima?"≈":""}${fmt0(p.crypto)} €`:`${when} · solo totale disponibile`);
       const prev=i>0?pts[i-1]:null; const d=prev?p.tot-prev.tot:0;
       dlt.className="dlt "+(d>=0?"up":"down"); dlt.innerHTML=prev?`${d>=0?"+":"−"}${fmt0(Math.abs(d))} €<small>sul mese prima</small>`:""; }
   });
