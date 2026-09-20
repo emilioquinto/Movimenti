@@ -381,7 +381,9 @@
   .pat{background:var(--paper);border-radius:var(--r);padding:12px 14px;margin-bottom:10px;user-select:none}
   .pat .hd{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px;min-height:58px}
   .pat .hd .val{font-family:ui-rounded,-apple-system,system-ui,sans-serif;font-size:22px;font-weight:700;line-height:1.1;white-space:nowrap}
-  .pat .hd .sub{font-size:12.5px;color:var(--ink-2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60vw}
+  .pat .hd .sub{font-size:12.5px;color:var(--ink-2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:62vw}
+  .pat .lg{display:flex;flex-wrap:wrap;gap:10px;font-size:11.5px;color:var(--ink-2);margin-top:6px}
+  .pat .lg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
   .pat .hd .dlt{font-size:14px;font-weight:700;text-align:right;white-space:nowrap;flex:0 0 auto}
   .pat .hd .dlt.up{color:#0B8A4B}.pat .hd .dlt.down{color:var(--warn)}
   .pat .hd .dlt small{display:block;font-weight:500;color:var(--ink-2);font-size:12px}
@@ -560,6 +562,8 @@
   .rp .hero .ring .in .lbl{font-size:10px!important;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.85)!important;margin-top:4px}
   .rp .hero .grid3{margin-top:14px}
   .rp .hero .grid3 div{background:rgba(255,255,255,.14);border-radius:14px}
+  .rp .hero .grid3 .dv{display:block;font-style:normal;font-size:10.5px;margin-top:3px;font-weight:600;color:#fff;opacity:.9}
+  .rp .hero .grid3 .dv.down{color:#FFD5C8}
   .rp .hero .ytd{margin-top:2px}
   /* selettore mese a pastiglia larga */
   .rp .mnav{background:var(--surface-2);border-radius:16px;padding:6px 8px;margin-bottom:12px!important}
@@ -788,7 +792,7 @@
   </div>
   <div class="field">
     <label>Versione app</label>
-    <p><b>v52</b> · "Aggiorna da Trade" + border collie che insegue la pallina. Aggiunti conto Amex Siemens, categoria Trasferte elenco Movimenti, grafico patrimonio interattivo sezione FIRE ed export report PDF. Se non leggi "v39" qui, versione vecchia.</p>
+    <p><b>v53</b> · "Aggiorna da Trade" + border collie che insegue la pallina. Aggiunti conto Amex Siemens, categoria Trasferte elenco Movimenti, grafico patrimonio interattivo sezione FIRE ed export report PDF. Se non leggi "v39" qui, versione vecchia.</p>
   </div>
   <div class="field">
     <label>Dettatura</label>
@@ -1262,6 +1266,37 @@ function calc(){
   return {saldi:liquid,carte,trasferte,liquidita,carteTot,assetTot,patrimonio,inizioAnno,etf,crypto,pensione,assets,livePrices,assetDate:C.assetDate,storico:C.storico,month,months,ts:C.ts};
 }
 
+
+// ---------- composizione del patrimonio nel tempo + previsione FIRE ----------
+function serieComposizione(){
+  const D=calc(); if(!D) return null;
+  const C=S.cache, rows=C.rows, f=fireDefaults();
+  const liquidNames=D.saldi.map(a=>a.name), cards=D.carte;
+  const saldo0=C.accounts.filter(a=>!a.addebita&&!CARTE_EXTRA.some(x=>x.name===a.name)&&liquidNames.includes(a.name)).reduce((a,x)=>a+x.saldo0,0);
+  const liqAt=iso=>{ // liquidità all'inizio del giorno iso (movimenti precedenti + addebiti carte già passati)
+    let v=saldo0+rows.filter(r=>liquidNames.includes(r.conto)&&r.d<iso).reduce((a,r)=>a+r.imp,0);
+    cards.forEach(c=>{ const gg=c.giorno||15, lag=MESI_RITARDO[c.name]||1;
+      for(let m=0;m<12;m++){ const spend=rows.filter(r=>r.conto===c.name&&r.d.startsWith(`2026-${pad2(m+1)}`)).reduce((a,r)=>a+r.imp,0);
+        const add=dateISO(new Date(2026,m+lag,gg)); if(add<iso) v+=spend; } });
+    return v; };
+  const carteAt=iso=>{ let v=0; cards.forEach(c=>{ const gg=c.giorno||15, lag=MESI_RITARDO[c.name]||1;
+      for(let m=0;m<12;m++){ const spend=rows.filter(r=>r.conto===c.name&&r.d.startsWith(`2026-${pad2(m+1)}`)&&r.d<iso).reduce((a,r)=>a+r.imp,0);
+        const add=dateISO(new Date(2026,m+lag,gg)); if(add>=iso) v+=spend; } }); return v; };
+  const pts=[];
+  D.storico.forEach(p=>{ const split=p.d>="2026-01-01";
+    const liq=split?liqAt(p.d):null, carte=split?carteAt(p.d):null;
+    pts.push({d:p.d,tot:p.v,liq,carte,asset:split?p.v-liq-carte:null,kind:"hist"}); });
+  // punto di oggi
+  const t=today(), tISO=dateISO(t);
+  if(!pts.length||pts[pts.length-1].d<tISO.slice(0,7)+"-01") {}
+  pts.push({d:tISO,tot:D.patrimonio,liq:D.liquidita,carte:D.carteTot,asset:D.assetTot,kind:"now"});
+  // previsione mensile dalle impostazioni FIRE (capitale di partenza = patrimonio totale di oggi)
+  const rr=realRate(f.rate,f.infl), mesi=Math.round((f.anni||20)*12);
+  for(let k=1;k<=mesi;k++){ const dd=new Date(t.getFullYear(),t.getMonth()+k,1); pts.push({d:dateISO(dd),tot:fv(D.patrimonio,f.pac,rr,k/12),kind:"proj"}); }
+  const nowIdx=pts.findIndex(p=>p.kind==="now");
+  return {pts,nowIdx,target:f.spesa*12/(f.swr/100)};
+}
+
 // ---------- Riepilogo UI ----------
 function monthLabel(m){ const [y,mm]=m.split("-"); return `${MESI[+mm-1]} ${y}`; }
 function shiftMonth(m,k){ const [y,mm]=m.split("-").map(Number); const d=new Date(y,mm-1+k,1); return `${d.getFullYear()}-${pad2(d.getMonth()+1)}`; }
@@ -1284,83 +1319,127 @@ function barsSVG(series){ // series: [{label, a(entrate), b(spese)}]
   return `<svg class="chart" viewBox="0 0 ${W} ${H}" aria-hidden="true"><line x1="${padL}" y1="${H-padB}" x2="${W-padL}" y2="${H-padB}" stroke="#CFDCEA"/>${g}</svg>`;
 }
 
-// ---------- grafico patrimonio interattivo (finestra continua) ----------
-let PAT={pts:[],a:0,b:0,sel:null,geo:null};
+
+// ---------- motore grafici temporali: disegno una volta, zoom con trasformazione ----------
+function makeTimeChart(opts){
+  // opts: {host, n, series:[{key,color,area,dash,stroke}], getY(i,key), labelAt(i), tipAt(i), nowIdx, hline:{v,label,color}}
+  const W=440,H=210,pl=10,pr=10,pt=16,pb=24, U=100; // U = larghezza "mondo" di un mese
+  const st={a:0,b:opts.n-1,sel:null,min:0,max:1,geo:null};
+  const host=opts.host;
+  function yScale(a,b){ const i0=Math.max(0,Math.floor(a)), i1=Math.min(opts.n-1,Math.ceil(b)); let lo=Infinity,hi=-Infinity;
+    for(let i=i0;i<=i1;i++){ const v=opts.topAt(i); if(v==null) continue; lo=Math.min(lo,v); hi=Math.max(hi,v); }
+    if(opts.hline&&opts.hline.v!=null&&i1>=(opts.nowIdx||0)&&(b-a)>36){ hi=Math.max(hi,opts.hline.v); }
+    if(!isFinite(lo)){ lo=0; hi=1; } const pad=(hi-lo)*0.12||1; return {min:Math.max(0,lo-pad*(lo>0?1:0)),max:hi+pad}; }
+  const Yof=v=>pt+(1-(v-st.min)/(st.max-st.min))*(H-pt-pb);
+  const k=()=>(W-pl-pr)/Math.max(0.5,st.b-st.a);
+  function transform(){ const kk=k(); return `translate(${(pl-st.a*kk).toFixed(2)} 0) scale(${(kk/U).toFixed(5)} 1)`; }
+  function build(){ // ridisegna geometria (asse y, path) — solo a fine gesto
+    const ys=yScale(st.a,st.b); st.min=ys.min; st.max=ys.max;
+    let paths="";
+    opts.series.forEach(sr=>{ let d="", started=false, baseD="";
+      for(let i=0;i<opts.n;i++){ const v=opts.getY(i,sr.key); if(v==null){ started=false; continue; }
+        d+=(started?"L":"M")+(i*U)+" "+Yof(v).toFixed(1)+" "; started=true; }
+      if(sr.area){ // area impilata: chiude sulla base (serie sotto) o sullo zero
+        let lower=""; for(let i=opts.n-1;i>=0;i--){ const v=opts.getY(i,sr.key); if(v==null) continue; const bv=sr.baseKey?opts.getY(i,sr.baseKey):null; lower+="L"+(i*U)+" "+(bv==null?(H-pb):Yof(bv)).toFixed(1)+" "; }
+        paths+=`<path d="${d}${lower}Z" fill="${sr.color}" fill-opacity="${sr.alpha||.35}" stroke="none"/>`; }
+      paths+=`<path d="${d}" fill="none" stroke="${sr.stroke||sr.color}" stroke-width="${sr.width||2.2}" ${sr.dash?`stroke-dasharray="${sr.dash}"`:""} stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`; });
+    let hl=""; if(opts.hline&&opts.hline.v!=null&&opts.hline.v<=st.max){ const y=Yof(opts.hline.v).toFixed(1); hl=`<line x1="${pl}" x2="${W-pr}" y1="${y}" y2="${y}" stroke="${opts.hline.color}" stroke-dasharray="5 4" stroke-width="1.3"/><text x="${W-pr}" y="${(+y-5).toFixed(1)}" text-anchor="end" font-size="9.5" fill="${opts.hline.color}">${opts.hline.label}</text>`; }
+    let nowl=""; if(opts.nowIdx!=null){ nowl=`<line x1="${opts.nowIdx*U}" x2="${opts.nowIdx*U}" y1="${pt}" y2="${H-pb}" stroke="var(--ink-2)" stroke-width="1" stroke-dasharray="2 4" vector-effect="non-scaling-stroke" opacity=".7"/>`; }
+    host.querySelector("svg").innerHTML=`<defs><clipPath id="${opts.id}clip"><rect x="${pl-1}" y="0" width="${W-pl-pr+2}" height="${H}"/></clipPath></defs>
+      <g clip-path="url(#${opts.id}clip)"><g class="world" transform="${transform()}">${paths}${nowl}
+      <line class="cur" x1="0" x2="0" y1="${pt}" y2="${H-pb}" stroke="#1F6FD0" stroke-width="1" stroke-dasharray="3 3" vector-effect="non-scaling-stroke" opacity="0"/></g>${hl}</g>
+      <circle class="dot" r="5" fill="#1F6FD0" stroke="#fff" stroke-width="2"/><g class="labels"></g>`;
+    labels(); paint();
+  }
+  function labels(){ const g=host.querySelector(".labels"); const kk=k(); const span=st.b-st.a; const step=Math.max(1,Math.ceil(span/5));
+    let out=""; const i0=Math.max(0,Math.floor(st.a)), i1=Math.min(opts.n-1,Math.ceil(st.b));
+    for(let i=i0;i<=i1;i++){ if(i%step) continue; const x=pl+(i-st.a)*kk; if(x<pl-4||x>W-pr+4) continue; out+=`<text x="${x.toFixed(1)}" y="${H-6}" text-anchor="middle" font-size="10" fill="var(--ink-2)">${opts.labelAt(i)}</text>`; }
+    g.innerHTML=out; }
+  function paint(){ // cursore e intestazione
+    const i=st.sel!=null?Math.max(0,Math.min(opts.n-1,Math.round(st.sel))):(opts.nowIdx!=null?opts.nowIdx:opts.n-1);
+    const kk=k(); const x=pl+(i-st.a)*kk; const v=opts.topAt(i);
+    const dot=host.querySelector(".dot"), cur=host.querySelector(".cur");
+    if(dot){ dot.setAttribute("cx",x.toFixed(1)); dot.setAttribute("cy",(v==null?-20:Yof(v)).toFixed(1)); dot.style.opacity=(x<pl||x>W-pr||v==null)?"0":"1"; }
+    if(cur){ cur.setAttribute("x1",i*U); cur.setAttribute("x2",i*U); cur.setAttribute("opacity",st.sel!=null?"1":"0"); }
+    if(opts.onPaint) opts.onPaint(i,st.sel!=null); }
+  function live(){ const g=host.querySelector(".world"); if(g) g.setAttribute("transform",transform()); labels(); paint(); }
+  function setWindow(a,b,rebuild){ const n=opts.n; b=Math.min(n-1,Math.max(a+2,b)); a=Math.max(0,Math.min(b-2,a)); st.a=a; st.b=b; rebuild?build():live(); }
+  // gesti
+  const svg=host.querySelector("svg");
+  const idxAt=cx=>{ const r=svg.getBoundingClientRect(); const f=(cx-r.left)/r.width; return st.a+((f*W-pl)/(W-pl-pr))*(st.b-st.a); };
+  let pinch=null,tmr=null;
+  host.addEventListener("touchstart",e=>{ clearTimeout(tmr);
+    if(e.touches.length===2){ const r=svg.getBoundingClientRect(); const x1=e.touches[0].clientX,x2=e.touches[1].clientX;
+      pinch={d:Math.abs(x1-x2),a:st.a,b:st.b,c:(((x1+x2)/2-r.left)/r.width),cx:(x1+x2)/2,w:r.width}; st.sel=null; paint(); }
+    else if(e.touches.length===1){ st.sel=idxAt(e.touches[0].clientX); paint(); } },{passive:true});
+  host.addEventListener("touchmove",e=>{
+    if(e.touches.length===2&&pinch){ const x1=e.touches[0].clientX,x2=e.touches[1].clientX; const d=Math.abs(x1-x2); if(d<8) return;
+      const span0=pinch.b-pinch.a; let span=Math.max(2,Math.min(opts.n-1,span0*(pinch.d/d)));
+      const anchor=pinch.a+pinch.c*span0; const shift=-((x1+x2)/2-pinch.cx)/pinch.w*span;
+      let a=anchor-pinch.c*span+shift; a=Math.max(0,Math.min(opts.n-1-span,a)); setWindow(a,a+span,false); }
+    else if(e.touches.length===1&&!pinch){ st.sel=idxAt(e.touches[0].clientX); paint(); } },{passive:true});
+  host.addEventListener("touchend",e=>{ if(pinch&&e.touches.length<2){ pinch=null; build(); } if(!e.touches.length) tmr=setTimeout(()=>{ st.sel=null; paint(); },2500); },{passive:true});
+  host.addEventListener("mousemove",e=>{ st.sel=idxAt(e.clientX); paint(); }); host.addEventListener("mouseleave",()=>{ st.sel=null; paint(); });
+  return {st,setWindow,build,paint};
+}
+
+
+// ---------- composizione del patrimonio con previsione ----------
+let COMP=null;
+function initComp(){
+  const card=$("compCard"); if(!card) return; const SC=serieComposizione(); if(!SC) return;
+  const {pts,nowIdx,target}=SC; const n=pts.length;
+  card.innerHTML=`<div class="hd"><div><div class="val" id="compVal"></div><div class="sub" id="compSub"></div></div><div class="dlt" id="compDlt"></div></div>
+    <svg viewBox="0 0 440 210" preserveAspectRatio="none" id="compSvg"></svg>
+    <div class="lg"><span><i style="background:#3B82F6"></i>Liquidità</span><span><i style="background:#2FB27A"></i>Investimenti</span><span><i style="background:#7C8C9E"></i>Totale (prima del 2026)</span><span><i style="background:#F2A93B"></i>Previsione FIRE</span></div>
+    <div class="ranges" id="compRanges"><button data-r="12">12M</button><button data-r="24" class="on">24M</button><button data-r="hist">Storico</button><button data-r="all">Con previsione</button></div>
+    <div class="tip">Scorri col dito per i valori · pizzica per zoomare · due dita per spostarti</div>`;
+  const getY=(i,key)=>{ const p=pts[i];
+    if(key==="tot") return p.tot;
+    if(key==="liq") return p.liq!=null?p.liq:null;
+    if(key==="asset") return p.asset!=null?p.liq+p.asset+(p.carte||0):null;   // impilato sopra la liquidità
+    if(key==="old") return (p.kind==="hist"&&p.liq==null)?p.tot:null;
+    if(key==="proj") return (p.kind==="proj"||p.kind==="now")?p.tot:null;
+    return null; };
+  COMP=makeTimeChart({host:card,id:"comp",n,nowIdx,
+    series:[{key:"old",color:"#7C8C9E",area:true,alpha:.28,stroke:"#7C8C9E",width:1.6},
+            {key:"liq",color:"#3B82F6",area:true,alpha:.45,stroke:"#3B82F6",width:1.6},
+            {key:"asset",color:"#2FB27A",area:true,alpha:.40,stroke:"#2FB27A",width:1.6,baseKey:"liq"},
+            {key:"proj",color:"#F2A93B",area:false,stroke:"#F2A93B",width:2,dash:"6 5"}],
+    getY, topAt:i=>pts[i].tot, labelAt:i=>{ const p=pts[i]; return MESI_S[+p.d.slice(5,7)-1]+" "+p.d.slice(2,4); },
+    hline:{v:target,label:"obiettivo FIRE "+fmt0(target)+" €",color:"#F2A93B"},
+    onPaint:(i,sel)=>{ const p=pts[i]; const val=$("compVal"),sub=$("compSub"),dlt=$("compDlt"); if(!val) return;
+      val.textContent=fmtIT(p.tot)+" €";
+      const when=p.kind==="now"?"oggi":fromISO(p.d).toLocaleDateString("it-IT",{month:"short",year:"2-digit"});
+      sub.textContent=p.kind==="proj"?`${when} · previsione FIRE`:(p.liq!=null?`${when} · liquidità ${fmt0(p.liq)} € · investimenti ${fmt0(p.asset)} €`:`${when} · solo totale disponibile`);
+      const prev=i>0?pts[i-1]:null; const d=prev?p.tot-prev.tot:0;
+      dlt.className="dlt "+(d>=0?"up":"down"); dlt.innerHTML=prev?`${d>=0?"+":"−"}${fmt0(Math.abs(d))} €<small>sul mese prima</small>`:""; }
+  });
+  COMP.setWindow(Math.max(0,nowIdx-24),Math.min(n-1,nowIdx+3),true);
+  card.querySelectorAll("#compRanges button").forEach(b=>b.onclick=()=>{ card.querySelectorAll("#compRanges button").forEach(x=>x.classList.toggle("on",x===b));
+    const r=b.dataset.r; if(r==="hist") COMP.setWindow(0,nowIdx,true); else if(r==="all") COMP.setWindow(0,n-1,true); else COMP.setWindow(Math.max(0,nowIdx-(+r)),Math.min(n-1,nowIdx+3),true); });
+}
+
+// ---------- grafico patrimonio (stesso motore fluido) ----------
+let PATC=null;
 function initPat(all){
-  PAT.pts=all; const n=all.length;
-  if(!PAT.geo||PAT.b>n-1){ PAT.b=n-1; PAT.a=Math.max(0,n-13); }
-  buildPat(); bindPat();
-}
-function buildPat(){
-  const card=$("patCard"); if(!card) return;
-  const pts=PAT.pts; if(pts.length<2) return;
-  const W=440,H=210,pl=10,pr=10,pt=16,pb=24;
-  const i0=Math.max(0,Math.floor(PAT.a)), i1=Math.min(pts.length-1,Math.ceil(PAT.b));
-  const vs=pts.slice(i0,i1+1).map(p=>p.v); let min=Math.min(...vs),max=Math.max(...vs); const pad=(max-min)*0.12||1; min-=pad; max+=pad;
-  const X=i=>pl+(i-PAT.a)*(W-pl-pr)/Math.max(0.5,PAT.b-PAT.a), Y=v=>pt+(1-(v-min)/(max-min))*(H-pt-pb);
-  PAT.geo={W,H,pl,pr,pt,pb,min,max,X,Y,i0,i1};
-  const line=pts.map((p,i)=>`${i?"L":"M"}${X(i).toFixed(1)} ${Y(p.v).toFixed(1)}`).join(" ");
-  const area=line+` L${X(pts.length-1).toFixed(1)} ${H-pb} L${X(0).toFixed(1)} ${H-pb} Z`;
-  const span=PAT.b-PAT.a; const step=Math.max(1,Math.ceil(span/5));
-  const labels=pts.map((p,i)=>(i>=i0&&i<=i1&&(i%step===0))?`<text x="${X(i).toFixed(1)}" y="${H-6}" text-anchor="middle" font-size="10" fill="var(--ink-2)">${MESI_S[+p.d.slice(5,7)-1]} ${p.d.slice(2,4)}</text>`:"").join("");
-  let markers="";
-  if(span<=24){ const iMax=i0+vs.indexOf(Math.max(...vs)), iMin=i0+vs.indexOf(Math.min(...vs));
-    const mk=(i,up)=>`<circle cx="${X(i).toFixed(1)}" cy="${Y(pts[i].v).toFixed(1)}" r="3" fill="${up?"#0B8A4B":"#C24A2C"}"/><text x="${X(i).toFixed(1)}" y="${(Y(pts[i].v)+(up?-8:14)).toFixed(1)}" text-anchor="middle" font-size="9.5" font-weight="600" fill="${up?"#0B8A4B":"#C24A2C"}">${fmt0(pts[i].v)}</text>`;
-    markers=mk(iMax,true)+mk(iMin,false); }
-  const n=pts.length, R=[["6","6M"],["12","12M"],["36","36M"],["all","Tutto"]];
-  card.innerHTML=`
-  <div class="hd">
-    <div><div class="val" id="patVal"></div><div class="sub" id="patSub"></div></div>
-    <div class="dlt" id="patDlt"></div>
-  </div>
-  <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" id="patSvg"><defs><clipPath id="patClip"><rect x="${pl-1}" y="0" width="${W-pl-pr+2}" height="${H}"/></clipPath>
-    <linearGradient id="pg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1F6FD0" stop-opacity=".28"/><stop offset="1" stop-color="#1F6FD0" stop-opacity="0"/></linearGradient></defs>
-    <g clip-path="url(#patClip)"><path d="${area}" fill="url(#pg)"/><path d="${line}" fill="none" stroke="#1F6FD0" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>${markers}
-    <line id="patLine" x1="0" y1="${pt}" x2="0" y2="${H-pb}" stroke="#1F6FD0" stroke-width="1" stroke-dasharray="3 3" opacity="0"/>
-    <circle id="patDot" r="5" fill="#1F6FD0" stroke="#fff" stroke-width="2" cx="${X(n-1).toFixed(1)}" cy="${Y(pts[n-1].v).toFixed(1)}"/></g>${labels}
-  </svg>
-  <div class="ranges">${R.map(([k,l])=>{ const sp=k==="all"?n-1:Math.min(+k,n-1); const on=(Math.round(PAT.b)===n-1&&Math.round(PAT.a)===Math.max(0,n-1-sp)&&Math.abs(PAT.b-PAT.a-sp)<0.01); return `<button class="${on?"on":""}" data-r="${k}">${l}</button>`; }).join("")}</div>
-  <div class="tip">Scorri col dito per i valori · pizzica per zoomare · due dita per spostarti</div>`;
-  card.querySelectorAll(".ranges button").forEach(b=>b.onclick=()=>{ const k=b.dataset.r; PAT.b=n-1; PAT.a=k==="all"?0:Math.max(0,n-1-(+k)); PAT.sel=null; buildPat(); paintPat(); });
-  paintPat();
-}
-function paintPat(){
-  const g=PAT.geo; if(!g) return; const pts=PAT.pts;
-  const li=PAT.sel!=null?Math.max(g.i0,Math.min(g.i1,PAT.sel)):pts.length-1;
-  const cur=pts[li], prev=li>0?pts[li-1]:null, first=pts[g.i0];
-  const d=cur.v-first.v, pc=first.v?d/first.v*100:0;
-  const val=$("patVal"), sub=$("patSub"), dlt=$("patDlt"), line=$("patLine"), dot=$("patDot"); if(!val) return;
-  val.textContent=fmtIT(cur.v)+" €";
-  sub.textContent=(PAT.sel!=null?fromISO(cur.d).toLocaleDateString("it-IT",{month:"short",year:"2-digit"}):"oggi")+(prev?` · ${cur.v-prev.v>=0?"+":"−"}${fmt0(Math.abs(cur.v-prev.v))} € sul mese prima`:"");
-  dlt.className="dlt "+(d>=0?"up":"down");
-  dlt.innerHTML=`${d>=0?"+":"−"}${fmt0(Math.abs(d))} €<small>${d>=0?"+":"−"}${Math.abs(pc).toFixed(1).replace(".",",")}% da ${MESI_S[+first.d.slice(5,7)-1]} ${first.d.slice(2,4)}</small>`;
-  const x=g.X(li), y=g.Y(cur.v);
-  line.setAttribute("x1",x); line.setAttribute("x2",x); line.setAttribute("opacity",PAT.sel!=null?"1":"0");
-  dot.setAttribute("cx",x); dot.setAttribute("cy",y);
-}
-function bindPat(){
-  const card=$("patCard"); if(!card||card._bound) return; card._bound=true;
-  const idxAt=cx=>{ const svg=$("patSvg"); if(!svg) return null; const r=svg.getBoundingClientRect(); const g=PAT.geo;
-    const f=(cx-r.left)/r.width; const inner=(f*g.W-g.pl)/(g.W-g.pl-g.pr); return Math.round(PAT.a+inner*(PAT.b-PAT.a)); };
-  let pinch=null, tmr=null;
-  const onStart=e=>{ if(!$("patSvg")) return; clearTimeout(tmr);
-    if(e.touches&&e.touches.length===2){ const r=$("patSvg").getBoundingClientRect(); const x1=e.touches[0].clientX,x2=e.touches[1].clientX;
-      pinch={d:Math.abs(x1-x2),a:PAT.a,b:PAT.b,c:(((x1+x2)/2-r.left)/r.width),cx:(x1+x2)/2,w:r.width}; PAT.sel=null; paintPat(); }
-    else { PAT.sel=idxAt((e.touches?e.touches[0]:e).clientX); paintPat(); } };
-  const onMove=e=>{
-    if(e.touches&&e.touches.length===2&&pinch){ const x1=e.touches[0].clientX,x2=e.touches[1].clientX; const d=Math.abs(x1-x2); if(d<8) return;
-      const n=PAT.pts.length; const span0=pinch.b-pinch.a; let span=span0*(pinch.d/d); span=Math.max(2,Math.min(n-1,span));
-      const anchor=pinch.a+pinch.c*span0;                       // punto sotto il centro delle dita, resta fermo
-      const shift=-((x1+x2)/2-pinch.cx)/pinch.w*span;           // due dita: spostamento laterale
-      let a=anchor-pinch.c*span+shift; a=Math.max(0,Math.min(n-1-span,a));
-      PAT.a=a; PAT.b=a+span; buildPat(); }
-    else if(e.touches&&e.touches.length===1){ PAT.sel=idxAt(e.touches[0].clientX); paintPat(); } };
-  const onEnd=e=>{ pinch=null; if(!e.touches||!e.touches.length){ tmr=setTimeout(()=>{ PAT.sel=null; paintPat(); },2500); } };
-  card.addEventListener("touchstart",onStart,{passive:true});
-  card.addEventListener("touchmove",onMove,{passive:true});
-  card.addEventListener("touchend",onEnd,{passive:true});
-  card.addEventListener("mousemove",e=>{ PAT.sel=idxAt(e.clientX); paintPat(); });
-  card.addEventListener("mouseleave",()=>{ PAT.sel=null; paintPat(); });
+  const card=$("patCard"); if(!card) return; const n=all.length;
+  card.innerHTML=`<div class="hd"><div><div class="val" id="patVal"></div><div class="sub" id="patSub"></div></div><div class="dlt" id="patDlt"></div></div>
+    <svg viewBox="0 0 440 210" preserveAspectRatio="none" id="patSvg"></svg>
+    <div class="ranges" id="patRanges"><button data-r="6">6M</button><button data-r="12" class="on">12M</button><button data-r="36">36M</button><button data-r="all">Tutto</button></div>
+    <div class="tip">Scorri col dito per i valori · pizzica per zoomare · due dita per spostarti</div>`;
+  PATC=makeTimeChart({host:card,id:"pat",n,nowIdx:null,
+    series:[{key:"v",color:"#1F6FD0",area:true,alpha:.28,stroke:"#1F6FD0",width:2.4}],
+    getY:(i)=>all[i].v, topAt:i=>all[i].v, labelAt:i=>MESI_S[+all[i].d.slice(5,7)-1]+" "+all[i].d.slice(2,4),
+    onPaint:(i,sel)=>{ const cur=all[i], prev=i>0?all[i-1]:null; const a=Math.max(0,Math.round(PATC.st.a)); const first=all[a];
+      const d=cur.v-first.v, pc=first.v?d/first.v*100:0; const val=$("patVal"),sub=$("patSub"),dlt=$("patDlt"); if(!val) return;
+      val.textContent=fmtIT(cur.v)+" €";
+      sub.textContent=(sel?fromISO(cur.d).toLocaleDateString("it-IT",{month:"short",year:"2-digit"}):"oggi")+(prev?` · ${cur.v-prev.v>=0?"+":"−"}${fmt0(Math.abs(cur.v-prev.v))} € sul mese prima`:"");
+      dlt.className="dlt "+(d>=0?"up":"down"); dlt.innerHTML=`${d>=0?"+":"−"}${fmt0(Math.abs(d))} €<small>${d>=0?"+":"−"}${Math.abs(pc).toFixed(1).replace(".",",")}% da ${MESI_S[+first.d.slice(5,7)-1]} ${first.d.slice(2,4)}</small>`; }
+  });
+  PATC.setWindow(Math.max(0,n-13),n-1,true);
+  card.querySelectorAll("#patRanges button").forEach(b=>b.onclick=()=>{ card.querySelectorAll("#patRanges button").forEach(x=>x.classList.toggle("on",x===b));
+    const r=b.dataset.r; PATC.setWindow(r==="all"?0:Math.max(0,n-1-(+r)),n-1,true); });
 }
 function lineSVG(points){ // [{d,v}]
   const W=440,H=150,pl=8,pb=20,pt=10; if(points.length<2) return "";
@@ -1390,7 +1469,10 @@ function renderRp(){
     <div class="ytd">${stato==="ok"?"Spese del mese sotto la tua media":stato==="warn"?"Spese del mese in linea con la tua media":stato==="over"?"Spese del mese sopra la tua media":"Primo mese: nessuna media di confronto"}</div>`;
   if(ytd!=null) h+=`<div class="ytd">Da inizio anno <em class="${ytd<0?"neg":""}">${ytd>=0?"+":"−"}${fmtIT(Math.abs(ytd))} €</em></div>`;
   if(!isCur) h+=`<div class="ytd" style="opacity:.8">Liquidità, carte e asset qui sotto sono quelli di oggi</div>`;
-  h+=`<div class="grid3"><div><small>Liquidità</small><b><span class="cnt" data-v="${D.liquidita}">${fmt0(D.liquidita)}</span> €</b></div><div><small>Carte da addebitare</small><b><span class="cnt" data-v="${D.carteTot}">${fmt0(D.carteTot)}</span> €</b></div><div><small>Asset</small><b><span class="cnt" data-v="${D.assetTot}">${fmt0(D.assetTot)}</span> €</b></div>${D.trasferte.credito>0.005?`<div><small>Crediti trasferte</small><b>${fmt0(D.trasferte.credito)} €</b></div>`:""}</div></div>`;
+  const SCx=serieComposizione(); const prevPt=SCx?[...SCx.pts].reverse().find(p=>p.kind==="hist"&&p.d<dateISO(today()).slice(0,7)+"-02"&&p.liq!=null):null;
+  const dLiq=prevPt?D.liquidita-prevPt.liq:null, dAss=prevPt?D.assetTot-prevPt.asset:null;
+  const delta=v=>v==null?"":`<em class="dv ${v>=0?"up":"down"}">${v>=0?"+":"−"}${fmt0(Math.abs(v))} € sul mese scorso</em>`;
+  h+=`<div class="grid3"><div><small>Liquidità</small><b><span class="cnt" data-v="${D.liquidita}">${fmt0(D.liquidita)}</span> €</b>${delta(dLiq)}</div><div><small>Carte da addebitare</small><b><span class="cnt" data-v="${D.carteTot}">${fmt0(D.carteTot)}</span> €</b></div><div><small>Asset</small><b><span class="cnt" data-v="${D.assetTot}">${fmt0(D.assetTot)}</span> €</b>${delta(dAss)}</div>${D.trasferte.credito>0.005?`<div><small>Crediti trasferte</small><b>${fmt0(D.trasferte.credito)} €</b></div>`:""}</div></div>`;
   h+=`<div class="sync">${R.loading?"Aggiornamento in corso…":`Letto da Excel ${ago<1?"adesso":ago<60?ago+" min fa":"alle "+pad2(when.getHours())+":"+pad2(when.getMinutes())+" del "+shortDate(when)}`}<button id="rpRefresh">Aggiorna</button></div>`;
   // mese
   h+=`<div class="card"><div class="mnav"><button id="mPrev">‹</button><b>${monthLabel(R.month)}</b><button id="mNext">›</button></div>
@@ -1422,10 +1504,10 @@ function renderRp(){
   h+=`<div class="card"><h3>Confronto mese su mese<small>${yearNow}</small></h3>${barsSVG(series)}<div class="lg"><span><i style="background:#1F6FD0"></i>Entrate</span><span><i style="background:#E4572E"></i>Spese</span></div></div>`;
   h+=`<div class="card"><h3>Report PDF</h3><p style="font-size:13.5px;color:var(--ink-2);margin:0 0 10px">Un resoconto completo del mese chiuso: patrimonio, spese per categoria, trend, investimenti e stato FIRE.</p><button class="btn" id="btnReport" style="width:100%">📄 Genera report PDF</button></div>`;
   // storico patrimonio
-  if(D.storico.length>=2) h+=`<div class="pat" id="patCard"></div>`;
+  if(D.storico.length>=2) h+=`<div class="pat" id="patCard"></div><div class="pat" id="compCard"></div>`;
   body.innerHTML=`<div class="ptr ${R.loading?"on":""}"><span><i class="spin"></i>Aggiorno da Excel…</span></div>`+h;
   animateCounts(body);
-  if(D.storico.length>=2){ const pc=$("patCard"); if(pc) pc._bound=false; initPat(D.storico); }
+  if(D.storico.length>=2){ const pc=$("patCard"); if(pc) pc._bound=false; initPat(D.storico); initComp(); }
   const br=$("btnReport"); if(br) br.onclick=openReport;
   const bri=$("btnRimborso"); if(bri) bri.onclick=()=>{ $("sheetRp").classList.remove("open");
     F.desc="Rimborso nota spese"; $("desc").value=F.desc; F.cat=CAT_TRASFERTE; F.conto="BNL"; F.sign=1; F.amt=fmtIT(D.trasferte.credito);
@@ -2053,7 +2135,7 @@ $("btnRepGo").onclick=genReport;
 
 // ================= FIRE =================
 const FIRE_DEF={mode:"proj",cap:null,pac:null,rate:7,infl:2,spesa:null,swr:4,anni:20,base:"asset"};
-function fireCfg(){ S.fire=Object.assign({},FIRE_DEF,S.fire||{}); return S.fire; }
+function fireCfg(){ if(!S.fire) S.fire={...FIRE_DEF}; else for(const k in FIRE_DEF) if(!(k in S.fire)) S.fire[k]=FIRE_DEF[k]; return S.fire; }
 function fireDefaults(){
   const D=calc(); const f=fireCfg(); if(!D) return f;
   if(f.cap==null) f.cap=Math.round(f.base==="tot"?D.patrimonio:D.assetTot);
@@ -2247,4 +2329,3 @@ load().then(()=>{ render(); if(S.share&&S.cache&&Date.now()-S.cache.ts>4*3600e3)
 </script>
 </body>
 </html>
- 
