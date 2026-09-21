@@ -604,6 +604,38 @@
   #dateChips{flex-wrap:nowrap}
   /* storie: invariate */
   @media (prefers-reduced-motion:reduce){.toast,.padwrap{transition:none}.dictate.rec .mic{animation:none}}
+
+  /* ================= iPAD: stesse schermate, larghezze da tablet ================= */
+  /* Solo da 700px in su: su iPhone (max 440px) queste regole non entrano mai in gioco. */
+  @media (min-width:700px){
+    :root{--wide:700px;--colw:680px}
+    html,body{font-size:17.5px}
+    .app{max-width:var(--colw)}
+    #hdr{max-width:var(--colw)}
+    .padwrap .inner{max-width:var(--colw)}
+    .pad button{height:64px}
+    .sheet{padding-left:max(14px,calc((100vw - var(--wide)) / 2))!important;padding-right:max(14px,calc((100vw - var(--wide)) / 2))!important}
+    .stwrap{max-width:560px;margin:0 auto}
+    .flash .fcard{max-width:400px}
+    .pat .hd .sub{max-width:none}
+    .pat svg{height:280px}
+    .fire svg.ch{height:240px}
+    .rp .hero .ring{width:196px;height:196px}
+    #cat button{flex:0 1 auto}
+    .actions{gap:12px}
+  }
+  /* iPad in orizzontale (o portrait 12,9"): i pannelli a due colonne, come un'app nativa */
+  @media (min-width:1000px){
+    :root{--wide:960px}
+    .rp #rpBody,.fire #fireBody{display:grid;grid-template-columns:1fr 1fr;gap:0 14px;align-items:start}
+    .rp #rpBody>.ptr,.rp #rpBody>.hero,.rp #rpBody>.sync,.rp #rpBody>.pat,.fire #fireBody>.hero{grid-column:1/-1}
+    .fire .modes{max-width:var(--wide)}
+    .mv #mvBody{columns:2;column-gap:14px}
+    .mv #mvBody>.sum{column-span:all}
+    .mv #mvBody>.day,.mv #mvBody>ul.list{break-inside:avoid}
+    .mv #mvBody>.more2{column-span:all}
+    #sheetSettings>.field,#sheetLog>*{max-width:none}
+  }
 </style>
 </head>
 <body>
@@ -796,7 +828,7 @@
   </div>
   <div class="field">
     <label>Versione app</label>
-    <p><b>v55</b> · Composizione del patrimonio impilata correttamente (asse da zero) e zoom dell'asse Y con cursore o pizzico verticale. Se non leggi "v55" qui, versione vecchia.</p>
+    <p><b>v56</b> · Layout adattivo per iPad (colonna più larga, pannelli a due colonne in orizzontale); su iPhone nulla cambia. Se non leggi "v56" qui, versione vecchia.</p>
   </div>
   <div class="field">
     <label>Dettatura</label>
