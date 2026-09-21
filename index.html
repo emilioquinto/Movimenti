@@ -324,6 +324,15 @@
   .rp .rows li b{font-family:ui-rounded,-apple-system,system-ui,sans-serif;font-weight:600}
   .rp .rows li small{color:var(--ink-2);font-size:12.5px;display:block}
   .rp .rows li.tot{font-weight:700;border-top:2px solid var(--line)}
+  .rp .rows li.exp{cursor:pointer}
+  .rp .rows li .chev{font-style:normal;color:var(--ink-2);margin-left:8px;display:inline-block;transition:transform .2s;flex:0 0 auto}
+  .rp .rows li.exp.open .chev{transform:rotate(90deg)}
+  .rp .rows li.sub{display:block;padding:0 0 4px 12px;background:var(--surface-2);border-radius:12px;margin:2px 0 6px;border-bottom:0}
+  .rp .rows li.sub ul{list-style:none;margin:0;padding:0}
+  .rp .rows li.sub ul li{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:7px 10px 7px 0;font-size:13.5px;border-bottom:1px solid var(--hair)}
+  .rp .rows li.sub ul li:last-child{border-bottom:0}
+  .rp .rows li.sub ul li small{display:block;color:var(--ink-2);font-size:11.5px}
+  .rp .rows li.sub ul li b{font-weight:600;white-space:nowrap}
   .rp .bar{height:6px;background:var(--key);border-radius:3px;margin-top:4px;overflow:hidden}
   .rp .bar i{display:block;height:100%;background:var(--go);border-radius:3px}
   .rp .bar i.over{background:var(--warn)}
@@ -828,7 +837,7 @@
   </div>
   <div class="field">
     <label>Versione app</label>
-    <p><b>v57</b> · Layout iPad corretto (pannelli centrati, due colonne in orizzontale); su iPhone nulla cambia. Se non leggi "v57" qui, versione vecchia.</p>
+    <p><b>v58</b> · Nel Riepilogo tocca una categoria di spesa o di entrata per vedere sotto l'elenco dei movimenti del mese. Se non leggi "v58" qui, versione vecchia.</p>
   </div>
   <div class="field">
     <label>Dettatura</label>
@@ -1531,8 +1540,19 @@ function lineSVG(points){ // [{d,v}]
   const last=points[points.length-1];
   return `<svg class="chart" viewBox="0 0 ${W} ${H}" aria-hidden="true"><path d="${area}" fill="#DCEBFB"/><path d="${path}" fill="none" stroke="#1F6FD0" stroke-width="2.5" stroke-linejoin="round"/><circle cx="${xs(points.length-1).toFixed(1)}" cy="${ys(last.v).toFixed(1)}" r="4" fill="#1F6FD0"/>${labels}</svg>`;
 }
+function catRowsHTML(cat){
+  const rows=((S.cache&&S.cache.rows)||[]).filter(r=>r.d.startsWith(R.month)&&r.cat===cat).sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:0);
+  const inner=rows.length?rows.map(r=>`<li><span>${esc(r.desc)}<small>${dateIT(fromISO(r.d))} · ${esc(lbl(r.conto))}</small></span><b>${fmtIT(Math.abs(r.imp))} €</b></li>`).join(""):`<li><small>Nessun movimento in questo mese</small></li>`;
+  return `<li class="sub" data-sub="${esc(cat)}"><ul>${inner}</ul></li>`;
+}
+function expLi(name,inner,val){ const open=R.openCats.has(name); return `<li class="exp${open?" open":""}" data-cat="${esc(name)}">${inner}${val}<em class="chev">›</em></li>${open?catRowsHTML(name):""}`; }
+function bindExp(root){
+  root.querySelectorAll("li.exp").forEach(li=>li.onclick=()=>{ const c=li.dataset.cat; haptic();
+    if(R.openCats.has(c)){ R.openCats.delete(c); li.classList.remove("open"); const n=li.nextElementSibling; if(n&&n.classList.contains("sub")) n.remove(); }
+    else { R.openCats.add(c); li.classList.add("open"); li.insertAdjacentHTML("afterend",catRowsHTML(c)); } });
+}
 function renderRp(){
-  const body=$("rpBody"); const D=calc();
+  const body=$("rpBody"); const D=calc(); if(!R.openCats) R.openCats=new Set();
   if(!D){ body.innerHTML=R.loading?skeletonHTML():`<div class="card"><div class="empty">${EMPTY_ART.chart}<b>Nessun dato ancora</b>${S.share?"Trascina in giù o tocca Aggiorna per leggere il file.":"In ⚙︎ incolla l'indirizzo del relay, poi torna qui."}</div></div>`; return; }
   if(!R.month) R.month=D.months.length?D.months[D.months.length-1]:dateISO(today()).slice(0,7);
   const M=D.month(R.month); const ytd=D.inizioAnno!=null?D.patrimonio-D.inizioAnno:null;
@@ -1558,13 +1578,13 @@ function renderRp(){
   h+=`<div class="card"><div class="mnav"><button id="mPrev">‹</button><b>${monthLabel(R.month)}</b><button id="mNext">›</button></div>
     <div class="kpi"><div><small>Entrate</small><b><span class="cnt" data-v="${M.entrate}">${fmt0(M.entrate)}</span> €</b></div><div><small>Spese</small><b><span class="cnt" data-v="${M.spese}">${fmt0(M.spese)}</span> €</b></div><div><small>Investiti</small><b><span class="cnt" data-v="${M.investiti}">${fmt0(M.investiti)}</span> €</b></div><div><small>Risparmio · ${Math.round(M.tasso*100)}%</small><b><span class="cnt" data-v="${M.risparmio}">${fmt0(M.risparmio)}</span> €</b></div></div></div>`;
   // entrate del mese
-  if(M.byCatIn.length) h+=`<div class="card"><h3>Entrate<small>${monthLabel(R.month)}</small></h3><ul class="rows">${M.byCatIn.map(c=>`<li><span>${c.emoji?c.emoji+" ":""}${esc(c.name)}</span><b style="color:var(--in)">${fmtIT(c.incassato)} €</b></li>`).join("")}${M.byCatInv.length?M.byCatInv.map(c=>`<li><span>${c.emoji?c.emoji+" ":""}${esc(c.name)}<small>versato, non una spesa</small></span><b>${fmtIT(c.versato)} €</b></li>`).join(""):""}<li class="tot"><span>Totale entrate</span><b style="color:var(--in)">${fmtIT(M.entrate)} €</b></li></ul></div>`;
+  if(M.byCatIn.length) h+=`<div class="card"><h3>Entrate<small>${monthLabel(R.month)}</small></h3><ul class="rows">${M.byCatIn.map(c=>expLi(c.name,`<span>${c.emoji?c.emoji+" ":""}${esc(c.name)}</span>`,`<b style="color:var(--in)">${fmtIT(c.incassato)} €</b>`)).join("")}${M.byCatInv.length?M.byCatInv.map(c=>expLi(c.name,`<span>${c.emoji?c.emoji+" ":""}${esc(c.name)}<small>versato, non una spesa</small></span>`,`<b>${fmtIT(c.versato)} €</b>`)).join(""):""}<li class="tot"><span>Totale entrate</span><b style="color:var(--in)">${fmtIT(M.entrate)} €</b></li></ul></div>`;
   // torta
   const top=M.byCat.slice(0,9); const rest=M.byCat.slice(9); const items=rest.length?[...top,{name:"Altre",emoji:"…",speso:rest.reduce((a,c)=>a+c.speso,0),budget:0}]:top;
   h+=`<div class="card"><h3>Spese per categoria<small>${monthLabel(R.month)}</small></h3>`;
   if(!items.length) h+=`<div class="empty">${EMPTY_ART.chart}Nessuna spesa registrata in questo mese.</div>`;
   else{ h+=`<div class="donutwrap">${donutSVG(items,M.spese)}<ul class="legend">${items.map((c,i)=>`<li><i style="background:${PALETTE[i%PALETTE.length]}"></i><span>${c.emoji?c.emoji+" ":""}${esc(c.name)}</span><b>${fmt0(c.speso)} €<small>${Math.round(c.speso/M.spese*100)}%</small></b></li>`).join("")}</ul></div>`;
-    h+=`<ul class="rows" style="margin-top:10px">${M.byCat.map(c=>`<li><span>${c.emoji?c.emoji+" ":""}${esc(c.name)}<small>budget ${fmt0(c.budget)} €</small><div class="bar"><i class="${c.budget&&c.speso>c.budget?"over":""}" style="width:${c.budget?Math.min(100,c.speso/c.budget*100):0}%"></i></div></span><b>${fmtIT(c.speso)} €</b></li>`).join("")}</ul>`; }
+    h+=`<ul class="rows" style="margin-top:10px">${M.byCat.map(c=>expLi(c.name,`<span>${c.emoji?c.emoji+" ":""}${esc(c.name)}<small>budget ${fmt0(c.budget)} €</small><div class="bar"><i class="${c.budget&&c.speso>c.budget?"over":""}" style="width:${c.budget?Math.min(100,c.speso/c.budget*100):0}%"></i></div></span>`,`<b>${fmtIT(c.speso)} €</b>`)).join("")}</ul>`; }
   h+=`</div>`;
   setTimeout(()=>{ body.querySelectorAll(".rows .bar i").forEach(i=>{ const w=i.style.width; i.style.width="0"; requestAnimationFrame(()=>requestAnimationFrame(()=>{ i.style.width=w; })); }); },0);
   // saldi
@@ -1586,7 +1606,7 @@ function renderRp(){
   // storico patrimonio
   if(D.storico.length>=2) h+=`<div class="pat" id="patCard"></div><div class="pat" id="compCard"></div>`;
   body.innerHTML=`<div class="ptr ${R.loading?"on":""}"><span><i class="spin"></i>Aggiorno da Excel…</span></div>`+h;
-  animateCounts(body);
+  animateCounts(body); bindExp(body);
   if(D.storico.length>=2){ const pc=$("patCard"); if(pc) pc._bound=false; initPat(D.storico); initComp(); }
   const br=$("btnReport"); if(br) br.onclick=openReport;
   const bri=$("btnRimborso"); if(bri) bri.onclick=()=>{ $("sheetRp").classList.remove("open");
