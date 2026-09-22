@@ -653,16 +653,58 @@
     #cat button{flex:0 1 auto}
     .actions{gap:12px}
   }
-  /* iPad in orizzontale (o portrait 12,9"): i pannelli a due colonne, come un'app nativa */
+  /* ================= iPad in orizzontale: barra laterale + contenuto a colonne ================= */
   @media (min-width:1000px){
-    :root{--wide:960px}
-    .rp #rpBody,.fire #fireBody{display:grid;grid-template-columns:1fr 1fr;gap:0 14px;align-items:start}
+    :root{--wide:1120px;--sb:232px}
+    /* barra laterale */
+    #hdr{top:0;bottom:0;left:0;right:auto;width:var(--sb);max-width:none;margin:0!important;flex-direction:column;align-items:stretch;gap:4px;
+      padding:calc(env(safe-area-inset-top) + 22px) 14px 18px!important;border-right:1px solid var(--hair);border-bottom:0!important;background:var(--surface-2)!important}
+    #hdr::before{content:"Movimenti";font-size:24px;font-weight:700;letter-spacing:-.01em;padding:0 10px 18px;color:var(--ink)}
+    #hdr .navmini{order:1;flex:0 0 auto;flex-direction:column;align-items:stretch;gap:2px;background:transparent!important;border:0!important;padding:0;border-radius:0!important}
+    #hdr .navmini .ind{top:0;bottom:auto;left:0;right:0;width:100%;height:0;border-radius:12px;transition:transform .32s cubic-bezier(.22,1,.36,1),height .32s}
+    #hdr .navmini button{flex-direction:row;justify-content:flex-start;gap:12px;height:46px;padding:0 12px;border-radius:12px;font-size:15px;color:var(--ink-2)}
+    #hdr .navmini button svg{width:20px;height:20px}
+    #hdr .navmini button span{font-size:15px;font-weight:600}
+    #hdr .navmini button.st .stwrapi{margin-top:0;width:24px;height:24px}
+    #hdr .navmini button.st .stwrapi svg{width:13px;height:13px}
+    #hdr .ic,#hdr .badge{width:100%;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:flex-start;gap:12px;padding:0 12px;color:var(--ink-2);font-size:15px;font-weight:600}
+    #hdr .ic{order:2;margin-top:auto} #hdr .badge{order:3}
+    #hdr [data-set]::after{content:"Impostazioni"} #hdr [data-log]::after{content:"Inviati"}
+    #hdr .badge .n{position:static;margin-left:auto;background:var(--go)}
+    /* contenuto a destra della barra */
+    .app{margin-left:var(--sb);max-width:none;padding:calc(env(safe-area-inset-top) + 28px) 36px calc(env(safe-area-inset-bottom) + 24px)!important;
+      display:grid;grid-template-columns:minmax(380px,520px) minmax(380px,1fr);grid-template-rows:auto auto auto auto 1fr;grid-template-areas:"amount cat" "desc cat" "conto cat" "data cat" "actions cat";gap:0 24px;align-content:start;justify-content:start}
+    .app>.amount{grid-area:amount} .app>.field:nth-child(2){grid-area:desc} .app>#catField{grid-area:cat;max-height:none;min-height:0;align-self:stretch}
+    .app>.field:nth-child(4){grid-area:conto} .app>.field:nth-child(5){grid-area:data} .app>.actions{grid-area:actions;align-self:end;margin-top:8px}
+    .app #cat{-webkit-mask-image:none;mask-image:none;align-content:start}
+    .app #cat button{flex:0 1 auto;font-size:15.5px;padding:10px 16px}
+    .app .field label,.app .chips,.app .sugg{justify-content:flex-start;text-align:left}
+    .app .field input[type=text]{text-align:left}
+    .sheet{left:var(--sb)!important;padding-left:36px!important;padding-right:36px!important;padding-top:calc(env(safe-area-inset-top) + 20px)!important}
+    .sheet>*{max-width:var(--wide)}
+    .padwrap{left:var(--sb);right:auto;width:560px;padding-left:36px;box-shadow:none!important;border-top:1px solid var(--hair);border-right:1px solid var(--hair);border-radius:0 18px 0 0}
+    .padwrap .inner{max-width:none}
+    .toast{left:calc(50% + var(--sb) / 2)}
+    .flash{left:var(--sb)}
+    /* pannelli a griglia */
+    .rp #rpBody,.fire #fireBody{display:grid;grid-template-columns:1fr 1fr;gap:0 16px;align-items:start}
     .rp #rpBody>.ptr,.rp #rpBody>.hero,.rp #rpBody>.sync,.rp #rpBody>.pat,.fire #fireBody>.hero{grid-column:1/-1}
-    .mv #mvBody{columns:2;column-gap:14px}
-    .mv #mvBody>.sum{column-span:all}
+    .rp .hero{display:grid;grid-template-columns:auto 1fr;gap:0 28px;align-items:center}
+    .rp .hero .lbl{grid-column:1/-1} .rp .hero .ring{margin:0;grid-row:span 3} .rp .hero .grid3{grid-column:2}
+    .mv{display:grid!important;grid-template-columns:1fr 1fr 1fr;gap:0 14px;align-content:start}
+    .mv>.top,.mv>#mvBody,.mv>.field:first-of-type{grid-column:1/-1}
+    .mv #mvBody{columns:2;column-gap:16px}
+    .mv #mvBody>.sum,.mv #mvBody>.more2{column-span:all}
     .mv #mvBody>.day,.mv #mvBody>ul.list{break-inside:avoid}
-    .mv #mvBody>.more2{column-span:all}
-    #sheetSettings>.field,#sheetLog>*{max-width:none}
+    #sheetSettings{display:grid!important;grid-template-columns:1fr 1fr;gap:0 16px;align-content:start}
+    #sheetSettings>.top{grid-column:1/-1}
+    #sheetLog,#sheetPac,#sheetRep,#sheetPrezzi,#sheetBudget{--wide:760px}
+  }
+  @media (min-width:1300px){
+    :root{--wide:1320px}
+    .rp #rpBody{grid-template-columns:1fr 1fr 1fr}
+    .rp #rpBody>.pat{grid-column:span 3}
+    .rp #rpBody>#pianoCard{grid-column:span 2}
   }
 </style>
 </head>
@@ -865,7 +907,7 @@
   </div>
   <div class="field">
     <label>Versione app</label>
-    <p><b>v61</b> · Obiettivi anche per le entrate e piano investimenti; card "Piano del mese" con cursore per capire quanto investire e quanta liquidità resta. Se non leggi "v61" qui, versione vecchia.</p>
+    <p><b>v62</b> · iPad in orizzontale: barra laterale di navigazione, schermata Nuovo su due colonne, pannelli a griglia. Se non leggi "v62" qui, versione vecchia.</p>
   </div>
   <div class="field">
     <label>Dettatura</label>
@@ -2035,7 +2077,9 @@ function setActiveNav(active){
   const nav=$("hdr")&&$("hdr").querySelector(".navmini"); if(!nav) return;
   nav.querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.go===active));
   const b=nav.querySelector(`button[data-go="${active}"]`), ind=nav.querySelector(".ind"); if(!b||!ind) return;
-  const place=()=>{ ind.style.width=b.offsetWidth+"px"; ind.style.transform=`translateX(${b.offsetLeft}px)`; };
+  const vert=getComputedStyle(nav).flexDirection==="column";
+  const place=()=>{ if(vert){ ind.style.width="100%"; ind.style.height=b.offsetHeight+"px"; ind.style.transform=`translateY(${b.offsetTop}px)`; }
+    else { ind.style.height=""; ind.style.width=b.offsetWidth+"px"; ind.style.transform=`translateX(${b.offsetLeft}px)`; } };
   place(); requestAnimationFrame(place);
 }
 const SHEETS=["sheetRp","sheetMv","sheetFire","sheetLog","sheetSettings","sheetPac","sheetRep","sheetPrezzi","sheetBudget"];
