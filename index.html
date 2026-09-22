@@ -346,7 +346,19 @@
   .rp .bar i{display:block;height:100%;background:var(--go);border-radius:3px;transform-origin:left;animation:barIn .9s cubic-bezier(.22,1,.36,1) both}
   @keyframes barIn{from{transform:scaleX(0)}to{transform:scaleX(1)}}
   .rp .bar i.over{background:var(--warn)}
+  .rp .bar i.ok{background:#2FB27A}
   .rp .empty{color:var(--ink-2);font-size:14px;text-align:center;padding:24px 8px;line-height:1.5}
+  .rp .flow{margin:8px 0 12px}
+  .rp .flow .ft{display:flex;justify-content:space-between;align-items:baseline;font-size:13.5px;font-weight:600;margin-bottom:5px}
+  .rp .flow .ft b{font-family:ui-rounded,-apple-system,system-ui,sans-serif;font-size:14px}
+  .rp .flow .ft b.up{color:#2FB27A}.rp .flow .ft b.down{color:var(--warn)}
+  .rp .flow .fb{display:flex;height:22px;border-radius:8px;overflow:hidden;background:var(--key);gap:2px}
+  .rp .flow .fb i{display:block;height:100%;transition:width .5s cubic-bezier(.22,1,.36,1)}
+  .rp .flow .fl{display:flex;justify-content:space-between;font-size:11.5px;color:var(--ink-2);margin-top:4px;font-variant-numeric:tabular-nums}
+  .rp .fn{font-size:12px;color:var(--ink-2);line-height:1.4;margin-top:4px}
+  .rp .kpi em.dv{display:block;font-style:normal;font-size:11px;color:var(--ink-2);margin-top:2px}
+  .rp .ip label{font-size:13.5px;color:var(--ink-2)} .rp .ip .r1{display:flex;justify-content:space-between;align-items:baseline}
+  .rp .ip .v b{font-family:ui-rounded,-apple-system,system-ui,sans-serif;font-size:18px}
   .rp .empty b{display:block;color:var(--ink);margin-bottom:6px}
   .rp .chart{width:100%;height:auto;display:block}
   .fire .modes{display:flex;gap:6px;background:var(--key);border-radius:12px;padding:4px;margin-bottom:12px}
@@ -761,8 +773,8 @@
 </div>
 
 <div class="sheet" id="sheetBudget">
-  <div class="top"><h2>Budget categorie</h2><button class="close" data-close="sheetBudget">Chiudi</button></div>
-  <p>Soglia mensile per categoria. I valori modificati qui vivono nell'app (e nel backup) e hanno la precedenza su quelli del foglio Impostazioni di Excel, che resta invariato.</p>
+  <div class="top"><h2>Budget e obiettivi</h2><button class="close" data-close="sheetBudget">Chiudi</button></div>
+  <p>Obiettivo mensile di entrata, piano di investimento e soglia di spesa per categoria. I valori modificati qui vivono nell'app (e nel backup) e hanno la precedenza sul foglio Impostazioni di Excel, che resta invariato. Il piano del mese nel Riepilogo si calcola da questi numeri.</p>
   <div id="budgetRows"></div>
   <button class="go" id="btnBudgetSave" style="width:100%">Salva</button>
   <button class="btn danger" id="btnBudgetReset" style="width:100%;margin:10px 0 0">Ripristina i valori di Excel</button>
@@ -853,7 +865,7 @@
   </div>
   <div class="field">
     <label>Versione app</label>
-    <p><b>v60</b> · Budget modificabili dall'app, grafico per componente del patrimonio, lettura Excel senza cache, barre budget ed evidenziazione ciambella rifatte. Se non leggi "v60" qui, versione vecchia.</p>
+    <p><b>v61</b> · Obiettivi anche per le entrate e piano investimenti; card "Piano del mese" con cursore per capire quanto investire e quanta liquidità resta. Se non leggi "v61" qui, versione vecchia.</p>
   </div>
   <div class="field">
     <label>Dettatura</label>
@@ -1336,11 +1348,11 @@ function calc(){
     const entrate=sum(r=>inM(r)&&tipoOf(r.cat)==="Entrata"); const spese=-sum(r=>inM(r)&&tipoOf(r.cat)==="Spesa"); const investiti=-sum(r=>inM(r)&&tipoOf(r.cat)==="Investimento");
     const varLiq=entrate-spese-investiti; const risparmio=investiti+Math.max(0,varLiq);
     const byCat=C.cats.filter(c=>c.tipo==="Spesa").map(c=>({name:c.name,emoji:c.emoji,budget:c.budget,speso:-sum(r=>inM(r)&&r.cat===c.name)})).filter(c=>c.speso>0.005).sort((a,b)=>b.speso-a.speso);
-    const byCatIn=C.cats.filter(c=>c.tipo==="Entrata").map(c=>({name:c.name,emoji:c.emoji,incassato:sum(r=>inM(r)&&r.cat===c.name)})).filter(c=>c.incassato>0.005).sort((a,b)=>b.incassato-a.incassato);
-    const byCatInv=C.cats.filter(c=>c.tipo==="Investimento").map(c=>({name:c.name,emoji:c.emoji,versato:-sum(r=>inM(r)&&r.cat===c.name)})).filter(c=>Math.abs(c.versato)>0.005);
+    const byCatIn=C.cats.filter(c=>c.tipo==="Entrata").map(c=>({name:c.name,emoji:c.emoji,budget:c.budget,incassato:sum(r=>inM(r)&&r.cat===c.name)})).filter(c=>c.incassato>0.005).sort((a,b)=>b.incassato-a.incassato);
+    const byCatInv=C.cats.filter(c=>c.tipo==="Investimento").map(c=>({name:c.name,emoji:c.emoji,budget:c.budget,versato:-sum(r=>inM(r)&&r.cat===c.name)})).filter(c=>Math.abs(c.versato)>0.005);
     return {entrate,spese,investiti,varLiq,risparmio,tasso:entrate?risparmio/entrate:0,byCat,byCatIn,byCatInv}; };
   const months=[...new Set(rows.map(r=>r.d.slice(0,7)))].sort();
-  return {saldi:liquid,carte,trasferte,liquidita,carteTot,assetTot,patrimonio,inizioAnno,etf,crypto,pensione,assets,livePrices,assetDate:C.assetDate,storico,month,months,ts:C.ts};
+  return {saldi:liquid,carte,trasferte,liquidita,carteTot,assetTot,patrimonio,inizioAnno,etf,crypto,pensione,assets,livePrices,assetDate:C.assetDate,storico,month,months,cats:C.cats,ts:C.ts};
 }
 
 
@@ -1603,6 +1615,57 @@ function lineSVG(points){ // [{d,v}]
   const last=points[points.length-1];
   return `<svg class="chart" viewBox="0 0 ${W} ${H}" aria-hidden="true"><path d="${area}" fill="#DCEBFB"/><path d="${path}" fill="none" stroke="#1F6FD0" stroke-width="2.5" stroke-linejoin="round"/><circle cx="${xs(points.length-1).toFixed(1)}" cy="${ys(last.v).toFixed(1)}" r="4" fill="#1F6FD0"/>${labels}</svg>`;
 }
+// ---------- piano del mese ----------
+function pianoData(D,curM){
+  const bIn=D.cats.filter(c=>c.tipo==="Entrata").reduce((a,c)=>a+c.budget,0);
+  const bOut=D.cats.filter(c=>c.tipo==="Spesa").reduce((a,c)=>a+c.budget,0);
+  const bInv=D.cats.filter(c=>c.tipo==="Investimento").reduce((a,c)=>a+c.budget,0);
+  const ms=D.months.filter(x=>x<curM).slice(-12); const n=Math.max(1,ms.length);
+  const avg=k=>ms.reduce((a,x)=>a+D.month(x)[k],0)/n;
+  return {bIn,bOut,bInv,avgIn:avg("entrate"),avgOut:avg("spese"),avgInv:avg("investiti"),nMesi:ms.length};
+}
+function flowBar(title,inV,outV,invV,note){
+  const liq=inV-outV-invV; const base=Math.max(1,inV,outV+invV);
+  const w=v=>Math.max(0,v/base*100).toFixed(1);
+  return `<div class="flow"><div class="ft"><span>${title}</span><b class="${liq>=0?"up":"down"}">${liq>=0?"+":"−"}${fmt0(Math.abs(liq))} € liquidità</b></div>
+    <div class="fb"><i style="width:${w(outV)}%;background:#E4572E" title="Spese"></i><i style="width:${w(invV)}%;background:#2FB27A"></i>${liq>=0?`<i style="width:${w(liq)}%;background:#3B82F6"></i>`:`<i style="width:${w(-liq)}%;background:repeating-linear-gradient(45deg,#E4572E 0 4px,#8E2E1B 4px 8px)"></i>`}</div>
+    <div class="fl"><span>Entrate ${fmt0(inV)}</span><span>Spese ${fmt0(outV)}</span><span>Investiti ${fmt0(invV)}</span></div>${note?`<div class="fn">${note}</div>`:""}</div>`;
+}
+function pianoHTML(D,M,curM){
+  const P=pianoData(D,curM); if(!P.bIn&&!P.avgIn) return "";
+  const inv=(S.pianoInv!=null)?S.pianoInv:(P.bInv||Math.round(P.avgInv));
+  const maxInv=Math.max(500,Math.ceil(Math.max(P.bIn,P.avgIn)/100)*100);
+  const runway=P.avgOut>0?D.liquidita/P.avgOut:null;
+  return `<div class="card" id="pianoCard"><h3>Piano del mese<small>quanto investire, quanto resta</small></h3>
+    <div class="lg" style="margin:0 0 6px"><span><i style="background:#E4572E"></i>Spese</span><span><i style="background:#2FB27A"></i>Investimenti</span><span><i style="background:#3B82F6"></i>Liquidità che cresce</span></div>
+    ${flowBar("Budget",P.bIn,P.bOut,inv)}
+    ${P.nMesi?flowBar(`Media ultimi ${P.nMesi} mesi`,P.avgIn,P.avgOut,inv):""}
+    ${flowBar(monthLabel(R.month),M.entrate,M.spese,M.investiti,R.month>=curM?"mese in corso: entrate e spese non ancora complete":"")}
+    <div class="ip" style="margin-top:12px"><div class="r1"><label>Investimento mensile</label><span class="v"><b id="pInvVal">${fmt0(inv)} €</b></span></div>
+      <input type="range" id="pInv" min="0" max="${maxInv}" step="50" value="${Math.min(maxInv,inv)}" style="width:100%;accent-color:var(--go);height:28px"></div>
+    <div class="kpi" style="margin-top:8px">
+      <div><small>Massimo sostenibile</small><b id="pMax"></b><em class="dv">con liquidità stabile</em></div>
+      <div><small>Liquidità fra 12 mesi</small><b id="pL12"></b><em class="dv" id="pL12n"></em></div>
+    </div>
+    <p class="fn" style="margin:10px 0 0">${runway!=null?`Oggi la liquidità copre <b>${runway.toFixed(1).replace(".",",")} mesi</b> di spese medie (${fmt0(D.liquidita)} €). `:""}Il massimo sostenibile è il minore tra il margine del budget e quello della media reale: sopra quel valore la liquidità cala ogni mese.</p>
+  </div>`;
+}
+function bindPiano(body,D,curM){
+  const r=$("pInv"); if(!r) return; const P=pianoData(D,curM);
+  const margB=P.bIn-P.bOut, margA=P.nMesi?P.avgIn-P.avgOut:margB;
+  const maxOk=Math.max(0,Math.min(margB,margA));
+  const paint=()=>{ const inv=+r.value; $("pInvVal").textContent=fmt0(inv)+" €";
+    const dB=margB-inv, dA=margA-inv, d=Math.min(dB,dA);
+    $("pMax").textContent=fmt0(maxOk)+" €";
+    const l12=$("pL12"); l12.textContent=(d>=0?"+":"−")+fmt0(Math.abs(d*12))+" €"; l12.style.color=d>=0?"#2FB27A":"var(--warn)";
+    $("pL12n").textContent=`budget ${dB>=0?"+":"−"}${fmt0(Math.abs(dB))} · media ${dA>=0?"+":"−"}${fmt0(Math.abs(dA))} al mese`;
+    body.querySelectorAll("#pianoCard .flow").forEach((f,i)=>{ if(i>1) return; const inV=i?P.avgIn:P.bIn, outV=i?P.avgOut:P.bOut; f.outerHTML=flowBar(i?`Media ultimi ${P.nMesi} mesi`:"Budget",inV,outV,inv); });
+    // rilego i flow appena ricreati (outerHTML li sostituisce, ma il range resta)
+  };
+  r.oninput=()=>{ paint(); };
+  r.onchange=()=>{ S.pianoInv=+r.value; save(); };
+  paint();
+}
 function catRowsHTML(cat){
   const rows=((S.cache&&S.cache.rows)||[]).filter(r=>r.d.startsWith(R.month)&&r.cat===cat).sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:0);
   const inner=rows.length?rows.map(r=>`<li><span>${esc(r.desc)}<small>${dateIT(fromISO(r.d))} · ${esc(lbl(r.conto))}</small></span><b>${fmtIT(Math.abs(r.imp))} €</b></li>`).join(""):`<li><small>Nessun movimento in questo mese</small></li>`;
@@ -1642,7 +1705,9 @@ function renderRp(){
     <div class="kpi"><div><small>Entrate</small><b><span class="cnt" data-v="${M.entrate}">${fmt0(M.entrate)}</span> €</b></div><div><small>Spese</small><b><span class="cnt" data-v="${M.spese}">${fmt0(M.spese)}</span> €</b></div><div><small>Investiti</small><b><span class="cnt" data-v="${M.investiti}">${fmt0(M.investiti)}</span> €</b></div><div><small>Risparmio · ${Math.round(M.tasso*100)}%</small><b><span class="cnt" data-v="${M.risparmio}">${fmt0(M.risparmio)}</span> €</b></div></div></div>`;
   // entrate del mese
   const inItems=M.byCatIn.map(c=>({name:c.name,emoji:c.emoji,v:c.incassato}));
-  if(M.byCatIn.length) h+=`<div class="card" id="inCard"><h3>Entrate<small>${monthLabel(R.month)}</small></h3>${M.entrate>0?donutHTML(inItems,M.entrate,"Entrate"):""}<ul class="rows" style="margin-top:10px">${M.byCatIn.map(c=>expLi(c.name,`<span>${c.emoji?c.emoji+" ":""}${esc(c.name)}</span>`,`<b style="color:var(--in)">${fmtIT(c.incassato)} €</b>`)).join("")}${M.byCatInv.length?M.byCatInv.map(c=>expLi(c.name,`<span>${c.emoji?c.emoji+" ":""}${esc(c.name)}<small>versato, non una spesa</small></span>`,`<b>${fmtIT(c.versato)} €</b>`)).join(""):""}<li class="tot"><span>Totale entrate</span><b style="color:var(--in)">${fmtIT(M.entrate)} €</b></li></ul></div>`;
+  if(M.byCatIn.length) h+=`<div class="card" id="inCard"><h3>Entrate<small>${monthLabel(R.month)}</small><button class="btn" id="btnBudgetIn" style="float:right;margin:-6px 0 0;padding:6px 10px;min-height:30px;font-size:13px">✎ Obiettivi</button></h3>${M.entrate>0?donutHTML(inItems,M.entrate,"Entrate"):""}<ul class="rows" style="margin-top:10px">${M.byCatIn.map(c=>expLi(c.name,`<span>${c.emoji?c.emoji+" ":""}${esc(c.name)}${c.budget?`<small>obiettivo ${fmt0(c.budget)} € · ${Math.round(c.incassato/c.budget*100)}%</small><div class="bar"><i class="ok" style="width:${Math.min(100,c.incassato/c.budget*100)}%"></i></div>`:`<small>nessun obiettivo</small>`}</span>`,`<b style="color:var(--in)">${fmtIT(c.incassato)} €</b>`)).join("")}${M.byCatInv.length?M.byCatInv.map(c=>expLi(c.name,`<span>${c.emoji?c.emoji+" ":""}${esc(c.name)}<small>versato, non una spesa${c.budget?` · piano ${fmt0(c.budget)} €`:""}</small>${c.budget?`<div class="bar"><i style="width:${Math.min(100,c.versato/c.budget*100)}%"></i></div>`:""}</span>`,`<b>${fmtIT(c.versato)} €</b>`)).join(""):""}<li class="tot"><span>Totale entrate</span><b style="color:var(--in)">${fmtIT(M.entrate)} €</b></li></ul></div>`;
+  // piano del mese: da dove vengono i soldi e dove vanno (budget, media 12 mesi, mese corrente)
+  h+=pianoHTML(D,M,curM);
   // torta
   const top=M.byCat.slice(0,9); const rest=M.byCat.slice(9); const items=(rest.length?[...top,{name:"Altre",emoji:"…",speso:rest.reduce((a,c)=>a+c.speso,0)}]:top).map(c=>({name:c.name,emoji:c.emoji,v:c.speso}));
   h+=`<div class="card" id="outCard"><h3>Spese per categoria<small>${monthLabel(R.month)}</small><button class="btn" id="btnBudget" style="float:right;margin:-6px 0 0;padding:6px 10px;min-height:30px;font-size:13px">✎ Budget</button></h3>`;
@@ -1679,7 +1744,8 @@ function renderRp(){
   $("rpRefresh").onclick=()=>doRefresh(true);
   const bp=$("btnPacOpen"); if(bp) bp.onclick=openPac;
   const bz=$("btnPrezziOpen"); if(bz) bz.onclick=openPrezzi;
-  const bb=$("btnBudget"); if(bb) bb.onclick=openBudget;
+  const bb=$("btnBudget"); if(bb) bb.onclick=openBudget; const bbi=$("btnBudgetIn"); if(bbi) bbi.onclick=openBudget;
+  bindPiano(body,D,curM);
   $("mPrev").onclick=()=>{ R.month=shiftMonth(R.month,-1); renderRp(); };
   $("mNext").onclick=()=>{ R.month=shiftMonth(R.month,1); renderRp(); };
 }
@@ -1836,10 +1902,12 @@ function startStoryTimer(ms){ clearTimeout(ST.timer); ST.t0=Date.now(); ST.left=
 
 
 function openBudget(){
-  const C=S.cache; if(!C) return; const cats=C.cats.filter(c=>c.tipo==="Spesa");
-  $("budgetRows").innerHTML=cats.map((c,i)=>{ const o=S.budget&&S.budget[c.name]; const v=budgetOf(c);
-    return `<div class="prow"><b>${c.emoji?c.emoji+" ":""}${esc(c.name)}</b><small>in Excel: ${fmt0(c.budget)} €${typeof o==="number"?" · modificato nell'app":""}</small>
-    <div class="in2"><div><label>Budget mensile €</label><input inputmode="decimal" id="bd_${i}" value="${String(v).replace(".",",")}"></div></div></div>`; }).join("");
+  const C=S.cache; if(!C) return; const ORD=["Entrata","Investimento","Spesa"]; const TIT={Entrata:"Entrate · obiettivo mensile",Investimento:"Investimenti · piano mensile",Spesa:"Spese · budget mensile"};
+  const cats=C.cats.filter(c=>ORD.includes(c.tipo)).sort((a,b)=>ORD.indexOf(a.tipo)-ORD.indexOf(b.tipo));
+  let last=null;
+  $("budgetRows").innerHTML=cats.map((c,i)=>{ const o=S.budget&&S.budget[c.name]; const v=budgetOf(c); const hd=c.tipo!==last?`<div class="day" style="font-size:14px;font-weight:700;margin:14px 0 6px">${TIT[c.tipo]}</div>`:""; last=c.tipo;
+    return hd+`<div class="prow"><b>${c.emoji?c.emoji+" ":""}${esc(c.name)}</b><small>in Excel: ${fmt0(c.budget)} €${typeof o==="number"?" · modificato nell'app":""}</small>
+    <div class="in2"><div><label>${c.tipo==="Entrata"?"Obiettivo":c.tipo==="Investimento"?"Piano":"Budget"} mensile €</label><input inputmode="decimal" id="bd_${i}" value="${String(v).replace(".",",")}"></div></div></div>`; }).join("");
   openSheet("sheetBudget");
   $("btnBudgetSave").onclick=()=>{ S.budget=S.budget||{}; let n=0;
     cats.forEach((c,i)=>{ const v=numIT($("bd_"+i).value); if(Math.abs(v-c.budget)<0.005) delete S.budget[c.name]; else { S.budget[c.name]=Math.round(v*100)/100; n++; } });
