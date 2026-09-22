@@ -637,6 +637,40 @@
   /* storie: invariate */
   @media (prefers-reduced-motion:reduce){.toast,.padwrap{transition:none}.dictate.rec .mic{animation:none}}
 
+  /* ================= Nuovo: rosso quando è una spesa, verde quando è un'entrata ================= */
+  body{--acc:var(--go);--acc-glow:rgba(31,111,208,.22);--acc-soft:rgba(31,111,208,.10)}
+  body.mode-out{--acc:#E4002B;--acc-glow:rgba(228,0,43,.30);--acc-soft:rgba(228,0,43,.10)}
+  body.mode-in{--acc:#00B140;--acc-glow:rgba(0,177,64,.30);--acc-soft:rgba(0,177,64,.10)}
+  .app .field,.app .amount,.padwrap,.app .amount .tap,.app .catsearch,.app .go,.app .micbtn,.app .chips button,.app .chips label,.app .seg button,.app .amount .num,.pad button,.pad button.ok,.app .field input[type=text]{transition:border-color .35s,box-shadow .35s,background-color .35s,color .35s}
+  body.mode-out .app .field,body.mode-in .app .field,body.mode-out .app .amount,body.mode-in .app .amount{
+    border-color:var(--acc)!important;box-shadow:0 0 0 1px var(--acc-glow),0 8px 28px var(--acc-glow),inset 0 0 40px var(--acc-soft)!important}
+  body.mode-out .app .amount .tap,body.mode-in .app .amount .tap,body.mode-out .app .catsearch,body.mode-in .app .catsearch,body.mode-out .app .field input[type=text],body.mode-in .app .field input[type=text]{
+    border-color:var(--acc)!important;box-shadow:0 0 0 1.5px var(--acc),0 0 14px var(--acc-glow)!important}
+  body.mode-out .app .amount .num,body.mode-in .app .amount .num{color:var(--acc)!important}
+  body.mode-out .app .chips .on,body.mode-in .app .chips .on,body.mode-out .app .go,body.mode-in .app .go,body.mode-out .app .micbtn,body.mode-in .app .micbtn,body.mode-out .pad button.ok,body.mode-in .pad button.ok{
+    background:var(--acc)!important;box-shadow:0 6px 18px var(--acc-glow)!important;color:#fff!important}
+  body.mode-out .app .chips button:not(.on),body.mode-in .app .chips button:not(.on),body.mode-out .app .chips label:not(.on),body.mode-in .app .chips label:not(.on){border-color:var(--acc-glow)!important}
+  body.mode-out .app .seg button.on,body.mode-in .app .seg button.on{color:var(--acc)!important;box-shadow:0 0 0 1px var(--acc-glow)}
+  body.mode-out .app .field label,body.mode-in .app .field label{color:var(--acc)}
+  body.mode-out .padwrap,body.mode-in .padwrap{box-shadow:0 -10px 34px var(--acc-glow)!important;border-top:1px solid var(--acc)}
+  body.mode-out .pad button,body.mode-in .pad button{border-color:var(--acc-glow)!important}
+  body.mode-out .app .copy.wa,body.mode-in .app .copy.wa{box-shadow:none!important}
+  /* pioggia di dollari all'invio di un'entrata */
+  .rain{position:fixed;inset:0;pointer-events:none;z-index:66;overflow:hidden}
+  .rain{perspective:700px}
+  .rain span{position:absolute;top:-12vh;width:var(--w);height:calc(var(--w) * .46);border-radius:3px;background:#2F9E5C;border:1.5px solid #17603A;
+    box-shadow:inset 0 0 0 3px #5CC486,inset 0 0 0 4.5px #17603A,0 4px 10px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;
+    animation:rainFall var(--dur) cubic-bezier(.35,.05,.7,1) var(--delay) both;will-change:transform;transform-style:preserve-3d}
+  .rain span::before{content:"$";width:calc(var(--w) * .28);height:calc(var(--w) * .28);border-radius:50%;background:#DFF5E6;border:1.5px solid #17603A;color:#17603A;
+    font:800 calc(var(--w) * .2)/1 ui-rounded,"SF Pro Rounded",-apple-system,system-ui,sans-serif;display:flex;align-items:center;justify-content:center}
+  .rain span::after{content:"100";position:absolute;top:2px;left:5px;font:800 calc(var(--w) * .11)/1 ui-rounded,-apple-system,system-ui,sans-serif;color:#DFF5E6;letter-spacing:.02em}
+  .rain span.b{background:#3BAF6B}
+  @keyframes rainFall{0%{transform:translateY(0) rotate(0) rotateY(0) rotateX(0);opacity:0}6%{opacity:1}
+    25%{transform:translateY(31vh) rotate(calc(var(--rot) * .25)) rotateY(65deg) rotateX(18deg)}
+    50%{transform:translateY(62vh) rotate(calc(var(--rot) * .5)) rotateY(0) rotateX(-12deg)}
+    75%{transform:translateY(94vh) rotate(calc(var(--rot) * .75)) rotateY(-65deg) rotateX(14deg)}
+    100%{transform:translateY(128vh) rotate(var(--rot)) rotateY(0) rotateX(0);opacity:.95}}
+
   /* ================= iPAD: stesse schermate, larghezze da tablet ================= */
   /* Solo da 700px in su: su iPhone (max 440px) queste regole non entrano mai in gioco. */
   @media (min-width:700px){
@@ -911,7 +945,7 @@
   </div>
   <div class="field">
     <label>Versione app</label>
-    <p><b>v64</b> · Il Riepilogo mostra anche quando è stato salvato il file Excel letto, per capire se il relay restituisce una copia vecchia. Se non leggi "v64" qui, versione vecchia.</p>
+    <p><b>v66</b> · Pioggia di banconote da 100 dollari quando invii un'entrata; scheda Nuovo rossa per le uscite e verde per le entrate. Se non leggi "v66" qui, versione vecchia.</p>
   </div>
   <div class="field">
     <label>Dettatura</label>
@@ -1075,6 +1109,7 @@ function render(){
   num.className="num"+(F.sign>0?" in":"");
   num.innerHTML=(F.amt?`<span>${F.sign<0?"−":"+"}${F.amt}</span>`:`<span class="ph">0,00</span>`)+`<span class="eur">€</span>`;
   $("segOut").className=F.sign<0?"on":""; $("segIn").className=F.sign>0?"on in":"";
+  document.body.classList.toggle("mode-out",!!F.amt&&amtNum()>0&&F.sign<0); document.body.classList.toggle("mode-in",!!F.amt&&amtNum()>0&&F.sign>0);
   renderSugg(); renderCats(); renderConti();
   $("dateChips").querySelectorAll("button").forEach(b=>b.classList.toggle("on",!F.dCustom&&+b.dataset.d===F.dOff));
   $("datePick").classList.toggle("on",!!F.dCustom);
@@ -1226,6 +1261,7 @@ async function send(){
   S.log.unshift({...r,ts:Date.now(),ok}); S.log=S.log.slice(0,60);
   learn(r); save();
   toast(ok?`Inviato: ${r.Descrizione} ${r.ImportoIT} €`:"Invio non riuscito: riga salvata in elenco",!ok);
+  if(r.Importo>0) moneyRain();
   resetForm(); flashMovimento(r);
 }
 async function copyText(t,msg){
@@ -2055,6 +2091,13 @@ function flashMovimento(r){
   f.onpointerup=e=>{ f.classList.remove("hold"); const dt=Date.now()-flashHold;
     if(dt<300) closeFlash(); else startFlashTimer(2500); };
   f.onpointercancel=()=>{ f.classList.remove("hold"); startFlashTimer(2500); };
+}
+function moneyRain(){
+  if(window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const el=document.createElement("div"); el.className="rain"; let h="";
+  for(let i=0;i<130;i++){ const left=Math.random()*100, w=36+Math.random()*40, dur=2+Math.random()*1.8, delay=Math.random()*1.8, rot=(Math.random()*540-270).toFixed(0);
+    h+=`<span class="${Math.random()<.4?"b":""}" style="left:${left.toFixed(1)}%;--w:${w.toFixed(0)}px;--dur:${dur.toFixed(2)}s;--delay:${delay.toFixed(2)}s;--rot:${rot}deg"></span>`; }
+  el.innerHTML=h; document.body.appendChild(el); setTimeout(()=>el.remove(),5800);
 }
 function closeFlash(){ const f=$("flash"); if(!f) return; f.classList.remove("show"); clearTimeout(flashT); setTimeout(()=>{ if(!f.classList.contains("show")) f.className="flash"; },520); }
 
