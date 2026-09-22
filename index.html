@@ -313,10 +313,11 @@
   .rp .donutwrap{display:flex;align-items:center;gap:12px}
   .rp .donutwrap svg{flex:0 0 150px;touch-action:none;overflow:visible}
   .rp .donutwrap path{transform-origin:75px 75px;transition:transform .18s cubic-bezier(.22,1,.36,1),filter .18s,opacity .18s}
-  .rp .donutwrap path.hi{transform:scale(1.08);filter:drop-shadow(0 0 5px rgba(255,255,255,.75))}
-  .rp .donutwrap svg:has(path.hi) path:not(.hi){opacity:.55}
-  .rp .legend li{border-radius:8px;padding:3px 6px;margin:0 -6px;transition:background .18s}
-  .rp .legend li.hi{background:var(--surface-2)}
+  .rp .donutwrap path.hi{transform:scale(1.14);filter:drop-shadow(0 0 7px rgba(255,255,255,.95)) drop-shadow(0 0 14px rgba(255,255,255,.45));stroke-width:2.5}
+  .rp .donutwrap svg:has(path.hi) path:not(.hi){opacity:.28}
+  .rp .legend li{border-radius:9px;padding:3px 8px;margin:0 -8px;transition:background .18s,transform .18s;border:1.5px solid transparent}
+  .rp .legend li.hi{background:var(--go);color:#fff;transform:scale(1.03);border-color:rgba(255,255,255,.35)}
+  .rp .legend li.hi small,.rp .legend li.hi b{color:#fff}
   .rp .legend{list-style:none;margin:0;padding:0;flex:1;min-width:0}
   .rp .legend li{display:grid;grid-template-columns:12px 1fr auto;gap:8px;align-items:center;font-size:14px;padding:3px 0}
   .rp .legend li i{width:12px;height:12px;border-radius:3px;display:block}
@@ -341,8 +342,9 @@
   .rp .rows li.sub ul li small{display:block;color:var(--ink-2);font-size:11.5px}
   .rp .rows li.sub ul li b{font-weight:600;white-space:nowrap;flex:0 0 auto;margin-left:auto}
   .rp .rows li.sub ul li span{flex:1 1 auto;min-width:0}
-  .rp .bar{height:6px;background:var(--key);border-radius:3px;margin-top:4px;overflow:hidden}
-  .rp .bar i{display:block;height:100%;background:var(--go);border-radius:3px}
+  .rp .bar{height:6px;background:var(--key);border-radius:3px;margin-top:5px;overflow:hidden;width:min(180px,100%)}
+  .rp .bar i{display:block;height:100%;background:var(--go);border-radius:3px;transform-origin:left;animation:barIn .9s cubic-bezier(.22,1,.36,1) both}
+  @keyframes barIn{from{transform:scaleX(0)}to{transform:scaleX(1)}}
   .rp .bar i.over{background:var(--warn)}
   .rp .empty{color:var(--ink-2);font-size:14px;text-align:center;padding:24px 8px;line-height:1.5}
   .rp .empty b{display:block;color:var(--ink);margin-bottom:6px}
@@ -477,7 +479,7 @@
 
   /* --- numeri che contano, barre a molla --- */
   .cnt{font-variant-numeric:tabular-nums}
-  .rp .bar i,.flash .bar i{transition:width .9s cubic-bezier(.22,1,.36,1) .15s}
+  .flash .bar i{transition:width .9s cubic-bezier(.22,1,.36,1) .15s}
 
   /* --- tipografia: numeri arrotondati ovunque, etichette in maiuscoletto --- */
   .v,.kpi b,.rows li b,.legend li b,.hero .big,.hero .g2 b,.hero .grid3 b,.sum b,.fire .hero .big,.stcard .kpi,.pat .val,.mv ul.list li .v{font-family:ui-rounded,"SF Pro Rounded",-apple-system,system-ui,sans-serif;font-variant-numeric:tabular-nums}
@@ -758,6 +760,14 @@
   <p id="prezziNote" style="margin-top:10px"></p>
 </div>
 
+<div class="sheet" id="sheetBudget">
+  <div class="top"><h2>Budget categorie</h2><button class="close" data-close="sheetBudget">Chiudi</button></div>
+  <p>Soglia mensile per categoria. I valori modificati qui vivono nell'app (e nel backup) e hanno la precedenza su quelli del foglio Impostazioni di Excel, che resta invariato.</p>
+  <div id="budgetRows"></div>
+  <button class="go" id="btnBudgetSave" style="width:100%">Salva</button>
+  <button class="btn danger" id="btnBudgetReset" style="width:100%;margin:10px 0 0">Ripristina i valori di Excel</button>
+</div>
+
 <!-- ============ PAC ============ -->
 <div class="sheet" id="sheetPac">
   <div class="top"><h2>Aggiorna da Trade</h2><button class="close" data-close="sheetPac">Chiudi</button></div>
@@ -843,7 +853,7 @@
   </div>
   <div class="field">
     <label>Versione app</label>
-    <p><b>v59</b> · Riepilogo: importi allineati a destra, ciambelle interattive per spese ed entrate; Movimenti: filtro entrate/uscite. Se non leggi "v59" qui, versione vecchia.</p>
+    <p><b>v60</b> · Budget modificabili dall'app, grafico per componente del patrimonio, lettura Excel senza cache, barre budget ed evidenziazione ciambella rifatte. Se non leggi "v60" qui, versione vecchia.</p>
   </div>
   <div class="field">
     <label>Dettatura</label>
@@ -1239,7 +1249,8 @@ function shareUrls(link){
 }
 async function fetchWorkbook(){
   let lastErr="";
-  const urls=/1drv\.ms|onedrive\.live\.com/.test(S.share)?shareUrls(S.share):[S.share];
+  const bust=u=>u+(u.includes("?")?"&":"?")+"t="+Date.now();
+  const urls=/1drv\.ms|onedrive\.live\.com/.test(S.share)?shareUrls(S.share):[bust(S.share)];
   for(const u of urls){
     try{ const r=await fetch(u,{cache:"no-store"}); if(!r.ok){ let t=""; try{ t=(await r.text()).replace(/<[^>]*>/g," ").replace(/\s+/g," ").trim().slice(0,60); }catch(e){} lastErr=r.status===403?"Chiave ?k= errata":`Il relay ha risposto ${r.status}${t?": "+t:""}`; continue; }
       const buf=await r.arrayBuffer(); const b=new Uint8Array(buf.slice(0,2));
@@ -1271,7 +1282,7 @@ function parseWorkbook(buf){
   return {ts:Date.now(),rows,cats,accounts,assets,assetDate,storico};
 }
 async function fetchPrices(){
-  try{ const u=S.share+(S.share.includes("?")?"&":"?")+"q=prices"; const r=await fetch(u,{cache:"no-store"}); if(!r.ok) return; const j=await r.json(); if(j&&typeof j==="object") R.prices=j.prices||j; }catch(e){}
+  try{ const u=S.share+(S.share.includes("?")?"&":"?")+"q=prices&t="+Date.now(); const r=await fetch(u,{cache:"no-store"}); if(!r.ok) return; const j=await r.json(); if(j&&typeof j==="object") R.prices=j.prices||j; }catch(e){}
 }
 let lastRefresh=0;
 async function refreshExcel(force){
@@ -1289,9 +1300,11 @@ function mergeStorico(st){
 }
 
 // ---------- calcoli (replica delle formule del file) ----------
+function budgetOf(c){ const o=S.budget&&S.budget[c.name]; return (typeof o==="number")?o:c.budget; }
 function calc(){
-  const C=S.cache; if(!C) return null;
+  let C=S.cache; if(!C) return null;
   const rows=C.rows; const now=today(); const yearNow=now.getFullYear();
+  const cats=C.cats.map(c=>({...c,budget:budgetOf(c)})); C={...C,cats};
   const catInfo={}; for(const c of C.cats) catInfo[c.name]=c;
   const tipoOf=cat=>(catInfo[cat]||{}).tipo||"Spesa";
   const sum=f=>rows.reduce((a,r)=>f(r)?a+r.imp:a,0);
@@ -1531,6 +1544,34 @@ function initComp(){
     const r=b.dataset.r; if(r==="hist") COMP.setWindow(0,nowIdx,true); else if(r==="all") COMP.setWindow(0,n-1,true); else COMP.setWindow(Math.max(0,nowIdx-(+r)),Math.min(n-1,nowIdx+3),true); });
 }
 
+// ---------- andamento di ogni componente del patrimonio (linee, stesso motore) ----------
+let LINES=null;
+function initLines(){
+  const card=$("linesCard"); if(!card) return; const SC=serieComposizione(); if(!SC) return;
+  const pts=SC.pts.slice(0,SC.nowIdx+1).filter(p=>p.contanti!=null); const n=pts.length; if(n<2){ card.remove(); return; }
+  const nowIdx=n-1;
+  card.innerHTML=`<div class="hd"><div><div class="val" id="linVal"></div><div class="sub wrap" id="linSub"></div></div><div class="dlt" id="linDlt"></div></div>
+    <svg viewBox="0 0 440 210" preserveAspectRatio="none" id="linSvg"></svg>
+    <div class="lg"><span><i style="background:#17A2B8"></i>Contanti</span><span><i style="background:#3B82F6"></i>Conti correnti</span><span><i style="background:#2FB27A"></i>Investimenti</span><span><i style="background:#8E5BD9"></i>Cripto</span></div>
+    <div class="ranges" id="linRanges"><button data-r="12">12M</button><button data-r="24" class="on">24M</button><button data-r="all">Storico</button></div>
+    <div class="tip">Ogni linea è una componente del patrimonio · scorri per i valori · pizzica per zoomare</div>`;
+  const K={k1:"contanti",k2:"conti",k3:"inv",k4:"crypto"};
+  LINES=makeTimeChart({host:card,id:"lin",n,nowIdx:null,zero:true,
+    series:[{key:"k3",color:"#2FB27A",width:2.2},{key:"k4",color:"#8E5BD9",width:2.2},{key:"k2",color:"#3B82F6",width:2.2},{key:"k1",color:"#17A2B8",width:2.2}],
+    getY:(i,key)=>pts[i][K[key]], topAt:i=>Math.max(pts[i].contanti,pts[i].conti,pts[i].inv,pts[i].crypto),
+    labelAt:i=>MESI_S[+pts[i].d.slice(5,7)-1]+" "+pts[i].d.slice(2,4),
+    onPaint:(i,sel)=>{ const p=pts[i], prev=i>0?pts[i-1]:null; const val=$("linVal"),sub=$("linSub"),dlt=$("linDlt"); if(!val) return;
+      const when=p.kind==="now"?"oggi":fromISO(p.d).toLocaleDateString("it-IT",{month:"short",year:"2-digit"});
+      val.textContent=fmtIT(p.tot)+" €";
+      sub.textContent=`${when} · contanti ${fmt0(p.contanti)} · conti ${fmt0(p.conti)} · investimenti ${fmt0(p.inv)} · cripto ${p.stima?"≈":""}${fmt0(p.crypto)} €`;
+      if(prev){ const d=[["inv",p.inv-prev.inv,"investimenti"],["crypto",p.crypto-prev.crypto,"cripto"],["conti",p.conti-prev.conti,"conti"],["contanti",p.contanti-prev.contanti,"contanti"]].sort((a,b)=>Math.abs(b[1])-Math.abs(a[1]))[0];
+        dlt.className="dlt "+(d[1]>=0?"up":"down"); dlt.innerHTML=`${d[1]>=0?"+":"−"}${fmt0(Math.abs(d[1]))} €<small>${d[2]} sul mese prima</small>`; } else dlt.innerHTML=""; }
+  });
+  LINES.setWindow(Math.max(0,nowIdx-24),nowIdx,true);
+  card.querySelectorAll("#linRanges button").forEach(b=>b.onclick=()=>{ card.querySelectorAll("#linRanges button").forEach(x=>x.classList.toggle("on",x===b));
+    const r=b.dataset.r; LINES.setWindow(r==="all"?0:Math.max(0,nowIdx-(+r)),nowIdx,true); });
+}
+
 // ---------- grafico patrimonio (stesso motore fluido) ----------
 let PATC=null;
 function initPat(all){
@@ -1604,12 +1645,11 @@ function renderRp(){
   if(M.byCatIn.length) h+=`<div class="card" id="inCard"><h3>Entrate<small>${monthLabel(R.month)}</small></h3>${M.entrate>0?donutHTML(inItems,M.entrate,"Entrate"):""}<ul class="rows" style="margin-top:10px">${M.byCatIn.map(c=>expLi(c.name,`<span>${c.emoji?c.emoji+" ":""}${esc(c.name)}</span>`,`<b style="color:var(--in)">${fmtIT(c.incassato)} €</b>`)).join("")}${M.byCatInv.length?M.byCatInv.map(c=>expLi(c.name,`<span>${c.emoji?c.emoji+" ":""}${esc(c.name)}<small>versato, non una spesa</small></span>`,`<b>${fmtIT(c.versato)} €</b>`)).join(""):""}<li class="tot"><span>Totale entrate</span><b style="color:var(--in)">${fmtIT(M.entrate)} €</b></li></ul></div>`;
   // torta
   const top=M.byCat.slice(0,9); const rest=M.byCat.slice(9); const items=(rest.length?[...top,{name:"Altre",emoji:"…",speso:rest.reduce((a,c)=>a+c.speso,0)}]:top).map(c=>({name:c.name,emoji:c.emoji,v:c.speso}));
-  h+=`<div class="card" id="outCard"><h3>Spese per categoria<small>${monthLabel(R.month)}</small></h3>`;
+  h+=`<div class="card" id="outCard"><h3>Spese per categoria<small>${monthLabel(R.month)}</small><button class="btn" id="btnBudget" style="float:right;margin:-6px 0 0;padding:6px 10px;min-height:30px;font-size:13px">✎ Budget</button></h3>`;
   if(!items.length) h+=`<div class="empty">${EMPTY_ART.chart}Nessuna spesa registrata in questo mese.</div>`;
   else{ h+=donutHTML(items,M.spese,"Spese");
-    h+=`<ul class="rows" style="margin-top:10px">${M.byCat.map(c=>expLi(c.name,`<span>${c.emoji?c.emoji+" ":""}${esc(c.name)}<small>budget ${fmt0(c.budget)} €</small><div class="bar"><i class="${c.budget&&c.speso>c.budget?"over":""}" style="width:${c.budget?Math.min(100,c.speso/c.budget*100):0}%"></i></div></span>`,`<b>${fmtIT(c.speso)} €</b>`)).join("")}</ul>`; }
+    h+=`<ul class="rows" style="margin-top:10px">${M.byCat.map(c=>expLi(c.name,`<span>${c.emoji?c.emoji+" ":""}${esc(c.name)}${c.budget?`<small>budget ${fmt0(c.budget)} € · ${Math.round(c.speso/c.budget*100)}%</small><div class="bar"><i class="${c.speso>c.budget?"over":""}" style="width:${Math.min(100,c.speso/c.budget*100)}%"></i></div>`:`<small>nessun budget</small>`}</span>`,`<b>${fmtIT(c.speso)} €</b>`)).join("")}</ul>`; }
   h+=`</div>`;
-  setTimeout(()=>{ body.querySelectorAll(".rows .bar i").forEach(i=>{ const w=i.style.width; i.style.width="0"; requestAnimationFrame(()=>requestAnimationFrame(()=>{ i.style.width=w; })); }); },0);
   // saldi
   h+=`<div class="card"><h3>Saldo per conto</h3><ul class="rows">${D.saldi.map(a=>`<li><span>${esc(lbl(a.name))}</span><b>${fmtIT(a.saldo)} €</b></li>`).join("")}<li class="tot"><span>Totale liquidità</span><b>${fmtIT(D.liquidita)} €</b></li>${D.carte.map(c=>c.pend.length?c.pend.map(p=>`<li><span>${esc(lbl(c.name))} · spese di ${p.mese.toLowerCase()}<small>addebito su ${esc(lbl(c.addebita))} il ${dateIT(p.due)}</small></span><b>${fmtIT(p.amount)} €</b></li>`).join(""):`<li><span>${esc(lbl(c.name))}<small>nessuna spesa da addebitare</small></span><b>0,00 €</b></li>`).join("")}</ul></div>`;
   // trasferte Siemens
@@ -1627,11 +1667,11 @@ function renderRp(){
   h+=`<div class="card"><h3>Confronto mese su mese<small>${yearNow}</small></h3>${barsSVG(series)}<div class="lg"><span><i style="background:#1F6FD0"></i>Entrate</span><span><i style="background:#E4572E"></i>Spese</span></div></div>`;
   h+=`<div class="card"><h3>Report PDF</h3><p style="font-size:13.5px;color:var(--ink-2);margin:0 0 10px">Un resoconto completo del mese chiuso: patrimonio, spese per categoria, trend, investimenti e stato FIRE.</p><button class="btn" id="btnReport" style="width:100%">📄 Genera report PDF</button></div>`;
   // storico patrimonio
-  if(D.storico.length>=2) h+=`<div class="pat" id="patCard"></div><div class="pat" id="compCard"></div>`;
+  if(D.storico.length>=2) h+=`<div class="pat" id="patCard"></div><div class="pat" id="compCard"></div><div class="pat" id="linesCard"></div>`;
   body.innerHTML=`<div class="ptr ${R.loading?"on":""}"><span><i class="spin"></i>Aggiorno da Excel…</span></div>`+h;
   animateCounts(body); bindExp(body);
   { const oc=$("outCard"); if(oc&&oc.querySelector(".donutwrap")) bindDonut(oc.querySelector(".donutwrap"),items,M.spese,"Spese"); const ic=$("inCard"); if(ic&&ic.querySelector(".donutwrap")) bindDonut(ic.querySelector(".donutwrap"),inItems,M.entrate,"Entrate"); }
-  if(D.storico.length>=2){ const pc=$("patCard"); if(pc) pc._bound=false; initPat(D.storico); initComp(); }
+  if(D.storico.length>=2){ const pc=$("patCard"); if(pc) pc._bound=false; initPat(D.storico); initComp(); initLines(); }
   const br=$("btnReport"); if(br) br.onclick=openReport;
   const bri=$("btnRimborso"); if(bri) bri.onclick=()=>{ $("sheetRp").classList.remove("open");
     F.desc="Rimborso nota spese"; $("desc").value=F.desc; F.cat=CAT_TRASFERTE; F.conto="BNL"; F.sign=1; F.amt=fmtIT(D.trasferte.credito);
@@ -1639,6 +1679,7 @@ function renderRp(){
   $("rpRefresh").onclick=()=>doRefresh(true);
   const bp=$("btnPacOpen"); if(bp) bp.onclick=openPac;
   const bz=$("btnPrezziOpen"); if(bz) bz.onclick=openPrezzi;
+  const bb=$("btnBudget"); if(bb) bb.onclick=openBudget;
   $("mPrev").onclick=()=>{ R.month=shiftMonth(R.month,-1); renderRp(); };
   $("mNext").onclick=()=>{ R.month=shiftMonth(R.month,1); renderRp(); };
 }
@@ -1794,6 +1835,17 @@ function startStoryTimer(ms){ clearTimeout(ST.timer); ST.t0=Date.now(); ST.left=
 })();
 
 
+function openBudget(){
+  const C=S.cache; if(!C) return; const cats=C.cats.filter(c=>c.tipo==="Spesa");
+  $("budgetRows").innerHTML=cats.map((c,i)=>{ const o=S.budget&&S.budget[c.name]; const v=budgetOf(c);
+    return `<div class="prow"><b>${c.emoji?c.emoji+" ":""}${esc(c.name)}</b><small>in Excel: ${fmt0(c.budget)} €${typeof o==="number"?" · modificato nell'app":""}</small>
+    <div class="in2"><div><label>Budget mensile €</label><input inputmode="decimal" id="bd_${i}" value="${String(v).replace(".",",")}"></div></div></div>`; }).join("");
+  openSheet("sheetBudget");
+  $("btnBudgetSave").onclick=()=>{ S.budget=S.budget||{}; let n=0;
+    cats.forEach((c,i)=>{ const v=numIT($("bd_"+i).value); if(Math.abs(v-c.budget)<0.005) delete S.budget[c.name]; else { S.budget[c.name]=Math.round(v*100)/100; n++; } });
+    save(); $("sheetBudget").classList.remove("open"); renderRp(); toast(n?`${n} budget personalizzati nell'app`:"Budget uguali a Excel"); };
+  $("btnBudgetReset").onclick=()=>{ S.budget={}; save(); $("sheetBudget").classList.remove("open"); renderRp(); toast("Budget ripristinati da Excel"); };
+}
 function numIT(v){ const n=parseFloat(String(v||"").trim().replace(/\./g,"").replace(",",".")); return isNaN(n)?0:n; }
 // ---------- aggiorna valori asset ----------
 function openPrezzi(){
@@ -1843,7 +1895,7 @@ function meseTotali(r){
   const tp=tipo(r.Categoria); const entrata=tp==="Entrata";
   const cat=uniq.filter(h=>h.cat===r.Categoria).reduce((a,h)=>a+h.imp,0);
   const tot=uniq.filter(h=>tipo(h.cat)===tp).reduce((a,h)=>a+h.imp,0);
-  const budget=(cats.find(c=>c.name===r.Categoria)||{}).budget||0;
+  const bc=cats.find(c=>c.name===r.Categoria); const budget=bc?budgetOf(bc):0;
   return {mese,entrata,cat,tot,budget};
 }
 let flashT=null, flashHold=0;
@@ -1918,7 +1970,7 @@ function setActiveNav(active){
   const place=()=>{ ind.style.width=b.offsetWidth+"px"; ind.style.transform=`translateX(${b.offsetLeft}px)`; };
   place(); requestAnimationFrame(place);
 }
-const SHEETS=["sheetRp","sheetMv","sheetFire","sheetLog","sheetSettings","sheetPac","sheetRep","sheetPrezzi"];
+const SHEETS=["sheetRp","sheetMv","sheetFire","sheetLog","sheetSettings","sheetPac","sheetRep","sheetPrezzi","sheetBudget"];
 function openSheet(id){
   const target=$(id); if(!target) return;
   SHEETS.forEach(sid=>{ const el=$(sid); if(!el||sid===id) return; if(el.classList.contains("open")){ el.classList.remove("open"); el.classList.add("leaving"); setTimeout(()=>el.classList.remove("leaving"),340); } });
@@ -2444,7 +2496,7 @@ $("mvQ").onkeydown=e=>{ if(e.key==="Enter") e.target.blur(); };
 
 // niente zoom della pagina col pizzico (il grafico patrimonio gestisce il suo)
 document.addEventListener("gesturestart",e=>e.preventDefault(),{passive:false});
-document.addEventListener("touchmove",e=>{ if(e.touches.length>1&&!(e.target.closest&&e.target.closest("#patSvg"))) e.preventDefault(); },{passive:false});
+document.addEventListener("touchmove",e=>{ if(e.touches.length>1&&!(e.target.closest&&e.target.closest(".pat svg"))) e.preventDefault(); },{passive:false});
 document.addEventListener("dblclick",e=>e.preventDefault(),{passive:false});
 // blocco verticale: su iOS il blocco vero non è concesso, si prova e si mostra l'invito
 try{ if(screen.orientation&&screen.orientation.lock) screen.orientation.lock("portrait").catch(()=>{}); }catch(e){}
