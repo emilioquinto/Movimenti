@@ -106,6 +106,9 @@
     mask-image:linear-gradient(180deg,#000 0,#000 68%,rgba(0,0,0,.22) 100%)}
   #cat button{padding:8px 12px;font-size:14.5px;min-height:38px;border-radius:999px;flex:1 1 auto;text-align:center}
   #cat .sep{flex:1 0 100%}
+  #cat{align-content:flex-start;align-items:flex-start}
+  #cat.filtering{justify-content:center}
+  #cat.filtering button{flex:0 0 auto}
   #catField{position:relative}
   #catField .catsearch{position:absolute!important;top:5px;right:10px;height:32px;width:32px;border-radius:11px;background:#fff;border:1px solid var(--hair);z-index:5;
     display:flex;align-items:center;overflow:hidden;z-index:3;box-shadow:0 2px 8px rgba(0,0,0,.14);
@@ -497,6 +500,7 @@
   .v,.kpi b,.rows li b,.legend li b,.hero .big,.hero .g2 b,.hero .grid3 b,.sum b,.fire .hero .big,.stcard .kpi,.pat .val,.mv ul.list li .v{font-family:ui-rounded,"SF Pro Rounded",-apple-system,system-ui,sans-serif;font-variant-numeric:tabular-nums}
   .field label,.rp .card h3 small,.fire .ip label,.kpi small,.hero .lbl,.hero .g2 small,.hero .grid3 small{letter-spacing:.06em;text-transform:uppercase;font-size:11px;font-weight:600}
   .field.inline label{text-transform:none;letter-spacing:0;font-size:14.5px}
+  .field .chips label.pick{text-transform:none;letter-spacing:0;font-size:15.5px;font-weight:600;color:var(--ink);margin:0}
 
   /* --- stati vuoti --- */
   .emptyart{display:block;width:120px;height:80px;margin:0 auto 8px;opacity:.75}
@@ -907,7 +911,7 @@
   </div>
   <div class="field">
     <label>Versione app</label>
-    <p><b>v62</b> · iPad in orizzontale: barra laterale di navigazione, schermata Nuovo su due colonne, pannelli a griglia. Se non leggi "v62" qui, versione vecchia.</p>
+    <p><b>v63</b> · Chip delle categorie a misura fissa anche durante la ricerca. Se non leggi "v63" qui, versione vecchia.</p>
   </div>
   <div class="field">
     <label>Dettatura</label>
@@ -1108,6 +1112,7 @@ function renderCats(){
   box.innerHTML=fav.map(c=>`<button class="${c===F.cat?"on":""} fav" data-c="${c}">${c}</button>`).join("")
     +(fav.length?`<span class="sep"></span>`:"")
     +resto.map(c=>`<button class="${c===F.cat?"on":""}" data-c="${c}">${c}</button>`).join("");
+  box.classList.toggle("filtering",!!q);
   box.querySelectorAll("button[data-c]").forEach(b=>b.onclick=()=>{ F.cat=b.dataset.c; F.sign=IN_CATS.has(F.cat)?1:-1; haptic(); if(q){ $("catSearch").value=""; $("catSearchBox").classList.remove("open"); } render(); });
   if(q&&!resto.length) box.innerHTML=`<span class="scrollhint" style="width:100%">Nessuna categoria con "${esc(q)}"</span>`;
   const sel=box.querySelector("button.on"); if(sel&&!q&&sel.scrollIntoView) sel.scrollIntoView({block:"nearest"});
@@ -2617,4 +2622,4 @@ applyPic(loadPic());
 load().then(()=>{ render(); if(S.share&&S.cache&&Date.now()-S.cache.ts>4*3600e3) refreshExcel(false).catch(()=>{}); });
 </script>
 </body>
-</html> 
+</html>
