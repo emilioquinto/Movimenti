@@ -657,19 +657,19 @@
   body.mode-out .app .copy.wa,body.mode-in .app .copy.wa{box-shadow:none!important}
   /* pioggia di dollari all'invio di un'entrata */
   .rain{position:fixed;inset:0;pointer-events:none;z-index:66;overflow:hidden}
-  .rain{perspective:700px}
-  .rain span{position:absolute;top:-12vh;width:var(--w);height:calc(var(--w) * .46);border-radius:3px;background:#2F9E5C;border:1.5px solid #17603A;
-    box-shadow:inset 0 0 0 3px #5CC486,inset 0 0 0 4.5px #17603A,0 4px 10px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;
-    animation:rainFall var(--dur) cubic-bezier(.35,.05,.7,1) var(--delay) both;will-change:transform;transform-style:preserve-3d}
-  .rain span::before{content:"$";width:calc(var(--w) * .28);height:calc(var(--w) * .28);border-radius:50%;background:#DFF5E6;border:1.5px solid #17603A;color:#17603A;
-    font:800 calc(var(--w) * .2)/1 ui-rounded,"SF Pro Rounded",-apple-system,system-ui,sans-serif;display:flex;align-items:center;justify-content:center}
-  .rain span::after{content:"100";position:absolute;top:2px;left:5px;font:800 calc(var(--w) * .11)/1 ui-rounded,-apple-system,system-ui,sans-serif;color:#DFF5E6;letter-spacing:.02em}
-  .rain span.b{background:#3BAF6B}
-  @keyframes rainFall{0%{transform:translateY(0) rotate(0) rotateY(0) rotateX(0);opacity:0}6%{opacity:1}
-    25%{transform:translateY(31vh) rotate(calc(var(--rot) * .25)) rotateY(65deg) rotateX(18deg)}
-    50%{transform:translateY(62vh) rotate(calc(var(--rot) * .5)) rotateY(0) rotateX(-12deg)}
-    75%{transform:translateY(94vh) rotate(calc(var(--rot) * .75)) rotateY(-65deg) rotateX(14deg)}
-    100%{transform:translateY(128vh) rotate(var(--rot)) rotateY(0) rotateX(0);opacity:.95}}
+  .rain{perspective:900px}
+  .rain span{position:absolute;top:-14vh;width:var(--w);height:calc(var(--w) * .46);animation:rainFall var(--dur) linear var(--delay) both;will-change:transform}
+  .rain span>b{display:block;width:100%;height:100%;animation:sway var(--sw) ease-in-out var(--delay) infinite alternate;will-change:transform}
+  .rain span>b>i{display:block;width:100%;height:100%;position:relative;transform-style:preserve-3d;animation:tumble var(--tu) linear var(--delay) infinite;will-change:transform}
+  .rain span.x>b>i{animation-name:tumbleX}
+  .rain i::before,.rain i::after{content:"";position:absolute;inset:0;border-radius:3px;-webkit-backface-visibility:hidden;backface-visibility:hidden;background-size:100% 100%;box-shadow:0 3px 8px rgba(0,0,0,.3)}
+  .rain i::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 46'%3E%3Crect x='1' y='1' width='98' height='44' rx='3' fill='%232F9E5C' stroke='%2317603A' stroke-width='1.5'/%3E%3Crect x='5' y='5' width='90' height='36' rx='2' fill='none' stroke='%235CC486' stroke-width='2'/%3E%3Ccircle cx='50' cy='23' r='13' fill='%23DFF5E6' stroke='%2317603A' stroke-width='1.5'/%3E%3Ctext x='50' y='28.5' text-anchor='middle' font-family='Arial' font-weight='700' font-size='16' fill='%2317603A'%3E$%3C/text%3E%3Ctext x='9' y='14' font-family='Arial' font-weight='700' font-size='8' fill='%23DFF5E6'%3E100%3C/text%3E%3Ctext x='91' y='40' text-anchor='end' font-family='Arial' font-weight='700' font-size='8' fill='%23DFF5E6'%3E100%3C/text%3E%3C/svg%3E")}
+  .rain i::after{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 46'%3E%3Crect x='1' y='1' width='98' height='44' rx='3' fill='%23247A47' stroke='%2314502F' stroke-width='1.5'/%3E%3Crect x='5' y='5' width='90' height='36' rx='2' fill='none' stroke='%233FA86A' stroke-width='2'/%3E%3Ctext x='50' y='29' text-anchor='middle' font-family='Arial' font-weight='700' font-size='15' fill='%23DFF5E6'%3E100%3C/text%3E%3C/svg%3E");transform:rotateY(180deg)}
+  .rain span.x i::after{transform:rotateX(180deg)}
+  @keyframes rainFall{0%{transform:translateY(0);opacity:0}4%{opacity:1}100%{transform:translateY(132vh);opacity:1}}
+  @keyframes sway{from{transform:translateX(calc(var(--amp) * -1)) rotate(calc(var(--az) * -1))}to{transform:translateX(var(--amp)) rotate(var(--az))}}
+  @keyframes tumble{from{transform:rotateX(var(--ax)) rotateY(0)}to{transform:rotateX(var(--ax)) rotateY(360deg)}}
+  @keyframes tumbleX{from{transform:rotateY(var(--ax)) rotateX(0)}to{transform:rotateY(var(--ax)) rotateX(360deg)}}
 
   /* ================= iPAD: stesse schermate, larghezze da tablet ================= */
   /* Solo da 700px in su: su iPhone (max 440px) queste regole non entrano mai in gioco. */
@@ -945,7 +945,7 @@
   </div>
   <div class="field">
     <label>Versione app</label>
-    <p><b>v66</b> · Pioggia di banconote da 100 dollari quando invii un'entrata; scheda Nuovo rossa per le uscite e verde per le entrate. Se non leggi "v66" qui, versione vecchia.</p>
+    <p><b>v67</b> · Pioggia di banconote realistica: caduta continua, oscillazione laterale e rotazione 3D con fronte e retro. Se non leggi "v67" qui, versione vecchia.</p>
   </div>
   <div class="field">
     <label>Dettatura</label>
@@ -2095,9 +2095,10 @@ function flashMovimento(r){
 function moneyRain(){
   if(window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
   const el=document.createElement("div"); el.className="rain"; let h="";
-  for(let i=0;i<130;i++){ const left=Math.random()*100, w=36+Math.random()*40, dur=2+Math.random()*1.8, delay=Math.random()*1.8, rot=(Math.random()*540-270).toFixed(0);
-    h+=`<span class="${Math.random()<.4?"b":""}" style="left:${left.toFixed(1)}%;--w:${w.toFixed(0)}px;--dur:${dur.toFixed(2)}s;--delay:${delay.toFixed(2)}s;--rot:${rot}deg"></span>`; }
-  el.innerHTML=h; document.body.appendChild(el); setTimeout(()=>el.remove(),5800);
+  for(let i=0;i<120;i++){ const left=Math.random()*100, w=40+Math.random()*44, dur=2.8+Math.random()*2.2, delay=Math.random()*2.2;
+    const sw=0.9+Math.random()*1.1, amp=(16+Math.random()*44).toFixed(0), az=(4+Math.random()*10).toFixed(0), tu=1.1+Math.random()*1.6, ax=(30+Math.random()*45).toFixed(0);
+    h+=`<span class="${Math.random()<.45?"x":""}" style="left:${left.toFixed(1)}%;--w:${w.toFixed(0)}px;--dur:${dur.toFixed(2)}s;--delay:${delay.toFixed(2)}s;--sw:${sw.toFixed(2)}s;--amp:${amp}px;--az:${az}deg;--tu:${tu.toFixed(2)}s;--ax:${ax}deg"><b><i></i></b></span>`; }
+  el.innerHTML=h; document.body.appendChild(el); setTimeout(()=>el.remove(),7500);
 }
 function closeFlash(){ const f=$("flash"); if(!f) return; f.classList.remove("show"); clearTimeout(flashT); setTimeout(()=>{ if(!f.classList.contains("show")) f.className="flash"; },520); }
 
