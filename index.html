@@ -911,7 +911,7 @@
   </div>
   <div class="field">
     <label>Versione app</label>
-    <p><b>v63</b> · Chip delle categorie a misura fissa anche durante la ricerca. Se non leggi "v63" qui, versione vecchia.</p>
+    <p><b>v64</b> · Il Riepilogo mostra anche quando è stato salvato il file Excel letto, per capire se il relay restituisce una copia vecchia. Se non leggi "v64" qui, versione vecchia.</p>
   </div>
   <div class="field">
     <label>Dettatura</label>
@@ -1313,7 +1313,7 @@ async function fetchWorkbook(){
   for(const u of urls){
     try{ const r=await fetch(u,{cache:"no-store"}); if(!r.ok){ let t=""; try{ t=(await r.text()).replace(/<[^>]*>/g," ").replace(/\s+/g," ").trim().slice(0,60); }catch(e){} lastErr=r.status===403?"Chiave ?k= errata":`Il relay ha risposto ${r.status}${t?": "+t:""}`; continue; }
       const buf=await r.arrayBuffer(); const b=new Uint8Array(buf.slice(0,2));
-      if(b[0]===0x50&&b[1]===0x4B) return buf; lastErr="L'indirizzo non restituisce il file Excel: controlla il relay e la chiave ?k="; }
+      if(b[0]===0x50&&b[1]===0x4B){ const lm=r.headers.get("last-modified"); R.relayMod=lm?new Date(lm).getTime():null; return buf; } lastErr="L'indirizzo non restituisce il file Excel: controlla il relay e la chiave ?k="; }
     catch(e){ lastErr="Impossibile raggiungere il relay (indirizzo errato o offline)"; }
   }
   throw new Error(lastErr||"Download non riuscito");
@@ -1338,7 +1338,8 @@ function parseWorkbook(buf){
   const assets=[]; for(let r=31;r<=36;r++){ const name=gv("B"+r); if(!name) continue; const qty=gv("C"+r), price=gv("D"+r); const value=(typeof qty==="number"&&typeof price==="number")?qty*price:(typeof price==="number"?price:(+gv("E"+r)||0)); assets.push({name:String(name),qty:typeof qty==="number"?qty:null,price:typeof price==="number"?price:null,value:Math.round(value*100)/100}); }
   const assetDate=cellDate(gv("E4"));
   const storico=[]; for(let r=58;r<=200;r++){ const d=cellDate(gv("B"+r)); const v=gv("C"+r); if(!d||typeof v!=="number") { if(r>60&&!gv("B"+r)) break; continue; } storico.push({d,v}); }
-  return {ts:Date.now(),rows,cats,accounts,assets,assetDate,storico};
+  const pm=wb.Props&&wb.Props.ModifiedDate; const fileMod=pm?new Date(pm).getTime():null;
+  return {ts:Date.now(),rows,cats,accounts,assets,assetDate,storico,fileMod};
 }
 async function fetchPrices(){
   try{ const u=S.share+(S.share.includes("?")?"&":"?")+"q=prices&t="+Date.now(); const r=await fetch(u,{cache:"no-store"}); if(!r.ok) return; const j=await r.json(); if(j&&typeof j==="object") R.prices=j.prices||j; }catch(e){}
@@ -1348,7 +1349,7 @@ async function refreshExcel(force){
   if(!S.share) throw new Error("Manca l'indirizzo del relay: aggiungilo in ⚙︎");
   if(!force&&Date.now()-lastRefresh<60000) return;
   await loadXLSX(); const [buf]=await Promise.all([fetchWorkbook(),fetchPrices()]); const data=parseWorkbook(buf);
-  S.cache=data; lastRefresh=Date.now(); save(); render();
+  if(!data.fileMod&&R.relayMod) data.fileMod=R.relayMod; S.cache=data; lastRefresh=Date.now(); save(); render();
 }
 
 // ---------- storico unito: mesi del vecchio file che mancano in Finanze2026 ----------
@@ -1746,7 +1747,7 @@ function renderRp(){
   const dLiq=prevPt?D.liquidita-prevPt.liq:null, dAss=prevPt?D.assetTot-prevPt.asset:null;
   const delta=v=>v==null?"":`<em class="dv ${v>=0?"up":"down"}">${v>=0?"+":"−"}${fmt0(Math.abs(v))} € sul mese scorso</em>`;
   h+=`<div class="grid3"><div><small>Liquidità</small><b><span class="cnt" data-v="${D.liquidita}">${fmt0(D.liquidita)}</span> €</b>${delta(dLiq)}</div><div><small>Carte da addebitare</small><b><span class="cnt" data-v="${D.carteTot}">${fmt0(D.carteTot)}</span> €</b></div><div><small>Asset</small><b><span class="cnt" data-v="${D.assetTot}">${fmt0(D.assetTot)}</span> €</b>${delta(dAss)}</div>${D.trasferte.credito>0.005?`<div><small>Crediti trasferte</small><b>${fmt0(D.trasferte.credito)} €</b></div>`:""}</div></div>`;
-  h+=`<div class="sync">${R.loading?"Aggiornamento in corso…":`Letto da Excel ${ago<1?"adesso":ago<60?ago+" min fa":"alle "+pad2(when.getHours())+":"+pad2(when.getMinutes())+" del "+shortDate(when)}`}<button id="rpRefresh">Aggiorna</button></div>`;
+  h+=`<div class="sync">${R.loading?"Aggiornamento in corso…":`Letto da Excel ${ago<1?"adesso":ago<60?ago+" min fa":"alle "+pad2(when.getHours())+":"+pad2(when.getMinutes())+" del "+shortDate(when)}${S.cache.fileMod?` · file salvato ${(()=>{ const f=new Date(S.cache.fileMod); return shortDate(f)+" alle "+pad2(f.getHours())+":"+pad2(f.getMinutes()); })()}`:""}`}<button id="rpRefresh">Aggiorna</button></div>`;
   // mese
   h+=`<div class="card"><div class="mnav"><button id="mPrev">‹</button><b>${monthLabel(R.month)}</b><button id="mNext">›</button></div>
     <div class="kpi"><div><small>Entrate</small><b><span class="cnt" data-v="${M.entrate}">${fmt0(M.entrate)}</span> €</b></div><div><small>Spese</small><b><span class="cnt" data-v="${M.spese}">${fmt0(M.spese)}</span> €</b></div><div><small>Investiti</small><b><span class="cnt" data-v="${M.investiti}">${fmt0(M.investiti)}</span> €</b></div><div><small>Risparmio · ${Math.round(M.tasso*100)}%</small><b><span class="cnt" data-v="${M.risparmio}">${fmt0(M.risparmio)}</span> €</b></div></div></div>`;
