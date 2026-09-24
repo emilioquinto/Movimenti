@@ -9,7 +9,11 @@
 <meta name="theme-color" content="#EDF3F9" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0F1B2A" media="(prefers-color-scheme: dark)">
 <link rel="apple-touch-icon" href="icon-180.png">
+<link rel="apple-touch-icon" sizes="167x167" href="icon-167.png">
+<link rel="apple-touch-icon" sizes="152x152" href="icon-152.png">
+<link rel="apple-touch-icon" sizes="120x120" href="icon-120.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+<link rel="icon" type="image/png" sizes="64x64" href="favicon.png">
 <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Movimenti%20%C2%B7%20Famiglia%20Quinto%22%2C%22short_name%22%3A%22Movimenti%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23123A6B%22%2C%22theme_color%22%3A%22%23123A6B%22%2C%22start_url%22%3A%22.%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22icon-512.png%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fpng%22%7D%5D%7D">
 <title>Movimenti</title>
 <style>
@@ -116,7 +120,8 @@
   #catField .catsearch.open{width:calc(100% - 20px);box-shadow:0 6px 18px rgba(0,0,0,.22)}
   .catsearch .lens{flex:0 0 32px;height:32px;display:grid;place-items:center;color:#16283A}
   .catsearch .lens svg{width:17px;height:17px}
-  .catsearch input{flex:1;min-width:0;border:0!important;background:transparent!important;padding:0 4px!important;font-size:15px!important;font-weight:600;color:#16283A!important;outline:0;opacity:0;transition:opacity .25s .15s}
+  .catsearch input{flex:1;min-width:0;border:0!important;background:transparent!important;box-shadow:none!important;-webkit-appearance:none;appearance:none;border-radius:0!important;padding:0 4px!important;font-size:15px!important;font-weight:600;color:#16283A!important;outline:0!important;opacity:0;transition:opacity .25s .15s}
+  .catsearch input:focus{outline:0!important;box-shadow:none!important}
   .catsearch.open input{opacity:1}
   .catsearch .clr{flex:0 0 32px;height:32px;color:#5A6C80;font-size:14px;font-weight:700;opacity:0;transition:opacity .25s .15s}
   .catsearch.open .clr{opacity:1}
@@ -271,9 +276,20 @@
   .log li .st{font-size:12px;color:var(--ink-2);text-align:right}
   .log li .st.err{color:var(--warn)}
   .log li .st .x{margin-left:8px;width:32px;height:32px;border-radius:8px;background:var(--key);color:var(--warn);font-size:14px;font-weight:700;vertical-align:middle}
-  .rules li{grid-template-columns:1fr auto}
-  .rules li .m{grid-column:1}
-  .rules li .del{color:var(--warn);font-size:14px;font-weight:600;grid-row:1/3;align-self:center}
+  .rhead{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;min-height:32px}
+  .rhead small{display:block;font-size:12.5px;color:var(--ink-2);margin-top:3px;text-transform:none;letter-spacing:0}
+  .rhead .chev{font-style:normal;font-size:20px;color:var(--ink-2);transition:transform .25s}
+  #rulesField.open .rhead .chev{transform:rotate(90deg)}
+  #rulesField .rbody{display:none;margin-top:10px}
+  #rulesField.open .rbody{display:block}
+  ul.rules{list-style:none;margin:0;padding:0;border-radius:14px;overflow:hidden;border:1px solid var(--hair)}
+  ul.rules li{display:flex!important;align-items:center;gap:10px;padding:8px 6px 8px 12px!important;margin:0!important;border-radius:0!important;border:0!important;border-bottom:1px solid var(--hair)!important;box-shadow:none!important;background:transparent!important}
+  ul.rules li:last-child{border-bottom:0!important}
+  ul.rules li .txt{flex:1;min-width:0}
+  ul.rules li .txt b{display:block;font-size:14.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  ul.rules li .txt small{display:block;font-size:12px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  ul.rules li .del{flex:0 0 auto;width:32px;height:32px;border-radius:9px;color:var(--warn);font-size:13px;font-weight:700;background:var(--key)}
+  ul.rules li .del.txtbtn{width:auto;padding:0 10px;color:var(--go)}
   .pacrow{background:var(--paper);border-radius:var(--r);padding:10px 14px;margin-bottom:10px}
   .pacrow b{display:block;font-size:15px;margin-bottom:2px}
   .pacrow small{color:var(--ink-2);font-size:12.5px}
@@ -644,7 +660,7 @@
   .app .field,.app .amount,.padwrap,.app .amount .tap,.app .catsearch,.app .go,.app .micbtn,.app .chips button,.app .chips label,.app .seg button,.app .amount .num,.pad button,.pad button.ok,.app .field input[type=text]{transition:border-color .35s,box-shadow .35s,background-color .35s,color .35s}
   body.mode-out .app .field,body.mode-in .app .field,body.mode-out .app .amount,body.mode-in .app .amount{
     border-color:var(--acc)!important;box-shadow:0 0 0 1px var(--acc-glow),0 8px 28px var(--acc-glow),inset 0 0 40px var(--acc-soft)!important}
-  body.mode-out .app .amount .tap,body.mode-in .app .amount .tap,body.mode-out .app .catsearch,body.mode-in .app .catsearch,body.mode-out .app .field input[type=text],body.mode-in .app .field input[type=text]{
+  body.mode-out .app .amount .tap,body.mode-in .app .amount .tap,body.mode-out .app .catsearch,body.mode-in .app .catsearch,body.mode-out .app .field input[type=text]:not(#catSearch),body.mode-in .app .field input[type=text]:not(#catSearch){
     border-color:var(--acc)!important;box-shadow:0 0 0 1.5px var(--acc),0 0 14px var(--acc-glow)!important}
   body.mode-out .app .amount .num,body.mode-in .app .amount .num{color:var(--acc)!important}
   body.mode-out .app .chips .on,body.mode-in .app .chips .on,body.mode-out .app .go,body.mode-in .app .go,body.mode-out .app .micbtn,body.mode-in .app .micbtn,body.mode-out .pad button.ok,body.mode-in .pad button.ok{
@@ -914,10 +930,12 @@
     <input type="text" id="wa" placeholder="Lascia vuoto per scegliere la chat ogni volta" inputmode="numeric">
   </div>
 
-  <div class="field">
-    <label>Ricorrenze riconosciute</label>
-    <p>Le prime cinque sono impostate a mano; le altre le scopre l'app dopo almeno tre registrazioni della stessa voce (anche lette da Excel). Tocca ✕ per non proporre più una voce.</p>
-    <ul class="log rules" id="rulesList"></ul>
+  <div class="field" id="rulesField">
+    <button class="rhead" id="rulesToggle"><span><label style="margin:0;pointer-events:none">Ricorrenze riconosciute</label><small id="rulesSum"></small></span><em class="chev">›</em></button>
+    <div class="rbody">
+      <p>Le prime sono impostate a mano; le altre le scopre l'app dopo almeno tre registrazioni della stessa voce (anche lette da Excel). Tocca ✕ per non proporre più una voce.</p>
+      <ul class="rules" id="rulesList"></ul>
+    </div>
   </div>
 
   <div class="field">
@@ -945,7 +963,7 @@
   </div>
   <div class="field">
     <label>Versione app</label>
-    <p><b>v67</b> · Pioggia di banconote realistica: caduta continua, oscillazione laterale e rotazione 3D con fronte e retro. Se non leggi "v67" qui, versione vecchia.</p>
+    <p><b>v69</b> · Ricorrenze compatte e comprimibili; tolto il riquadro dentro la ricerca categorie. Se non leggi "v69" qui, versione vecchia.</p>
   </div>
   <div class="field">
     <label>Dettatura</label>
@@ -1311,7 +1329,9 @@ function renderSettings(){
   const nx=S.cache?S.cache.rows.length:0;
   $("memInfo").textContent=`${Object.keys(allDict()).length} descrizioni · ${nx} movimenti letti da Excel · ${S.hist.length} registrati da qui · ${S.log.length} righe in elenco`;
   const rules=allRules(); const ul=$("rulesList"); const H=allHist();
-  ul.innerHTML=rules.map(r=>{ const l=lastOf(histFor(r,H)); return `<li><b>${esc(r.desc)}</b><button class="del" data-id="${esc(r.id)}">✕</button><span class="m">${esc(r.hint)}${r.learned?" · scoperta dall'app":""}${l?" · ultima: "+dateIT(fromISO(l.d)):""}</span></li>`; }).join("")+(S.muted.length?`<li><span class="m">${S.muted.length} nascoste · <button class="del" data-id="__all">ripristina</button></span></li>`:"");
+  ul.innerHTML=rules.map(r=>{ const l=lastOf(histFor(r,H)); return `<li><span class="txt"><b>${esc(r.desc)}</b><small>${esc(r.hint)}${r.learned?" · scoperta":""}${l?" · ultima "+dateIT(fromISO(l.d)):""}</small></span><button class="del" data-id="${esc(r.id)}" aria-label="Nascondi">✕</button></li>`; }).join("")+(S.muted.length?`<li><span class="txt"><small>${S.muted.length} nascoste</small></span><button class="del txtbtn" data-id="__all">Ripristina</button></li>`:"");
+  $("rulesSum").textContent=`${rules.length} attive${S.muted.length?" · "+S.muted.length+" nascoste":""} · tocca per ${$("rulesField").classList.contains("open")?"chiudere":"vedere"}`;
+  $("rulesToggle").onclick=()=>{ haptic(); $("rulesField").classList.toggle("open"); renderSettings(); };
   ul.querySelectorAll(".del").forEach(b=>b.onclick=()=>{ if(b.dataset.id==="__all") S.muted=[]; else S.muted.push(b.dataset.id); save(); renderSettings(); render(); });
 }
 $("hook").onchange=e=>{ S.hook=e.target.value.trim(); save(); toast(S.hook?"Indirizzo salvato":"Indirizzo rimosso"); };
