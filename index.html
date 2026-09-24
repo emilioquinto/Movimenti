@@ -624,7 +624,7 @@
   .rp .hero .grid3{margin-top:14px}
   .rp .hero,.fire .hero{position:relative;overflow:hidden}
   .rp .hero>*,.fire .hero>*{position:relative;z-index:1}
-  .rp .hero::before,.fire .hero::before{content:"";position:absolute;inset:0;z-index:0;background:url(icon-512.png) 50% 30%/cover no-repeat;opacity:.26;mix-blend-mode:luminosity;
+  .rp .hero::before,.fire .hero::before{content:"";position:absolute;inset:0;z-index:0;background:var(--famimg,url(icon-512.png)) 50% 30%/cover no-repeat;opacity:.26;mix-blend-mode:luminosity;
     -webkit-mask-image:linear-gradient(100deg,transparent 25%,#000 95%);mask-image:linear-gradient(100deg,transparent 25%,#000 95%);pointer-events:none}
   .famav.sm{width:24px;height:24px;border-width:1.5px;border-color:rgba(255,255,255,.8);margin-right:8px;vertical-align:-7px;display:inline-block}
   .fire .hero .forwho{font-size:12.5px;color:#C5D6EC;margin-top:10px;display:flex;align-items:center;gap:8px}
@@ -999,6 +999,15 @@
   </div>
 
   <div class="field">
+    <label>Foto di famiglia</label>
+    <p>La foto che compare nel tondo in Nuovo, sfumata nel Riepilogo e in FIRE, nelle Storie e nella conferma di registrazione. Resta su questo telefono.</p>
+    <div class="pic"><span class="prev" id="famPrev" style="border-radius:50%"></span>
+      <label class="btn" for="famIn" style="margin:0">Scegli foto</label>
+      <input type="file" id="famIn" accept="image/*" style="display:none">
+      <button class="btn danger" id="famDel" style="margin:0">Ripristina</button></div>
+  </div>
+
+  <div class="field">
     <label>Sfondo dell'app</label>
     <p>Scegli una vostra foto dal rullino: resta su questo telefono, quindi tu e <i>Ele</i> potete averne una diversa.</p>
     <div class="pic"><span class="prev" id="picPrev"></span>
@@ -1008,7 +1017,7 @@
   </div>
   <div class="field">
     <label>Versione app</label>
-    <p><b>v72</b> · Nuovo a tutta altezza, pulsanti Registra e WhatsApp, foto di famiglia in Nuovo, Riepilogo, FIRE, Storie e conferma di registrazione. Se non leggi "v72" qui, versione vecchia.</p>
+    <p><b>v73</b> · Foto di famiglia personalizzabile da Impostazioni (tondi, foto sfumate, Storie, schermata di avvio). Se non leggi "v73" qui, versione vecchia.</p>
   </div>
   <div class="field">
     <label>Dettatura</label>
@@ -1839,7 +1848,7 @@ function renderRp(){
   const curM=dateISO(today()).slice(0,7); const isCur=R.month>=curM;
   const stM=D.storico.filter(p=>p.d<=R.month+"-31"); const patM=isCur?D.patrimonio:(stM.length?stM[stM.length-1].v:D.patrimonio);
   let h=`<div class="hero ${stato}">
-    <div class="lbl"><img class="famav sm" src="icon-512.png" alt="" onerror="this.remove()">Patrimonio di famiglia${isCur?"":" · fine "+monthLabel(R.month).toLowerCase()}</div>
+    <div class="lbl"><img class="famav sm" src="${FAM_SRC}" alt="" onerror="this.remove()">Patrimonio di famiglia${isCur?"":" · fine "+monthLabel(R.month).toLowerCase()}</div>
     <div class="big"><span class="cnt" data-v="${patM}" data-d="2">${fmtIT(patM)}</span> €</div>
     <div class="ytd">${stato==="ok"?"Spese del mese sotto la tua media":stato==="warn"?"Spese del mese in linea con la tua media":stato==="over"?"Spese del mese sopra la tua media":"Primo mese: nessuna media di confronto"}</div>`;
   if(ytd!=null) h+=`<div class="ytd">Da inizio anno <em class="${ytd<0?"neg":""}">${ytd>=0?"+":"−"}${fmtIT(Math.abs(ytd))} €</em></div>`;
@@ -2003,7 +2012,7 @@ function showStory(i){
   el.style.setProperty("--stbg",entrata
     ? "radial-gradient(circle at 25% 15%,#13A26B 0%,#0E5E45 48%,#0B1622 100%)"
     : "radial-gradient(circle at 25% 15%,#1F6FD0 0%,#123A6B 48%,#0B1622 100%)");
-  $("stWho").innerHTML=`<img class="famav" src="icon-512.png" alt="" onerror="this.remove()"><b>Famiglia Quinto</b><span>${monthLabel(ST.mese)}</span>`;
+  $("stWho").innerHTML=`<img class="famav" src="${FAM_SRC}" alt="" onerror="this.remove()"><b>Famiglia Quinto</b><span>${monthLabel(ST.mese)}</span>`;
   const bars=[...$("stBars").children];
   bars.forEach((b,k)=>{ b.className=k<i?"done":(k===i?"run":""); b.style.setProperty("--dur",(ST.dur/1000)+"s");
     if(k===i){ const inner=b.querySelector("b"); inner.style.animation="none"; void inner.offsetWidth; inner.style.animation=""; } });
@@ -2151,7 +2160,7 @@ function flashMovimento(r){
       <div class="m">Spese totali di ${mLabel}<b>${fmtIT(totale)} €</b></div>`;
     f.className="flash out show";
   }
-  c.insertAdjacentHTML("beforeend",`<div class="famline"><img class="famav" src="icon-512.png" alt="" onerror="this.remove()">Registrato per la famiglia <i>Quinto</i></div>`);
+  c.insertAdjacentHTML("beforeend",`<div class="famline"><img class="famav" src="${FAM_SRC}" alt="" onerror="this.remove()">Registrato per la famiglia <i>Quinto</i></div>`);
   startFlashTimer(6200);
   f.onpointerdown=e=>{ flashHold=Date.now(); clearTimeout(flashT); f.classList.add("hold"); };
   f.onpointerup=e=>{ f.classList.remove("hold"); const dt=Date.now()-flashHold;
@@ -2274,6 +2283,31 @@ $("picIn").onchange=e=>{
   }; img.src=rd.result; };
   rd.readAsDataURL(f); e.target.value="";
 };
+// ---------- foto di famiglia personale ----------
+const FAM_KEY="movimenti:famfoto"; let FAM_SRC="icon-512.png";
+function applyFam(data){
+  FAM_SRC=data||"icon-512.png";
+  document.documentElement.style.setProperty("--famimg",`url("${FAM_SRC}")`);
+  document.querySelectorAll("img.famav,img.spimg").forEach(i=>{ i.src=FAM_SRC; });
+  const pv=$("famPrev"); if(pv) pv.style.backgroundImage=`url("${FAM_SRC}")`;
+}
+function loadFam(){ try{ return localStorage.getItem(FAM_KEY); }catch(e){ return null; } }
+$("famIn").onchange=e=>{
+  const f=e.target.files&&e.target.files[0]; if(!f) return;
+  const img=new Image(), rd=new FileReader();
+  rd.onload=()=>{ img.onload=()=>{
+    const sc=Math.min(1,900/Math.max(img.width,img.height));
+    const c=document.createElement("canvas"); c.width=Math.round(img.width*sc); c.height=Math.round(img.height*sc);
+    c.getContext("2d").drawImage(img,0,0,c.width,c.height);
+    let q=0.8, data=c.toDataURL("image/jpeg",q); while(data.length>600000&&q>0.4){ q-=0.1; data=c.toDataURL("image/jpeg",q); }
+    try{ localStorage.setItem(FAM_KEY,data); }catch(err){ toast("Foto troppo grande per essere salvata",true); return; }
+    applyFam(data); toast("Foto di famiglia aggiornata");
+    if($("sheetRp").classList.contains("open")) renderRp();
+  }; img.src=rd.result; };
+  rd.readAsDataURL(f); e.target.value="";
+};
+$("famDel").onclick=()=>{ try{ localStorage.removeItem(FAM_KEY); }catch(e){} applyFam(null); toast("Ripristinata la foto predefinita"); };
+applyFam(loadFam());
 $("picDel").onclick=()=>{ savePic(null); applyPic(null); toast("Sfondo rimosso"); };
 
 // ================= REPORT PDF =================
@@ -2650,7 +2684,7 @@ function renderFire(){
       <div class="g2"><div><small>Obiettivo</small><b>${fmt0(target)} €</b></div><div><small>PAC</small><b>${fmt0(f.pac)} €/mese</b></div></div></div>`;
     extra=ipRange("f_anni","In quanti anni",f.anni,"anni",1,45,1);
   }
-  hero=hero.replace(/<\/div>$/,`<div class="forwho"><img class="famav sm" src="icon-512.png" alt="" onerror="this.remove()">La libertà finanziaria di <i>Emi</i>, <i>Ele</i>, <i>Leo</i> e <i>Grace</i></div></div>`);
+  hero=hero.replace(/<\/div>$/,`<div class="forwho"><img class="famav sm" src="${FAM_SRC}" alt="" onerror="this.remove()">La libertà finanziaria di <i>Emi</i>, <i>Ele</i>, <i>Leo</i> e <i>Grace</i></div></div>`);
   body.innerHTML=hero+
   `<div class="card"><h3>Punto di partenza</h3>
     <div class="seg2" id="f_base"><button data-b="asset" class="${f.base==="asset"?"on":""}">Solo investito</button><button data-b="tot" class="${f.base==="tot"?"on":""}">Patrimonio totale</button></div>
