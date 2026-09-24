@@ -131,6 +131,9 @@
   #cat button.fav.on::before{color:#fff}
   #cat .sep{flex:1 0 100%;height:1px;background:var(--line);margin:3px 0}
   .app>.field,.app>.amount,.app>.actions,.app>.fam{flex:0 0 auto}
+  .famhd{order:-1;flex:0 0 auto;display:flex;align-items:center;gap:10px;padding:2px 4px 10px;font-size:15px;font-weight:600;color:var(--ink)}
+  .famhd i{font-weight:700} .famhd small{margin-left:auto;font-size:12.5px;color:var(--ink-2);font-weight:500;text-transform:capitalize}
+  .famav{width:34px;height:34px;border-radius:50%;object-fit:cover;object-position:50% 30%;flex:0 0 auto;border:2px solid var(--acc,var(--go));box-shadow:0 2px 8px rgba(0,0,0,.25);transition:border-color .35s}
   #catField{flex:1 1 0;display:flex;flex-direction:column;min-height:96px;max-height:calc(100% - 96px)}
   .scrollhint{flex:0 0 auto;font-size:10.5px;color:var(--ink-2);text-align:center;margin-top:2px;letter-spacing:.02em}
   .scrollhint span{display:inline-block;animation:nudge 1.8s ease-in-out infinite}
@@ -146,7 +149,8 @@
   .field.inline .chips::-webkit-scrollbar{display:none}
   .field.inline .chips button,.field.inline .chips label{white-space:nowrap}
 
-  .actions{display:grid;grid-template-columns:2fr 1fr 2fr;gap:8px;margin-top:auto;padding-top:8px}
+  .actions{display:grid;grid-template-columns:3fr 1fr;gap:8px;margin-top:auto;padding-top:8px}
+  .actions .copy.wa svg{width:30px;height:30px}
   .go{background:var(--go);color:#fff;border-radius:var(--r);font-size:19px;font-weight:700;height:58px}
   .go:active{background:var(--go-press)}
   .go:disabled{background:#A9C4E4;color:#F0F5FB}
@@ -428,11 +432,15 @@
   .mv ul.list li .v.in{color:var(--in)}
   .mv .more2{width:100%;background:var(--paper);border-radius:var(--r);padding:12px;font-weight:600;color:var(--go);margin-top:10px}
   .mv .empty{color:var(--ink-2);text-align:center;padding:24px 8px}
+  .mv .expbar{display:flex;gap:8px;margin-bottom:10px}
+  .mv .expbar .btn{flex:1;margin:0!important;min-height:42px;font-size:14px}
   .pat{background:var(--paper);border-radius:var(--r);padding:12px 14px;margin-bottom:10px;user-select:none}
   .pat .hd{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px;min-height:58px}
   .pat .hd .val{font-family:ui-rounded,-apple-system,system-ui,sans-serif;font-size:22px;font-weight:700;line-height:1.1;white-space:nowrap}
   .pat .hd .sub{font-size:12.5px;color:var(--ink-2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:62vw}
-  .pat .hd .sub.wrap{white-space:normal;overflow:visible;text-overflow:clip;max-width:none;line-height:1.35}
+  .pat .hd .sub.wrap{white-space:normal;text-overflow:clip;max-width:none;line-height:1.35;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;min-height:calc(3 * 1.35em)}
+  .pat .hd:has(.sub.wrap){height:92px;min-height:0;overflow:hidden}
+  .pat .hd .dlt{max-width:42%}
   .pat .lg{display:flex;flex-wrap:wrap;gap:10px;font-size:11.5px;color:var(--ink-2);margin-top:6px}
   .pat .lg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
   .pat .hd .dlt{font-size:14px;font-weight:700;text-align:right;white-space:nowrap;flex:0 0 auto}
@@ -491,6 +499,7 @@
   .splogo b{position:absolute;top:14px;right:14px;width:11px;height:11px;border-radius:50%;background:#8BE0B5;animation:spDot .6s .45s both}
   @keyframes spBar{from{transform:scaleY(0);transform-origin:bottom}to{transform:scaleY(1)}}
   @keyframes spDot{from{transform:scale(0)}to{transform:scale(1)}}
+  .spimg{display:block;width:88px;height:88px;border-radius:22px;margin:0 auto 14px;object-fit:cover;box-shadow:0 12px 30px rgba(0,0,0,.35),0 0 0 1px rgba(255,255,255,.12)}
   .sptitle{font-size:22px;font-weight:700;letter-spacing:-.01em}
   .spsub{font-size:13px;opacity:.75;margin-top:2px}
   .spsub i{font-style:italic}
@@ -613,6 +622,15 @@
   .rp .hero .ring .in .big{font-size:30px!important;margin:0!important}
   .rp .hero .ring .in .lbl{font-size:10px!important;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.85)!important;margin-top:4px}
   .rp .hero .grid3{margin-top:14px}
+  .rp .hero,.fire .hero{position:relative;overflow:hidden}
+  .rp .hero>*,.fire .hero>*{position:relative;z-index:1}
+  .rp .hero::before,.fire .hero::before{content:"";position:absolute;inset:0;z-index:0;background:url(icon-512.png) 50% 30%/cover no-repeat;opacity:.26;mix-blend-mode:luminosity;
+    -webkit-mask-image:linear-gradient(100deg,transparent 25%,#000 95%);mask-image:linear-gradient(100deg,transparent 25%,#000 95%);pointer-events:none}
+  .famav.sm{width:24px;height:24px;border-width:1.5px;border-color:rgba(255,255,255,.8);margin-right:8px;vertical-align:-7px;display:inline-block}
+  .fire .hero .forwho{font-size:12.5px;color:#C5D6EC;margin-top:10px;display:flex;align-items:center;gap:8px}
+  .flash .famline{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:14px;font-size:12.5px;color:var(--ink-2)}
+  .flash .famline .famav{width:26px;height:26px;border-width:1.5px}
+  .stwho .famav{width:30px;height:30px;border-color:#fff}
   .rp .hero .grid3 div{background:rgba(255,255,255,.14);border-radius:14px}
   .rp .hero .grid3 .dv{display:block;font-style:normal;font-size:10.5px;margin-top:3px;font-weight:600;color:#fff;opacity:.9}
   .rp .hero .grid3 .dv.down{color:#FFD5C8}
@@ -682,6 +700,11 @@
   .rain i::before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 46'%3E%3Crect x='1' y='1' width='98' height='44' rx='3' fill='%232F9E5C' stroke='%2317603A' stroke-width='1.5'/%3E%3Crect x='5' y='5' width='90' height='36' rx='2' fill='none' stroke='%235CC486' stroke-width='2'/%3E%3Ccircle cx='50' cy='23' r='13' fill='%23DFF5E6' stroke='%2317603A' stroke-width='1.5'/%3E%3Ctext x='50' y='28.5' text-anchor='middle' font-family='Arial' font-weight='700' font-size='16' fill='%2317603A'%3E$%3C/text%3E%3Ctext x='9' y='14' font-family='Arial' font-weight='700' font-size='8' fill='%23DFF5E6'%3E100%3C/text%3E%3Ctext x='91' y='40' text-anchor='end' font-family='Arial' font-weight='700' font-size='8' fill='%23DFF5E6'%3E100%3C/text%3E%3C/svg%3E")}
   .rain i::after{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 46'%3E%3Crect x='1' y='1' width='98' height='44' rx='3' fill='%23247A47' stroke='%2314502F' stroke-width='1.5'/%3E%3Crect x='5' y='5' width='90' height='36' rx='2' fill='none' stroke='%233FA86A' stroke-width='2'/%3E%3Ctext x='50' y='29' text-anchor='middle' font-family='Arial' font-weight='700' font-size='15' fill='%23DFF5E6'%3E100%3C/text%3E%3C/svg%3E");transform:rotateY(180deg)}
   .rain span.x i::after{transform:rotateX(180deg)}
+  .rain.away span{top:auto;bottom:-12vh;animation-name:flyAway;animation-timing-function:cubic-bezier(.4,.05,.6,1)}
+  .rain.away i::before,.rain.away i::after{filter:saturate(.35) brightness(.85)}
+  .rain.away::after{content:"";position:absolute;left:0;right:0;bottom:0;height:40vh;background:radial-gradient(ellipse at 50% 100%,rgba(228,0,43,.35),transparent 70%);animation:awayGlow 2.6s ease-out both}
+  @keyframes flyAway{0%{transform:translate(0,0) scale(1);opacity:0}8%{opacity:1}70%{opacity:.85}100%{transform:translate(var(--dx),-135vh) scale(.55);opacity:0}}
+  @keyframes awayGlow{0%{opacity:0}20%{opacity:1}100%{opacity:0}}
   @keyframes rainFall{0%{transform:translateY(0);opacity:0}4%{opacity:1}100%{transform:translateY(132vh);opacity:1}}
   @keyframes sway{from{transform:translateX(calc(var(--amp) * -1)) rotate(calc(var(--az) * -1))}to{transform:translateX(var(--amp)) rotate(var(--az))}}
   @keyframes tumble{from{transform:rotateX(var(--ax)) rotateY(0)}to{transform:rotateX(var(--ax)) rotateY(360deg)}}
@@ -707,6 +730,22 @@
     #cat button{flex:0 1 auto}
     .actions{gap:12px}
   }
+  /* ================= iPhone: gli elementi di Nuovo crescono con l'altezza dello schermo ================= */
+  @media (max-width:699px){
+    .app>.field,.app>.amount{margin-bottom:clamp(8px,1.3vh,14px)}
+    .app .field{padding:clamp(8px,1.4vh,14px) 14px!important}
+    .app .amount .tap{min-height:clamp(50px,7vh,74px)}
+    .app .amount .num{font-size:clamp(39px,5.6vh,54px)}
+    .app .micbtn{width:clamp(50px,6.4vh,62px);height:clamp(50px,6.4vh,62px)}
+    .app .seg button{min-height:clamp(38px,5vh,50px);font-size:clamp(14.5px,1.9vh,16.5px)}
+    .app .field input[type=text]:not(#catSearch){font-size:clamp(17px,2.2vh,20px)!important;padding:clamp(9px,1.4vh,13px) 12px!important}
+    .app .field .chips button,.app .field .chips label{min-height:clamp(40px,5.3vh,52px);font-size:clamp(15.5px,2vh,17.5px)}
+    .app #cat button{min-height:clamp(38px,5vh,50px)}
+    .app #cat:not(.filtering){align-content:space-between}
+    .app .go,.app .copy{height:clamp(58px,7.6vh,72px)}
+    .app .go{font-size:clamp(19px,2.5vh,22px)}
+  }
+  @media (min-width:1000px){ .famhd{display:none} }
   /* ================= iPad in orizzontale: barra laterale + contenuto a colonne ================= */
   @media (min-width:1000px){
     :root{--wide:1120px;--sb:232px}
@@ -763,7 +802,7 @@
 </style>
 </head>
 <body>
-<div id="splash" aria-hidden="true"><div class="sp"><div class="splogo"><i></i><i></i><i></i><b></b></div><div class="sptitle">Movimenti</div><div class="spsub">Famiglia <i>Quinto</i></div></div></div>
+<div id="splash" aria-hidden="true"><div class="sp"><img class="spimg" src="icon-180.png" alt="" onerror="this.style.display='none'"><div class="sptitle">Movimenti</div><div class="spsub">Famiglia <i>Quinto</i></div></div></div>
 <label id="hapt" aria-hidden="true"><input type="checkbox" switch></label>
 <div id="bg"></div><div id="bgveil"></div>
 <header id="hdr" class="top"></header>
@@ -809,10 +848,10 @@
   </div>
 
   <div class="actions">
-    <button class="go" id="btnSend">Invia a Excel</button>
-    <button class="copy" id="btnCopy">Copia</button>
-    <a class="copy wa" id="btnWa" href="#" target="_blank" rel="noopener"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.2a9.8 9.8 0 0 0-8.4 14.8L2.3 21.8l4.9-1.3A9.8 9.8 0 1 0 12 2.2zm0 17.9a8.1 8.1 0 0 1-4.1-1.1l-.3-.2-2.9.8.8-2.8-.2-.3A8.1 8.1 0 1 1 12 20.1zm4.5-6c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.6.8-.8 1c-.1.2-.3.2-.5.1a6.6 6.6 0 0 1-3.3-2.9c-.2-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.8 12 12 0 0 0 4.6 4c1.7.7 2.1.6 2.8.5a2.4 2.4 0 0 0 1.6-1.1 2 2 0 0 0 .1-1.1c0-.1-.2-.2-.5-.3z"/></svg>WhatsApp</a>
+    <button class="go" id="btnSend">Registra</button>
+    <a class="copy wa" id="btnWa" href="#" target="_blank" rel="noopener" aria-label="Invia su WhatsApp"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.2a9.8 9.8 0 0 0-8.4 14.8L2.3 21.8l4.9-1.3A9.8 9.8 0 1 0 12 2.2zm0 17.9a8.1 8.1 0 0 1-4.1-1.1l-.3-.2-2.9.8.8-2.8-.2-.3A8.1 8.1 0 1 1 12 20.1zm4.5-6c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.6.8-.8 1c-.1.2-.3.2-.5.1a6.6 6.6 0 0 1-3.3-2.9c-.2-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.8 12 12 0 0 0 4.6 4c1.7.7 2.1.6 2.8.5a2.4 2.4 0 0 0 1.6-1.1 2 2 0 0 0 .1-1.1c0-.1-.2-.2-.5-.3z"/></svg></a>
   </div>
+  <div class="famhd"><img class="famav" src="icon-512.png" alt="" onerror="this.remove()"><span>Famiglia <i>Quinto</i></span><small id="famDate"></small></div>
 </div>
 
 <div class="scrim" id="scrim"></div>
@@ -954,6 +993,12 @@
   </div>
 
   <div class="field">
+    <label>Aspetto</label>
+    <div class="chips" id="themeSel"><button data-t="auto">Automatico</button><button data-t="light">Chiaro</button><button data-t="dark">Scuro</button></div>
+    <p style="margin-top:8px">Automatico segue il tema del telefono.</p>
+  </div>
+
+  <div class="field">
     <label>Sfondo dell'app</label>
     <p>Scegli una vostra foto dal rullino: resta su questo telefono, quindi tu e <i>Ele</i> potete averne una diversa.</p>
     <div class="pic"><span class="prev" id="picPrev"></span>
@@ -963,7 +1008,7 @@
   </div>
   <div class="field">
     <label>Versione app</label>
-    <p><b>v69</b> · Ricorrenze compatte e comprimibili; tolto il riquadro dentro la ricerca categorie. Se non leggi "v69" qui, versione vecchia.</p>
+    <p><b>v72</b> · Nuovo a tutta altezza, pulsanti Registra e WhatsApp, foto di famiglia in Nuovo, Riepilogo, FIRE, Storie e conferma di registrazione. Se non leggi "v72" qui, versione vecchia.</p>
   </div>
   <div class="field">
     <label>Dettatura</label>
@@ -1275,11 +1320,11 @@ async function send(){
   $("btnSend").disabled=true; $("btnSend").textContent="Invio…";
   let ok=true;
   try{ await fetch(S.hook+(S.hook.includes("?")?"&":"?")+p.toString(),{method:"POST",mode:"no-cors"}); }catch(e){ ok=false; }
-  $("btnSend").textContent="Invia a Excel";
+  $("btnSend").textContent="Registra";
   S.log.unshift({...r,ts:Date.now(),ok}); S.log=S.log.slice(0,60);
   learn(r); save();
   toast(ok?`Inviato: ${r.Descrizione} ${r.ImportoIT} €`:"Invio non riuscito: riga salvata in elenco",!ok);
-  if(r.Importo>0) moneyRain();
+  if(r.Importo>0) moneyRain(); else moneyAway(Math.abs(r.Importo));
   resetForm(); flashMovimento(r);
 }
 async function copyText(t,msg){
@@ -1305,7 +1350,7 @@ $("dateIn").onchange=e=>{ F.dCustom=e.target.value; render(); };
 $("btnSend").onclick=send;
 $("btnWa").onclick=e=>{ if($("btnSend").disabled){ e.preventDefault(); toast("Compila importo, descrizione, categoria e conto",true); return; }
   const r=currentRow(); e.currentTarget.href=waUrl(tsv(r)); learn(r); S.log.unshift({...r,ts:Date.now(),ok:true,wa:true}); save(); setTimeout(resetForm,300); };
-$("btnCopy").onclick=()=>{ if($("btnSend").disabled) return toast("Compila importo, descrizione, categoria e conto",true); const r=currentRow(); learn(r); S.log.unshift({...r,ts:Date.now(),ok:true,copied:true}); save(); copyText(tsv(r),"Riga copiata: incollala in Movimenti"); resetForm(); flashMovimento(r); };
+if($("btnCopy")) $("btnCopy").onclick=()=>{ if($("btnSend").disabled) return toast("Compila importo, descrizione, categoria e conto",true); const r=currentRow(); learn(r); S.log.unshift({...r,ts:Date.now(),ok:true,copied:true}); save(); copyText(tsv(r),"Riga copiata: incollala in Movimenti"); resetForm(); flashMovimento(r); };
 
 document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>{ const el=$(b.dataset.close); el.classList.remove("open"); const stillOpen=SHEETS.some(id=>$(id)&&$(id).classList.contains("open")); if(!stillOpen) setActiveNav("main"); });
 
@@ -1794,7 +1839,7 @@ function renderRp(){
   const curM=dateISO(today()).slice(0,7); const isCur=R.month>=curM;
   const stM=D.storico.filter(p=>p.d<=R.month+"-31"); const patM=isCur?D.patrimonio:(stM.length?stM[stM.length-1].v:D.patrimonio);
   let h=`<div class="hero ${stato}">
-    <div class="lbl">Patrimonio della famiglia <i>Quinto</i>${isCur?"":" · fine "+monthLabel(R.month).toLowerCase()}</div>
+    <div class="lbl"><img class="famav sm" src="icon-512.png" alt="" onerror="this.remove()">Patrimonio di famiglia${isCur?"":" · fine "+monthLabel(R.month).toLowerCase()}</div>
     <div class="big"><span class="cnt" data-v="${patM}" data-d="2">${fmtIT(patM)}</span> €</div>
     <div class="ytd">${stato==="ok"?"Spese del mese sotto la tua media":stato==="warn"?"Spese del mese in linea con la tua media":stato==="over"?"Spese del mese sopra la tua media":"Primo mese: nessuna media di confronto"}</div>`;
   if(ytd!=null) h+=`<div class="ytd">Da inizio anno <em class="${ytd<0?"neg":""}">${ytd>=0?"+":"−"}${fmtIT(Math.abs(ytd))} €</em></div>`;
@@ -1958,7 +2003,7 @@ function showStory(i){
   el.style.setProperty("--stbg",entrata
     ? "radial-gradient(circle at 25% 15%,#13A26B 0%,#0E5E45 48%,#0B1622 100%)"
     : "radial-gradient(circle at 25% 15%,#1F6FD0 0%,#123A6B 48%,#0B1622 100%)");
-  $("stWho").innerHTML=`<b>Famiglia Quinto</b><span>${monthLabel(ST.mese)}</span>`;
+  $("stWho").innerHTML=`<img class="famav" src="icon-512.png" alt="" onerror="this.remove()"><b>Famiglia Quinto</b><span>${monthLabel(ST.mese)}</span>`;
   const bars=[...$("stBars").children];
   bars.forEach((b,k)=>{ b.className=k<i?"done":(k===i?"run":""); b.style.setProperty("--dur",(ST.dur/1000)+"s");
     if(k===i){ const inner=b.querySelector("b"); inner.style.animation="none"; void inner.offsetWidth; inner.style.animation=""; } });
@@ -2106,11 +2151,21 @@ function flashMovimento(r){
       <div class="m">Spese totali di ${mLabel}<b>${fmtIT(totale)} €</b></div>`;
     f.className="flash out show";
   }
+  c.insertAdjacentHTML("beforeend",`<div class="famline"><img class="famav" src="icon-512.png" alt="" onerror="this.remove()">Registrato per la famiglia <i>Quinto</i></div>`);
   startFlashTimer(6200);
   f.onpointerdown=e=>{ flashHold=Date.now(); clearTimeout(flashT); f.classList.add("hold"); };
   f.onpointerup=e=>{ f.classList.remove("hold"); const dt=Date.now()-flashHold;
     if(dt<300) closeFlash(); else startFlashTimer(2500); };
   f.onpointercancel=()=>{ f.classList.remove("hold"); startFlashTimer(2500); };
+}
+function moneyAway(amt){
+  if(window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const n=Math.round(Math.min(70,Math.max(8,8+Math.log10(Math.max(1,amt))*18))); // 10 € ≈ 26 banconote, 1000 € ≈ 62
+  const el=document.createElement("div"); el.className="rain away"; let h="";
+  for(let i=0;i<n;i++){ const left=20+Math.random()*60, w=38+Math.random()*34, dur=2.2+Math.random()*1.6, delay=Math.random()*1.1;
+    const sw=0.8+Math.random()*1, amp=(20+Math.random()*60).toFixed(0), az=(6+Math.random()*14).toFixed(0), tu=1+Math.random()*1.4, ax=(30+Math.random()*45).toFixed(0), dx=((Math.random()-.5)*90).toFixed(0);
+    h+=`<span class="${Math.random()<.45?"x":""}" style="left:${left.toFixed(1)}%;--w:${w.toFixed(0)}px;--dur:${dur.toFixed(2)}s;--delay:${delay.toFixed(2)}s;--sw:${sw.toFixed(2)}s;--amp:${amp}px;--az:${az}deg;--tu:${tu.toFixed(2)}s;--ax:${ax}deg;--dx:${dx}vw"><b><i></i></b></span>`; }
+  el.innerHTML=h; document.body.appendChild(el); setTimeout(()=>el.remove(),5000);
 }
 function moneyRain(){
   if(window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -2561,7 +2616,7 @@ function fireLive(){
     hero=`<div class="lbl">Rendimento reale necessario in ${f.anni} anni</div><div class="big">${need==null?"non raggiungibile":need.toFixed(1).replace(".",",")+"%"}</div>
       <div class="sub">${need==null?"Con questo PAC il traguardo non si raggiunge: aumenta versamento o anni":`Nominale con inflazione al ${String(f.infl).replace(".",",")}%: <em>${(((1+need/100)*(1+f.infl/100)-1)*100).toFixed(1).replace(".",",")}%</em>`}</div>
       <div class="g2"><div><small>Obiettivo</small><b>${fmt0(target)} €</b></div><div><small>PAC</small><b>${fmt0(f.pac)} €/mese</b></div></div>`; }
-  const el=$("fireBody")&&$("fireBody").querySelector(".hero"); if(el) el.innerHTML=hero;
+  const el=$("fireBody")&&$("fireBody").querySelector(".hero"); if(el){ const fw=el.querySelector(".forwho"); el.innerHTML=hero; if(fw) el.appendChild(fw); }
   const hints=$("fireBody")&&$("fireBody").querySelectorAll(".ip .hint");
   if(hints){ hints.forEach(hh=>{ if(/Rendimento reale/.test(hh.textContent)) hh.innerHTML=`Rendimento reale: <b>${rr.toFixed(1).replace(".",",")}%</b>`; if(/Capitale necessario/.test(hh.textContent)) hh.innerHTML=`Capitale necessario: <b>${fmt0(target)} €</b> (spesa annua ÷ ${String(f.swr).replace(".",",")}%)`; }); }
 }
@@ -2595,6 +2650,7 @@ function renderFire(){
       <div class="g2"><div><small>Obiettivo</small><b>${fmt0(target)} €</b></div><div><small>PAC</small><b>${fmt0(f.pac)} €/mese</b></div></div></div>`;
     extra=ipRange("f_anni","In quanti anni",f.anni,"anni",1,45,1);
   }
+  hero=hero.replace(/<\/div>$/,`<div class="forwho"><img class="famav sm" src="icon-512.png" alt="" onerror="this.remove()">La libertà finanziaria di <i>Emi</i>, <i>Ele</i>, <i>Leo</i> e <i>Grace</i></div></div>`);
   body.innerHTML=hero+
   `<div class="card"><h3>Punto di partenza</h3>
     <div class="seg2" id="f_base"><button data-b="asset" class="${f.base==="asset"?"on":""}">Solo investito</button><button data-b="tot" class="${f.base==="tot"?"on":""}">Patrimonio totale</button></div>
@@ -2653,7 +2709,8 @@ function renderMv(){
   $("mvConto").innerHTML=`<button class="${MV.conto?"":"on"}" data-c="">Tutti</button>`+conti.map(c=>`<button class="${MV.conto===c?"on":""}" data-c="${esc(c)}">${esc(lbl(c))}</button>`).join("");
   $("mvConto").querySelectorAll("button").forEach(b=>b.onclick=()=>{ MV.conto=b.dataset.c; MV.limit=60; renderMv(); });
   const rows=mvRows(); const inTot=rows.filter(r=>r.imp>0).reduce((a,r)=>a+r.imp,0), outTot=-rows.filter(r=>r.imp<0).reduce((a,r)=>a+r.imp,0);
-  let h=`<div class="sum"><span><small>${rows.length} movimenti</small><b>${fmtIT(inTot-outTot)} €</b></span><span><small>Entrate</small><b>${fmt0(inTot)} €</b></span><span><small>Uscite</small><b>${fmt0(outTot)} €</b></span></div>`;
+  const expBar=rows.length?`<div class="expbar"><button class="btn" id="mvCopy">⧉ Copia testo</button><button class="btn" id="mvShare">⇪ Esporta .txt</button></div>`:"";
+  let h=expBar+`<div class="sum"><span><small>${rows.length} movimenti</small><b>${fmtIT(inTot-outTot)} €</b></span><span><small>Entrate</small><b>${fmt0(inTot)} €</b></span><span><small>Uscite</small><b>${fmt0(outTot)} €</b></span></div>`;
   if(!rows.length) h+=`<div class="empty">${EMPTY_ART.list}Niente da vedere qui, <i>Leo</i> ne approva.</div>`;
   else{ let day=null;
     const shown=rows.slice(0,MV.limit);
@@ -2665,11 +2722,26 @@ function renderMv(){
   }
   $("mvBody").innerHTML=h;
   const mm=$("mvMore"); if(mm) mm.onclick=()=>{ MV.limit+=60; renderMv(); };
+  const mc=$("mvCopy"); if(mc) mc.onclick=()=>copyText(mvText(rows),`${rows.length} movimenti copiati`);
+  const ms=$("mvShare"); if(ms) ms.onclick=()=>shareText(mvText(rows),"Movimenti_"+(MV.month||"tutti")+(MV.conto?"_"+MV.conto:"")+".txt");
 }
 $("mvQ").oninput=e=>{ MV.q=e.target.value; MV.limit=60; renderMv(); };
 $("mvTipo").onclick=e=>{ const b=e.target.closest("button"); if(!b) return; MV.tipo=b.dataset.t; $("mvTipo").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); MV.limit=60; renderMv(); };
 $("mvQ").onkeydown=e=>{ if(e.key==="Enter") e.target.blur(); };
 
+function mvText(rows){
+  const f=[]; if(MV.month) f.push("mese "+monthLabel(MV.month)); if(MV.tipo) f.push(MV.tipo==="in"?"solo entrate":"solo uscite"); if(MV.cat) f.push("categoria "+MV.cat); if(MV.conto) f.push("conto "+MV.conto); if(MV.q) f.push("ricerca \""+MV.q+"\"");
+  const inT=rows.filter(r=>r.imp>0).reduce((a,r)=>a+r.imp,0), outT=rows.filter(r=>r.imp<0).reduce((a,r)=>a+r.imp,0);
+  const head=`Movimenti Finanze2026 · esportati il ${dateIT(today())}\nFiltri: ${f.length?f.join(" · "):"nessuno"}\n${rows.length} righe · entrate ${fmtIT(inT)} € · uscite ${fmtIT(outT)} € · saldo ${fmtIT(inT+outT)} €\n\nData\tDescrizione\tCategoria\tConto\tImporto`;
+  const body=[...rows].sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:0).map(r=>[dateIT(fromISO(r.d)),r.desc,r.cat,r.conto,fmtIT(r.imp)].join("\t")).join("\n");
+  return head+"\n"+body+"\n";
+}
+async function shareText(text,name){
+  try{ const file=new File([text],name,{type:"text/plain"});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){ await navigator.share({files:[file],title:name}); return; } }catch(e){ if(e&&e.name==="AbortError") return; }
+  try{ if(navigator.share){ await navigator.share({text}); return; } }catch(e){ if(e&&e.name==="AbortError") return; }
+  const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([text],{type:"text/plain"})); a.download=name; document.body.appendChild(a); a.click(); a.remove();
+}
 // trascina in giù per aggiornare
 (()=>{ const sh=$("sheetRp"); let y0=null; sh.addEventListener("touchstart",e=>{ y0=(sh.scrollTop<=0&&e.touches[0])?e.touches[0].clientY:null; },{passive:true}); sh.addEventListener("touchend",e=>{ const t=e.changedTouches&&e.changedTouches[0]; if(y0!=null&&t&&t.clientY-y0>90) doRefresh(true); y0=null; },{passive:true}); })();
 
@@ -2684,7 +2756,19 @@ document.addEventListener("dblclick",e=>e.preventDefault(),{passive:false});
 try{ if(screen.orientation&&screen.orientation.lock) screen.orientation.lock("portrait").catch(()=>{}); }catch(e){}
 paintNav("main");
 applyPic(loadPic());
-load().then(()=>{ render(); if(S.share&&S.cache&&Date.now()-S.cache.ts>4*3600e3) refreshExcel(false).catch(()=>{}); });
+// ---------- tema chiaro/scuro forzabile: riscrive le media query prefers-color-scheme ----------
+let THEME_RULES=null;
+function applyTheme(t){
+  if(!THEME_RULES){ THEME_RULES=[]; const walk=list=>{ for(const r of list){ if(r.media&&/prefers-color-scheme/.test(r.media.mediaText)) THEME_RULES.push({r,orig:r.media.mediaText,dark:/dark/.test(r.media.mediaText)}); if(r.cssRules) walk(r.cssRules); } };
+    for(const sh of document.styleSheets){ try{ walk(sh.cssRules); }catch(e){} } }
+  THEME_RULES.forEach(({r,orig,dark})=>{ const m=t==="auto"?orig:((t==="dark")===dark?"all":"not all"); try{ r.media.mediaText=m; }catch(e){} });
+  document.querySelectorAll('meta[name="theme-color"]').forEach(m=>{ const dark=/dark/.test(m.getAttribute("data-m")||m.media); if(!m.getAttribute("data-m")) m.setAttribute("data-m",m.media); m.media=t==="auto"?m.getAttribute("data-m"):((t==="dark")===dark?"all":"not all"); });
+  document.documentElement.style.colorScheme=t==="auto"?"":t;
+  const sel=$("themeSel"); if(sel) sel.querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.t===t));
+  const on=$("hdr")&&$("hdr").querySelector(".navmini button.on"); if(on) setActiveNav(on.dataset.go);
+}
+$("themeSel").onclick=e=>{ const b=e.target.closest("button"); if(!b) return; haptic(); S.theme=b.dataset.t; save(); applyTheme(S.theme); };
+load().then(()=>{ applyTheme(S.theme||"auto"); { const fd=$("famDate"); if(fd) fd.textContent=today().toLocaleDateString("it-IT",{weekday:"long",day:"numeric",month:"long"}); } render(); if(S.share&&S.cache&&Date.now()-S.cache.ts>4*3600e3) refreshExcel(false).catch(()=>{}); });
 </script>
 </body>
 </html>
