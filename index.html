@@ -175,6 +175,12 @@
   .rotate b{display:block;font-size:19px;margin-top:10px}
   .rotate span{display:block;font-size:14px;opacity:.7;margin-top:4px}
   @media (orientation:landscape) and (max-height:520px){ .rotate{display:grid} }
+  html.sa,html.sa body{height:var(--appH);overflow:hidden}
+  html.sa .app{height:var(--appH)!important}
+  html.sa .sheet,html.sa .stories,html.sa .flash,html.sa .rain,html.sa #splash,html.sa .rotate{bottom:auto!important;height:var(--appH)!important}
+  html.sa .padwrap{bottom:auto;top:var(--appH);transform:translateY(0)}
+  html.sa .padwrap.open{transform:translateY(-100%)}
+  @media (min-width:1000px){ html.sa #hdr{bottom:auto;height:var(--appH)} }
   .stories{position:fixed;inset:0;z-index:70;display:none;background:#0B1622;overflow:hidden;
     -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;touch-action:none}
   .stories.open{display:block;animation:stIn .42s cubic-bezier(.22,1,.36,1)}
@@ -732,18 +738,27 @@
   }
   /* ================= iPhone: gli elementi di Nuovo crescono con l'altezza dello schermo ================= */
   @media (max-width:699px){
-    .app>.field,.app>.amount{margin-bottom:clamp(8px,1.3vh,14px)}
-    .app .field{padding:clamp(8px,1.4vh,14px) 14px!important}
-    .app .amount .tap{min-height:clamp(50px,7vh,74px)}
-    .app .amount .num{font-size:clamp(39px,5.6vh,54px)}
-    .app .micbtn{width:clamp(50px,6.4vh,62px);height:clamp(50px,6.4vh,62px)}
-    .app .seg button{min-height:clamp(38px,5vh,50px);font-size:clamp(14.5px,1.9vh,16.5px)}
-    .app .field input[type=text]:not(#catSearch){font-size:clamp(17px,2.2vh,20px)!important;padding:clamp(9px,1.4vh,13px) 12px!important}
-    .app .field .chips button,.app .field .chips label{min-height:clamp(40px,5.3vh,52px);font-size:clamp(15.5px,2vh,17.5px)}
-    .app #cat button{min-height:clamp(38px,5vh,50px)}
-    .app #cat:not(.filtering){align-content:space-between}
-    .app .go,.app .copy{height:clamp(58px,7.6vh,72px)}
-    .app .go{font-size:clamp(19px,2.5vh,22px)}
+    .app>.field,.app>.amount{margin-bottom:8px}
+    .app .field{padding:8px 12px!important}
+    .app .amount .tap{min-height:clamp(50px,6.4vh,66px)}
+    .app .amount .num{font-size:clamp(39px,5vh,48px)}
+    .app .micbtn{width:clamp(50px,6vh,58px);height:clamp(50px,6vh,58px)}
+    .app .seg button{min-height:clamp(38px,4.6vh,46px)}
+    .app .field input[type=text]:not(#catSearch){padding:9px 12px!important}
+    /* conto e data: etichetta a sinistra, chip su una sola riga scorrevole */
+    .app .fconto,.app .fdata{display:flex;align-items:center;gap:10px;padding:7px 8px 7px 14px!important}
+    .app .fconto>label,.app .fdata>label{margin:0!important;flex:0 0 52px;text-align:left!important}
+    .app .fconto .chips,.app .fdata .chips{flex:1;min-width:0;flex-wrap:nowrap;justify-content:flex-start!important;overflow-x:auto;scrollbar-width:none;gap:6px;
+      -webkit-mask-image:linear-gradient(90deg,#000 88%,transparent);mask-image:linear-gradient(90deg,#000 88%,transparent)}
+    .app .fconto .chips::-webkit-scrollbar,.app .fdata .chips::-webkit-scrollbar{display:none}
+    .app .fconto .chips button,.app .fdata .chips button,.app .fdata .chips label{flex:0 0 auto;white-space:nowrap;min-height:38px;padding:8px 13px;font-size:15px}
+    .app .fdata .chips{-webkit-mask-image:none;mask-image:none}
+    /* categorie: tutto lo spazio che resta */
+    #catField{min-height:clamp(170px,30vh,420px)!important;max-height:none!important}
+    .app #cat button{min-height:clamp(38px,4.8vh,48px);font-size:clamp(14.5px,1.9vh,16.5px)}
+    .app #cat:not(.filtering){align-content:flex-start}
+    .app .go,.app .copy{height:clamp(56px,7vh,66px)}
+    .app .go{font-size:clamp(19px,2.4vh,21px)}
   }
   @media (min-width:1000px){ .famhd{display:none} }
   /* ================= iPad in orizzontale: barra laterale + contenuto a colonne ================= */
@@ -834,11 +849,11 @@
     <div class="chips" id="cat"></div>
   </div>
 
-  <div class="field">
+  <div class="field fconto">
     <label>Conto</label>
     <div class="chips" id="conto"></div>
   </div>
-  <div class="field">
+  <div class="field fdata">
     <label>Data</label>
     <div class="chips" id="dateChips">
       <button data-d="0" class="on">Oggi</button>
@@ -1017,7 +1032,7 @@
   </div>
   <div class="field">
     <label>Versione app</label>
-    <p><b>v73</b> · Foto di famiglia personalizzabile da Impostazioni (tondi, foto sfumate, Storie, schermata di avvio). Se non leggi "v73" qui, versione vecchia.</p>
+    <p><b>v74</b> · App dalla Home a tutta altezza (niente più fascia vuota in basso); categorie più grandi, conto e data su una riga. Se non leggi "v74" qui, versione vecchia.</p>
   </div>
   <div class="field">
     <label>Dettatura</label>
@@ -2250,7 +2265,7 @@ document.querySelectorAll(".sheet").forEach(sh=>{ let x0=null,y0=null;
   sh.addEventListener("touchend",e=>{ const t=e.changedTouches&&e.changedTouches[0]; if(x0!=null&&t&&t.clientX-x0>80&&Math.abs(t.clientY-y0)<60){ goTab("main"); } x0=null; },{passive:true}); });
 (()=>{ const pw=$("padwrap"); if(!pw) return; let y0=null;
   pw.addEventListener("touchstart",e=>{ y0=e.touches[0]?e.touches[0].clientY:null; },{passive:true});
-  pw.addEventListener("touchmove",e=>{ if(y0==null) return; const dy=e.touches[0].clientY-y0; if(dy>0){ pw.style.transition="none"; pw.style.transform=`translateY(${dy}px)`; } },{passive:true});
+  pw.addEventListener("touchmove",e=>{ if(y0==null) return; const dy=e.touches[0].clientY-y0; if(dy>0){ pw.style.transition="none"; pw.style.transform=document.documentElement.classList.contains("sa")?`translateY(calc(-100% + ${dy}px))`:`translateY(${dy}px)`; } },{passive:true});
   pw.addEventListener("touchend",e=>{ const t=e.changedTouches[0]; pw.style.transition=""; pw.style.transform=""; if(y0!=null&&t&&t.clientY-y0>70) closePad(); y0=null; },{passive:true}); })();
 
 // ---------- navigazione tra i fogli ----------
@@ -2790,6 +2805,15 @@ document.addEventListener("dblclick",e=>e.preventDefault(),{passive:false});
 try{ if(screen.orientation&&screen.orientation.lock) screen.orientation.lock("portrait").catch(()=>{}); }catch(e){}
 paintNav("main");
 applyPic(loadPic());
+function fixStandaloneHeight(){
+  const sa=window.navigator.standalone===true||(window.matchMedia&&window.matchMedia("(display-mode: standalone)").matches);
+  if(!sa) return;
+  const portrait=window.innerHeight>=window.innerWidth;
+  const full=portrait?Math.max(screen.width,screen.height):Math.min(screen.width,screen.height);
+  const h=Math.max(window.innerHeight,full);
+  document.documentElement.style.setProperty("--appH",h+"px"); document.documentElement.classList.add("sa");
+}
+fixStandaloneHeight(); window.addEventListener("resize",fixStandaloneHeight); window.addEventListener("orientationchange",()=>setTimeout(fixStandaloneHeight,300));
 // ---------- tema chiaro/scuro forzabile: riscrive le media query prefers-color-scheme ----------
 let THEME_RULES=null;
 function applyTheme(t){
