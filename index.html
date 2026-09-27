@@ -341,9 +341,9 @@
   .rp .kpi b{font-size:17px;font-family:ui-rounded,-apple-system,system-ui,sans-serif}
   .rp .donutwrap{display:flex;align-items:center;gap:12px}
   .rp .donutwrap svg{flex:0 0 150px;touch-action:none;overflow:visible}
-  .rp .donutwrap path{transform-origin:75px 75px;transition:transform .18s cubic-bezier(.22,1,.36,1),filter .18s,opacity .18s}
-  .rp .donutwrap path.hi{transform:scale(1.14);filter:drop-shadow(0 0 7px rgba(255,255,255,.95)) drop-shadow(0 0 14px rgba(255,255,255,.45));stroke-width:2.5}
-  .rp .donutwrap svg:has(path.hi) path:not(.hi){opacity:.28}
+  .rp .donutwrap path{transition:opacity .18s;cursor:pointer}
+  .rp .donutwrap path.hi{filter:drop-shadow(0 2px 6px rgba(0,0,0,.35))}
+  .rp .donutwrap path.dim{opacity:.32}
   .rp .legend li{border-radius:9px;padding:3px 8px;margin:0 -8px;transition:background .18s,transform .18s;border:1.5px solid transparent}
   .rp .legend li.hi{background:var(--go);color:#fff;transform:scale(1.03);border-color:rgba(255,255,255,.35)}
   .rp .legend li.hi small,.rp .legend li.hi b{color:#fff}
@@ -369,10 +369,33 @@
   .rp .card.sec .cbody{margin-top:12px}
   .rp .card.sec.closed .cbody{display:none}
   .rp .card.sec .pat{margin:0 0 10px;padding:12px 14px}
+  .rp .card.sec>h3.sh{font-size:16px;padding-left:13px;position:relative}
+  .rp .card.sec>h3.sh::before{content:"";position:absolute;left:0;top:2px;bottom:2px;width:4px;border-radius:2px;background:var(--sc,var(--go))}
+  .rp .card.sec[data-sec="compo"]{--sc:#1F6FD0} .rp .card.sec[data-sec="trend"]{--sc:#8E5BD9} .rp .card.sec[data-sec="mese"]{--sc:#17A2B8}
+  .rp .card.sec[data-sec="in"]{--sc:#0B8A4B} .rp .card.sec[data-sec="out"]{--sc:#E4572E} .rp .card.sec[data-sec="inv"]{--sc:#1F6FD0} .rp .card.sec[data-sec="budget"]{--sc:#F2A93B}
+  .rp .card.sec.closed>h3.sh{margin-bottom:0}
+  .rp .amt{font-family:ui-rounded,"SF Pro Rounded",-apple-system,system-ui,sans-serif;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .rp .amt.in{color:#0B8A4B} .rp .amt.out{color:#E4572E} .rp .amt.inv{color:#1F6FD0}
+  .rp .kpi div{position:relative;padding-left:13px;overflow:hidden}
+  .rp .kpi div::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--kc,var(--line))}
+  .rp .kpi b{font-size:19px;display:block;margin-top:2px}
+  .rp .rows li.sub{display:block;padding:4px 0;margin:2px 0 10px 0;background:var(--surface-2);border-radius:14px;border:1px solid var(--hair);border-bottom:1px solid var(--hair)}
+  .rp .rows li.sub ul li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px 10px 14px;font-size:14.5px;border-bottom:1px solid var(--hair)}
+  .rp .rows li.sub ul li:last-child{border-bottom:0}
+  .rp .rows li.sub ul li .cn{display:flex;align-items:center;gap:8px;min-width:0;flex:1 1 auto}
+  .rp .rows li.sub ul li .cem{font-style:normal;width:28px;height:28px;border-radius:50%;background:var(--surface);display:grid;place-items:center;font-size:15px;flex:0 0 auto;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  .rp .rows li.sub ul li .pct{color:var(--ink-2);font-size:12px;font-weight:600;background:var(--surface);border-radius:999px;padding:2px 7px;flex:0 0 auto}
+  .rp .rows li.sub ul li b{font-weight:600;font-size:14.5px}
+  .rp .rows li.exp2>span{font-weight:700;font-size:16px}
+  .rp .rows li.exp2>span small{font-weight:500}
+  .rp .rows li.exp .chev{width:26px;height:26px;border-radius:50%;background:var(--surface-2);display:grid;place-items:center;font-size:15px;line-height:1;margin-left:8px}
+  .rp .rows li.exp.open .chev{background:var(--go);color:#fff;transform:rotate(90deg)}
+  .rp .rows.tree li.sub{margin-left:0;border-left:1px solid var(--hair)}
+  .rp .legend li b small{background:var(--surface-2);border-radius:999px;padding:1px 6px;margin-left:6px}
+  .rp .hero .big{font-size:40px!important;letter-spacing:-.03em}
   .rp .rows.tree li.grp>span{font-weight:700}
   .rp .rows.tree li.sub{margin-left:8px;border-left:2px solid var(--line);border-radius:0 12px 12px 0}
   .rp .sync button+button{margin-left:12px}
-  .rp .rows li.exp2>span{font-weight:700}
   .rp .rows li.exp2>b{font-size:17px}
   .rp .rows li .chev{font-style:normal;color:var(--ink-2);margin-left:8px;display:inline-block;transition:transform .2s;flex:0 0 auto}
   .rp .rows li.exp.open .chev{transform:rotate(90deg)}
@@ -1078,7 +1101,7 @@
   </div>
   <div class="field">
     <label>Versione app</label>
-    <p><b>v77</b> · Riepilogo con sezioni comprimibili, torta a quattro voci (liquidità, ETF, piano pensionistico, cripto) e patrimonio spiegato per livelli; Prestito e Regali + contano per segno. Se non leggi "v77" qui, versione vecchia.</p>
+    <p><b>v78</b> · Risparmio netto = entrate meno uscite; importi colorati per segno (verde entrate, rosso uscite, blu investimenti); torta con fette che si ingrandiscono al tocco; liste per categoria ridisegnate.  Se non leggi "v78" qui, versione vecchia.</p>
   </div>
   <div class="field">
     <label>Dettatura</label>
@@ -1568,7 +1591,7 @@ function calc(){
   const tipoR=r=>SIGN_CATS.has(r.cat)?(r.imp>0?"Entrata":"Spesa"):tipoOf(r.cat);
   const month=m=>{ const pre=m; const inM=r=>r.d.startsWith(pre);
     const entrate=sum(r=>inM(r)&&tipoR(r)==="Entrata"); const spese=-sum(r=>inM(r)&&tipoR(r)==="Spesa"); const investiti=-sum(r=>inM(r)&&tipoR(r)==="Investimento");
-    const varLiq=entrate-spese-investiti; const risparmio=investiti+Math.max(0,varLiq);
+    const varLiq=entrate-spese-investiti; const risparmio=entrate-spese; // netto: può essere negativo
     const group=(tipo,sign)=>{ const acc={}; rows.forEach(r=>{ if(!inM(r)||tipoR(r)!==tipo) return; acc[r.cat]=(acc[r.cat]||0)+r.imp*sign; });
       return Object.entries(acc).filter(([n,v])=>v>0.005).map(([n,v])=>{ const ci=catInfo[n]||{}; return {name:n,emoji:ci.emoji||"",budget:ci.budget||0,v}; }).sort((a,b)=>b.v-a.v); };
     const byCat=group("Spesa",-1).map(c=>({...c,speso:c.v}));
@@ -1629,12 +1652,14 @@ function serieComposizione(){
 // ---------- Riepilogo UI ----------
 function monthLabel(m){ const [y,mm]=m.split("-"); return `${MESI[+mm-1]} ${y}`; }
 function shiftMonth(m,k){ const [y,mm]=m.split("-").map(Number); const d=new Date(y,mm-1+k,1); return `${d.getFullYear()}-${pad2(d.getMonth()+1)}`; }
+function arcD(a0,a1,R,r,cx,cy){ if(a1-a0>=2*Math.PI-1e-4) a1=a0+2*Math.PI-1e-4; const large=(a1-a0)>Math.PI?1:0;
+  const p=(ang,rad)=>[cx+rad*Math.cos(ang),cy+rad*Math.sin(ang)];
+  const [x0,y0]=p(a0,R),[x1,y1]=p(a1,R),[x2,y2]=p(a1,r),[x3,y3]=p(a0,r);
+  return `M${x0.toFixed(1)} ${y0.toFixed(1)} A${R} ${R} 0 ${large} 1 ${x1.toFixed(1)} ${y1.toFixed(1)} L${x2.toFixed(1)} ${y2.toFixed(1)} A${r} ${r} 0 ${large} 0 ${x3.toFixed(1)} ${y3.toFixed(1)} Z`; }
 function donutSVG(items,total,label){ // items: [{name,emoji,v}]
   const R=60, r=38, cx=75, cy=75; let a0=-Math.PI/2; let paths="";
-  items.forEach((it,i)=>{ const frac=it.v/total; if(frac<=0) return; const a1=a0+frac*2*Math.PI; const large=frac>0.5?1:0;
-    const p=(ang,rad)=>[cx+rad*Math.cos(ang),cy+rad*Math.sin(ang)];
-    const [x0,y0]=p(a0,R),[x1,y1]=p(a1,R),[x2,y2]=p(a1,r),[x3,y3]=p(a0,r);
-    paths+=`<path data-i="${i}" d="M${x0.toFixed(1)} ${y0.toFixed(1)} A${R} ${R} 0 ${large} 1 ${x1.toFixed(1)} ${y1.toFixed(1)} L${x2.toFixed(1)} ${y2.toFixed(1)} A${r} ${r} 0 ${large} 0 ${x3.toFixed(1)} ${y3.toFixed(1)} Z" fill="${PALETTE[i%PALETTE.length]}" stroke="#fff" stroke-width="1.5"/>`; a0=a1; });
+  items.forEach((it,i)=>{ const frac=it.v/total; if(frac<=0) return; const a1=a0+frac*2*Math.PI;
+    paths+=`<path data-i="${i}" data-a0="${a0.toFixed(5)}" data-a1="${a1.toFixed(5)}" d="${arcD(a0,a1,R,r,cx,cy)}" fill="${PALETTE[i%PALETTE.length]}" stroke="var(--surface,#fff)" stroke-width="2"/>`; a0=a1; });
   return `<svg viewBox="0 0 150 150" width="150" height="150" aria-hidden="true">${paths}<text class="c1" x="75" y="71" text-anchor="middle" font-size="11" fill="var(--ink-2)">${label}</text><text class="c2" x="75" y="88" text-anchor="middle" font-size="15" font-weight="700" fill="var(--ink)">${fmt0(total)} €</text></svg>`;
 }
 function donutHTML(items,total,label){
@@ -1643,7 +1668,8 @@ function donutHTML(items,total,label){
 function bindDonut(wrap,items,total,label){
   const svg=wrap.querySelector("svg"), c1=svg.querySelector(".c1"), c2=svg.querySelector(".c2"); let hi=null, tmr=null;
   const set=i=>{ if(i===hi) return; hi=i;
-    svg.querySelectorAll("path").forEach(p=>p.classList.toggle("hi",+p.dataset.i===i));
+    svg.querySelectorAll("path").forEach(p=>{ const hi=+p.dataset.i===i; p.classList.toggle("hi",hi); p.classList.toggle("dim",i!=null&&!hi);
+      p.setAttribute("d",arcD(+p.dataset.a0,+p.dataset.a1,hi?68:60,hi?35:38,75,75)); });
     wrap.querySelectorAll(".legend li").forEach(l=>l.classList.toggle("hi",+l.dataset.i===i));
     if(i==null){ c1.textContent=label; c2.textContent=fmt0(total)+" €"; }
     else { const it=items[i]; c1.textContent=(it.name.length>14?it.name.slice(0,13)+"…":it.name); c2.textContent=fmt0(it.v)+" €"; } };
@@ -1892,7 +1918,7 @@ function bindPiano(body,D,curM){
 }
 function catRowsHTML(cat,tipo){
   const D=calc(); const rows=((S.cache&&S.cache.rows)||[]).filter(r=>r.d.startsWith(R.month)&&r.cat===cat&&(!tipo||D.tipoR(r)===tipo)).sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:0);
-  const inner=rows.length?rows.map(r=>`<li><span>${esc(r.desc)}<small>${dateIT(fromISO(r.d))} · ${esc(lbl(r.conto))}</small></span><b>${fmtIT(Math.abs(r.imp))} €</b></li>`).join(""):`<li><small>Nessun movimento in questo mese</small></li>`;
+  const inner=rows.length?rows.map(r=>`<li><span>${esc(r.desc)}<small>${dateIT(fromISO(r.d))} · ${esc(lbl(r.conto))}</small></span><b class="amt ${r.imp>0?"in":(D.tipoR(r)==="Investimento"?"inv":"out")}">${r.imp>0?"+":"−"}${fmtIT(Math.abs(r.imp))} €</b></li>`).join(""):`<li><small>Nessun movimento in questo mese</small></li>`;
   return `<li class="sub" data-sub="${esc(cat)}"><ul>${inner}</ul></li>`;
 }
 function expLi(name,inner,val,tipo){ const k=(tipo||"")+"|"+name; const open=R.openCats.has(k); return `<li class="exp${open?" open":""}" data-cat="${esc(name)}" data-tipo="${tipo||""}">${inner}${val}<em class="chev">›</em></li>${open?catRowsHTML(name,tipo):""}`; }
@@ -1959,30 +1985,33 @@ function renderRp(){
 
   // ===== 4. IL MESE =====
   const resta=M.entrate-M.spese-M.investiti;
-  const catList=(items,key,cls)=>`<li class="sub" style="display:${R.openCats.has("sum|"+key)?"":"none"}"><ul>${items.length?items.map(c=>`<li><span>${c.emoji?c.emoji+" ":""}${esc(c.name)}</span><b${cls?` style="color:${cls}"`:""}>${fmtIT(c.v)} €</b></li>`).join(""):`<li><small>Nessun movimento</small></li>`}</ul></li>`;
-  const sumLi=(key,label,val,items,color,note)=>`<li class="exp exp2${R.openCats.has("sum|"+key)?" open":""}" data-k="${key}"><span>${label}${note?`<small>${note}</small>`:""}</span><b style="color:${color}">${fmtIT(val)} €</b><em class="chev">›</em></li>`+catList(items,key,color);
+  const AMT={in:["+","amt in"],out:["−","amt out"],inv:["−","amt inv"]};
+  const amt=(v,k)=>`<b class="${AMT[k][1]}">${AMT[k][0]}${fmtIT(v)} €</b>`;
+  const catList=(items,key,cls)=>{ const tot=items.reduce((a,c)=>a+c.v,0); return `<li class="sub" style="display:${R.openCats.has("sum|"+key)?"":"none"}"><ul>${items.length?items.map(c=>`<li><span class="cn"><i class="cem">${c.emoji||"•"}</i>${esc(c.name)}<small class="pct">${tot?Math.round(c.v/tot*100):0}%</small></span>${amt(c.v,cls)}</li>`).join(""):`<li><small>Nessun movimento</small></li>`}</ul></li>`; };
+  const sumLi=(key,label,val,items,cls,note)=>`<li class="exp exp2${R.openCats.has("sum|"+key)?" open":""}" data-k="${key}"><span>${label}${note?`<small>${note}</small>`:""}</span>${amt(val,cls)}<em class="chev">›</em></li>`+catList(items,key,cls);
   const vs=(v,a)=>a?`${v>=a?"+":"−"}${Math.round(Math.abs(v-a)/a*100)}% sulla media`:"";
   const yearNow=today().getFullYear(); const ms=D.months.filter(m=>m.startsWith(String(yearNow))).slice(-12);
   const series=ms.map(m=>{ const x=D.month(m); return {label:MESI_S[+m.slice(5,7)-1],a:x.entrate,b:x.spese}; });
   let mese=`<div class="mnav"><button id="mPrev">‹</button><b>${monthLabel(R.month)}</b><button id="mNext">›</button></div>
-    <div class="kpi" style="grid-template-columns:1fr 1fr"><div><small>Entrate</small><b style="color:var(--in)"><span class="cnt" data-v="${M.entrate}">${fmt0(M.entrate)}</span> €</b>${avgIn?`<em class="dv">${vs(M.entrate,avgIn)}</em>`:""}</div><div><small>Uscite</small><b style="color:var(--warn)"><span class="cnt" data-v="${M.spese}">${fmt0(M.spese)}</span> €</b>${avgSp?`<em class="dv">${vs(M.spese,avgSp)}</em>`:""}</div>
-      <div><small>Investiti</small><b style="color:#2FB27A"><span class="cnt" data-v="${M.investiti}">${fmt0(M.investiti)}</span> €</b></div><div><small>${resta>=0?"Resta in liquidità":"Liquidità in calo"}</small><b style="color:${resta>=0?"var(--ink)":"var(--warn)"}"><span class="cnt" data-v="${Math.abs(resta)}">${fmt0(Math.abs(resta))}</span> €</b><em class="dv">risparmio ${Math.round(M.tasso*100)}% delle entrate</em></div></div>
+    <div class="kpi" style="grid-template-columns:1fr 1fr"><div style="--kc:#0B8A4B"><small>Entrate</small><b class="amt in">+<span class="cnt" data-v="${M.entrate}">${fmt0(M.entrate)}</span> €</b>${avgIn?`<em class="dv">${vs(M.entrate,avgIn)}</em>`:""}</div><div style="--kc:#E4572E"><small>Uscite</small><b class="amt out">−<span class="cnt" data-v="${M.spese}">${fmt0(M.spese)}</span> €</b>${avgSp?`<em class="dv">${vs(M.spese,avgSp)}</em>`:""}</div>
+      <div style="--kc:${M.risparmio>=0?"#0B8A4B":"#E4572E"}"><small>Risparmio netto</small><b class="amt ${M.risparmio>=0?"in":"out"}">${M.risparmio>=0?"+":"−"}<span class="cnt" data-v="${Math.abs(M.risparmio)}">${fmt0(Math.abs(M.risparmio))}</span> €</b><em class="dv">entrate meno uscite · ${M.tasso<0?"−":""}${Math.abs(Math.round(M.tasso*100))}% delle entrate</em></div><div style="--kc:#1F6FD0"><small>Investiti</small><b class="amt inv">−<span class="cnt" data-v="${M.investiti}">${fmt0(M.investiti)}</span> €</b><em class="dv">${resta>=0?"la liquidità cresce di "+fmt0(resta)+" €":"la liquidità cala di "+fmt0(-resta)+" €"}</em></div></div>
+    ${M.entrate>0?flowBar("Dove sono finite le entrate",M.entrate,M.spese,M.investiti):""}
     <ul class="rows" style="margin-top:12px">
-      ${sumLi("in","Entrate",M.entrate,M.byCatIn.map(c=>({...c,v:c.incassato})),"var(--in)","tocca per le categorie")}
-      ${sumLi("out","Uscite",M.spese,M.byCat.map(c=>({...c,v:c.speso})),"var(--warn)","")}
-      ${sumLi("inv","Investimenti",M.investiti,M.byCatInv.map(c=>({...c,v:c.versato})),"#2FB27A","non sono una spesa: restano nel patrimonio")}
+      ${sumLi("in","Entrate",M.entrate,M.byCatIn.map(c=>({...c,v:c.incassato})),"in","tocca per le categorie")}
+      ${sumLi("out","Uscite",M.spese,M.byCat.map(c=>({...c,v:c.speso})),"out","")}
+      ${sumLi("inv","Investimenti",M.investiti,M.byCatInv.map(c=>({...c,v:c.versato})),"inv","non sono una spesa: restano nel patrimonio")}
     </ul>${isCur?`<p class="fn" style="margin-top:8px">Mese in corso: entrate e uscite non sono ancora complete.</p>`:""}
     <h3 style="margin-top:14px">Mese per mese<small>${yearNow}</small></h3>${barsSVG(series)}<div class="lg"><span><i style="background:#1F6FD0"></i>Entrate</span><span><i style="background:#E4572E"></i>Uscite</span></div>`;
   h+=sec("mese","Il mese","quanto entra, quanto esce",mese);
 
   // ===== 5. DETTAGLIO per categoria =====
   const inItems=M.byCatIn.map(c=>({name:c.name,emoji:c.emoji,v:c.incassato}));
-  let inn=!inItems.length?`<div class="empty">${EMPTY_ART.chart}Nessuna entrata in questo mese.</div>`:donutHTML(inItems,M.entrate,"Entrate")+`<ul class="rows" style="margin-top:10px">${M.byCatIn.map(c=>expLi(c.name,`<span>${c.emoji?c.emoji+" ":""}${esc(c.name)}<small>tocca per i movimenti</small></span>`,`<b style="color:var(--in)">${fmtIT(c.incassato)} €</b>`,"Entrata")).join("")}<li class="tot"><span>Totale entrate</span><b style="color:var(--in)">${fmtIT(M.entrate)} €</b></li></ul>`;
+  let inn=!inItems.length?`<div class="empty">${EMPTY_ART.chart}Nessuna entrata in questo mese.</div>`:donutHTML(inItems,M.entrate,"Entrate")+`<ul class="rows" style="margin-top:10px">${M.byCatIn.map(c=>expLi(c.name,`<span>${c.emoji?c.emoji+" ":""}${esc(c.name)}<small>tocca per i movimenti</small></span>`,`<b class="amt in">+${fmtIT(c.incassato)} €</b>`,"Entrata")).join("")}<li class="tot"><span>Totale entrate</span><b class="amt in">+${fmtIT(M.entrate)} €</b></li></ul>`;
   h+=sec("in","Entrate per categoria",monthLabel(R.month),inn,"secin");
   const top=M.byCat.slice(0,9); const rest=M.byCat.slice(9); const items=(rest.length?[...top,{name:"Altre",emoji:"…",speso:rest.reduce((a,c)=>a+c.speso,0)}]:top).map(c=>({name:c.name,emoji:c.emoji,v:c.speso}));
-  let out=!items.length?`<div class="empty">${EMPTY_ART.chart}Nessuna uscita registrata in questo mese.</div>`:donutHTML(items,M.spese,"Uscite")+`<ul class="rows" style="margin-top:10px">${M.byCat.map(c=>expLi(c.name,`<span>${c.emoji?c.emoji+" ":""}${esc(c.name)}<small>${Math.round(c.speso/M.spese*100)}% delle uscite · tocca per i movimenti</small></span>`,`<b>${fmtIT(c.speso)} €</b>`,"Spesa")).join("")}<li class="tot"><span>Totale uscite</span><b style="color:var(--warn)">${fmtIT(M.spese)} €</b></li></ul>`;
+  let out=!items.length?`<div class="empty">${EMPTY_ART.chart}Nessuna uscita registrata in questo mese.</div>`:donutHTML(items,M.spese,"Uscite")+`<ul class="rows" style="margin-top:10px">${M.byCat.map(c=>expLi(c.name,`<span>${c.emoji?c.emoji+" ":""}${esc(c.name)}<small>${Math.round(c.speso/M.spese*100)}% delle uscite · tocca per i movimenti</small></span>`,`<b class="amt out">−${fmtIT(c.speso)} €</b>`,"Spesa")).join("")}<li class="tot"><span>Totale uscite</span><b class="amt out">−${fmtIT(M.spese)} €</b></li></ul>`;
   h+=sec("out","Uscite per categoria",monthLabel(R.month),out,"secout");
-  let inv=!M.byCatInv.length?`<div class="empty">${EMPTY_ART.chart}Nessun versamento in questo mese.</div>`:`<ul class="rows">${M.byCatInv.map(c=>expLi(c.name,`<span>${c.emoji?c.emoji+" ":""}${esc(c.name)}<small>versato, non una spesa · tocca per i movimenti</small></span>`,`<b style="color:#2FB27A">${fmtIT(c.versato)} €</b>`,"Investimento")).join("")}<li class="tot"><span>Totale investito</span><b style="color:#2FB27A">${fmtIT(M.investiti)} €</b></li></ul>`;
+  let inv=!M.byCatInv.length?`<div class="empty">${EMPTY_ART.chart}Nessun versamento in questo mese.</div>`:`<ul class="rows">${M.byCatInv.map(c=>expLi(c.name,`<span>${c.emoji?c.emoji+" ":""}${esc(c.name)}<small>versato, non una spesa · tocca per i movimenti</small></span>`,`<b class="amt inv">−${fmtIT(c.versato)} €</b>`,"Investimento")).join("")}<li class="tot"><span>Totale investito</span><b class="amt inv">−${fmtIT(M.investiti)} €</b></li></ul>`;
   h+=sec("inv","Investimenti per categoria",monthLabel(R.month),inv);
 
   // ===== 6. BUDGET =====
