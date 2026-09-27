@@ -362,6 +362,16 @@
   .rp .rows li>span:first-child{flex:1 1 auto;min-width:0}
   .rp .rows li>b{flex:0 0 auto;white-space:nowrap;text-align:right;margin-left:auto}
   .rp .rows li.exp{cursor:pointer}
+  .rp .card.sec>h3.sh{cursor:pointer;display:flex;align-items:center;gap:6px;margin-bottom:0;user-select:none;-webkit-user-select:none}
+  .rp .card.sec>h3.sh small{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rp .card.sec>h3.sh .chev{margin-left:auto;font-style:normal;color:var(--ink-2);font-size:16px;transition:transform .25s}
+  .rp .card.sec.closed>h3.sh .chev{transform:rotate(-90deg)}
+  .rp .card.sec .cbody{margin-top:12px}
+  .rp .card.sec.closed .cbody{display:none}
+  .rp .card.sec .pat{margin:0 0 10px;padding:12px 14px}
+  .rp .rows.tree li.grp>span{font-weight:700}
+  .rp .rows.tree li.sub{margin-left:8px;border-left:2px solid var(--line);border-radius:0 12px 12px 0}
+  .rp .sync button+button{margin-left:12px}
   .rp .rows li.exp2>span{font-weight:700}
   .rp .rows li.exp2>b{font-size:17px}
   .rp .rows li .chev{font-style:normal;color:var(--ink-2);margin-left:8px;display:inline-block;transition:transform .2s;flex:0 0 auto}
@@ -1068,7 +1078,7 @@
   </div>
   <div class="field">
     <label>Versione app</label>
-    <p><b>v76</b> · Riepilogo riordinato: patrimonio, composizione, andamento, il mese (entrate/uscite/investimenti), dettaglio per categoria, budget. Prestito e Regali + contano per segno. Se non leggi "v76" qui, versione vecchia.</p>
+    <p><b>v77</b> · Riepilogo con sezioni comprimibili, torta a quattro voci (liquidità, ETF, piano pensionistico, cripto) e patrimonio spiegato per livelli; Prestito e Regali + contano per segno. Se non leggi "v77" qui, versione vecchia.</p>
   </div>
   <div class="field">
     <label>Dettatura</label>
@@ -1909,26 +1919,34 @@ function renderRp(){
   const dLiq=prevPt?D.liquidita-prevPt.liq:null, dAss=prevPt?D.assetTot-prevPt.asset:null;
   const delta=v=>v==null?"":`<em class="dv ${v>=0?"up":"down"}">${v>=0?"+":"−"}${fmt0(Math.abs(v))} € sul mese scorso</em>`;
 
+  // sezioni comprimibili: stato salvato per sezione
+  const SEC=S.rpSec||{}; const sec=(key,title,sub,inner,extraCls)=>`<div class="card sec${SEC[key]?" closed":""}${extraCls?" "+extraCls:""}" data-sec="${key}"><h3 class="sh">${title}${sub?`<small>${sub}</small>`:""}<em class="chev">▾</em></h3><div class="cbody">${inner}</div></div>`;
+  const allClosed=["compo","trend","mese","in","out","inv","budget"].every(k=>SEC[k]);
+
   // ===== 1. PATRIMONIO =====
   let h=`<div class="hero ${stato}">
     <div class="lbl"><img class="famav sm" src="${FAM_SRC}" alt="" onerror="this.remove()">Patrimonio di famiglia${isCur?"":" · fine "+monthLabel(R.month).toLowerCase()}</div>
     <div class="big"><span class="cnt" data-v="${patM}" data-d="2">${fmtIT(patM)}</span> €</div>`;
   if(ytd!=null) h+=`<div class="ytd">Da inizio anno <em class="${ytd<0?"neg":""}">${ytd>=0?"+":"−"}${fmtIT(Math.abs(ytd))} €</em></div>`;
   h+=`<div class="grid3"><div><small>Liquidità</small><b><span class="cnt" data-v="${D.liquidita}">${fmt0(D.liquidita)}</span> €</b>${delta(dLiq)}</div><div><small>Carte da addebitare</small><b><span class="cnt" data-v="${D.carteTot}">${fmt0(D.carteTot)}</span> €</b></div><div><small>Investimenti</small><b><span class="cnt" data-v="${D.assetTot}">${fmt0(D.assetTot)}</span> €</b>${delta(dAss)}</div>${D.trasferte.credito>0.005?`<div><small>Crediti trasferte</small><b>${fmt0(D.trasferte.credito)} €</b></div>`:""}</div></div>`;
-  h+=`<div class="sync">${R.loading?"Aggiornamento in corso…":`Letto da Excel ${ago<1?"adesso":ago<60?ago+" min fa":"alle "+pad2(when.getHours())+":"+pad2(when.getMinutes())+" del "+shortDate(when)}${S.cache.fileMod?` · file salvato ${(()=>{ const f=new Date(S.cache.fileMod); return shortDate(f)+" alle "+pad2(f.getHours())+":"+pad2(f.getMinutes()); })()}`:""}`}<button id="rpRefresh">Aggiorna</button></div>`;
+  h+=`<div class="sync">${R.loading?"Aggiornamento in corso…":`Letto da Excel ${ago<1?"adesso":ago<60?ago+" min fa":"alle "+pad2(when.getHours())+":"+pad2(when.getMinutes())+" del "+shortDate(when)}${S.cache.fileMod?` · file salvato ${(()=>{ const f=new Date(S.cache.fileMod); return shortDate(f)+" alle "+pad2(f.getHours())+":"+pad2(f.getMinutes()); })()}`:""}`}<button id="rpRefresh">Aggiorna</button><button id="rpToggleAll">${allClosed?"Espandi tutto":"Comprimi tutto"}</button></div>`;
 
-  // ===== 2. COMPOSIZIONE: conti e investimenti, con torta =====
-  const compItems=[...D.saldi.filter(a=>a.saldo>0.005).map(a=>({name:lbl(a.name),emoji:"🏦",v:a.saldo})),...D.assets.filter(a=>a.value>0.005).map(a=>({name:a.name,emoji:"📈",v:a.value}))];
+  // ===== 2. COMPOSIZIONE: torta a 4 voci + gerarchia =====
+  const altroAsset=D.assetTot-D.etf-D.pensione-D.crypto;
+  const compItems=[{name:"Liquidità",emoji:"🏦",v:D.liquidita},{name:"ETF",emoji:"📈",v:D.etf},{name:"Piano pensionistico",emoji:"🛡️",v:D.pensione},{name:"Cripto",emoji:"🪙",v:D.crypto},{name:"Altri asset",emoji:"📦",v:altroAsset}].filter(x=>x.v>0.005);
   const compTot=compItems.reduce((a,x)=>a+x.v,0);
-  h+=`<div class="card" id="compoCard"><h3>Com'è diviso il patrimonio<small>oggi</small></h3>`;
-  if(compTot>0) h+=donutHTML(compItems,compTot,"Totale");
-  h+=`<ul class="rows" style="margin-top:10px"><li class="tot"><span>Conti</span><b>${fmtIT(D.liquidita)} €</b></li>${D.saldi.map(a=>`<li><span>${esc(lbl(a.name))}</span><b>${fmtIT(a.saldo)} €</b></li>`).join("")}
-    ${D.carte.map(c=>c.pend.length?c.pend.map(p=>`<li><span>${esc(lbl(c.name))} · spese di ${p.mese.toLowerCase()}<small>addebito su ${esc(lbl(c.addebita))} il ${dateIT(p.due)}</small></span><b>${fmtIT(p.amount)} €</b></li>`).join(""):`<li><span>${esc(lbl(c.name))}<small>nessuna spesa da addebitare</small></span><b>0,00 €</b></li>`).join("")}
-    <li class="tot"><span>Investimenti<small>${D.livePrices?`<span class="live">prezzi live</span>`:(D.assetDate?"al "+dateIT(fromISO(D.assetDate)):"")}</small></span><b>${fmtIT(D.assetTot)} €</b></li>
-    ${D.assets.map(a=>`<li><span>${esc(a.name)}${a.qty!=null?`<small>${a.qty.toLocaleString("it-IT",{maximumFractionDigits:4})} × ${fmtIT(a.price)} €${a.live?" · live":""}</small>`:""}</span><b>${fmtIT(a.value)} €</b></li>`).join("")}
-    <li class="tot"><span>Patrimonio</span><b>${fmtIT(D.patrimonio)} €</b></li></ul>
-    <div style="display:flex;gap:8px;margin-top:10px"><button class="btn" id="btnPrezziOpen" style="flex:1;margin:0">✎ Aggiorna valori</button><button class="btn" id="btnPacOpen" style="flex:1;margin:0">📥 Da Trade</button></div></div>`;
-  // trasferte Siemens
+  const g=(key,label,tot,note,rows)=>`<li class="exp exp2 grp${R.openCats.has("sum|"+key)?" open":""}" data-k="${key}"><span>${label}<small>${note}</small></span><b>${fmtIT(tot)} €</b><em class="chev">›</em></li><li class="sub" style="display:${R.openCats.has("sum|"+key)?"":"none"}"><ul>${rows}</ul></li>`;
+  const liqRows=D.saldi.map(a=>`<li><span>${esc(lbl(a.name))}</span><b>${fmtIT(a.saldo)} €</b></li>`).join("");
+  const carteRows=D.carte.map(c=>c.pend.length?c.pend.map(p=>`<li><span>${esc(lbl(c.name))} · spese di ${p.mese.toLowerCase()}<small>addebito su ${esc(lbl(c.addebita))} il ${dateIT(p.due)}</small></span><b>${fmtIT(p.amount)} €</b></li>`).join(""):`<li><span>${esc(lbl(c.name))}<small>nessuna spesa da addebitare</small></span><b>0,00 €</b></li>`).join("");
+  const assRows=D.assets.map(a=>`<li><span>${esc(a.name)}${a.qty!=null?`<small>${a.qty.toLocaleString("it-IT",{maximumFractionDigits:4})} × ${fmtIT(a.price)} €${a.live?" · live":""}</small>`:""}</span><b>${fmtIT(a.value)} €</b></li>`).join("");
+  let compo=(compTot>0?donutHTML(compItems,compTot,"Patrimonio"):"")+`<ul class="rows tree" style="margin-top:10px">
+    ${g("liq","Liquidità",D.liquidita,`somma di ${D.saldi.length} conti · tocca per vederli`,liqRows)}
+    ${D.carte.length?g("carte","Carte da addebitare",D.carteTot,"spese già fatte, non ancora prelevate dal conto",carteRows):""}
+    ${g("ass","Investimenti",D.assetTot,`${D.assets.length} asset${D.livePrices?" · prezzi live":(D.assetDate?" · al "+dateIT(fromISO(D.assetDate)):"")} · tocca per vederli`,assRows)}
+    ${D.trasferte.credito>0.005?`<li class="grp"><span>Crediti trasferte<small>anticipati per Siemens, da rimborsare</small></span><b>${fmtIT(D.trasferte.credito)} €</b></li>`:""}
+    <li class="tot"><span>Patrimonio<small>liquidità ${D.carte.length?"+ carte ":""}+ investimenti${D.trasferte.credito>0.005?" + crediti":""}</small></span><b>${fmtIT(D.patrimonio)} €</b></li></ul>
+    <div style="display:flex;gap:8px;margin-top:10px"><button class="btn" id="btnPrezziOpen" style="flex:1;margin:0">✎ Aggiorna valori</button><button class="btn" id="btnPacOpen" style="flex:1;margin:0">📥 Da Trade</button></div>`;
+  h+=sec("compo","Com'è diviso il patrimonio","oggi",compo);
   if(D.trasferte.righe) h+=`<div class="card"><h3>Trasferte Siemens</h3><ul class="rows">
     <li><span>Da farsi rimborsare<small>spese fatte e non ancora accreditate da Siemens</small></span><b>${fmtIT(D.trasferte.credito)} €</b></li>
     <li><span>Speso su Amex Siemens<small>non ancora addebitato sul conto</small></span><b>${fmtIT(D.trasferte.daAddebitare)} €</b></li>
@@ -1937,56 +1955,52 @@ function renderRp(){
     <p style="font-size:12.5px;color:var(--ink-2);margin:8px 0 0">Non entra nelle spese del mese né nel patrimonio: l'uscita è compensata dal rimborso. L'indennità di trasferta va registrata a parte come Stipendio Emi, perché è reddito e non un rimborso.</p></div>`;
 
   // ===== 3. ANDAMENTO NEL TEMPO =====
-  if(D.storico.length>=2) h+=`<div class="pat" id="patCard"></div><div class="pat" id="compCard"></div><div class="pat" id="linesCard"></div>`;
+  if(D.storico.length>=2) h+=sec("trend","Andamento nel tempo","",`<div class="pat" id="patCard"></div><div class="pat" id="compCard"></div><div class="pat" id="linesCard"></div>`);
 
-  // ===== 4. IL MESE: quanto entra, quanto esce =====
+  // ===== 4. IL MESE =====
   const resta=M.entrate-M.spese-M.investiti;
   const catList=(items,key,cls)=>`<li class="sub" style="display:${R.openCats.has("sum|"+key)?"":"none"}"><ul>${items.length?items.map(c=>`<li><span>${c.emoji?c.emoji+" ":""}${esc(c.name)}</span><b${cls?` style="color:${cls}"`:""}>${fmtIT(c.v)} €</b></li>`).join(""):`<li><small>Nessun movimento</small></li>`}</ul></li>`;
   const sumLi=(key,label,val,items,color,note)=>`<li class="exp exp2${R.openCats.has("sum|"+key)?" open":""}" data-k="${key}"><span>${label}${note?`<small>${note}</small>`:""}</span><b style="color:${color}">${fmtIT(val)} €</b><em class="chev">›</em></li>`+catList(items,key,color);
-  const vs=(v,a,inv)=>a?`${v>=a?"+":"−"}${Math.round(Math.abs(v-a)/a*100)}% sulla media`:"";
-  h+=`<div class="card"><div class="mnav"><button id="mPrev">‹</button><b>${monthLabel(R.month)}</b><button id="mNext">›</button></div>
+  const vs=(v,a)=>a?`${v>=a?"+":"−"}${Math.round(Math.abs(v-a)/a*100)}% sulla media`:"";
+  const yearNow=today().getFullYear(); const ms=D.months.filter(m=>m.startsWith(String(yearNow))).slice(-12);
+  const series=ms.map(m=>{ const x=D.month(m); return {label:MESI_S[+m.slice(5,7)-1],a:x.entrate,b:x.spese}; });
+  let mese=`<div class="mnav"><button id="mPrev">‹</button><b>${monthLabel(R.month)}</b><button id="mNext">›</button></div>
     <div class="kpi" style="grid-template-columns:1fr 1fr"><div><small>Entrate</small><b style="color:var(--in)"><span class="cnt" data-v="${M.entrate}">${fmt0(M.entrate)}</span> €</b>${avgIn?`<em class="dv">${vs(M.entrate,avgIn)}</em>`:""}</div><div><small>Uscite</small><b style="color:var(--warn)"><span class="cnt" data-v="${M.spese}">${fmt0(M.spese)}</span> €</b>${avgSp?`<em class="dv">${vs(M.spese,avgSp)}</em>`:""}</div>
       <div><small>Investiti</small><b style="color:#2FB27A"><span class="cnt" data-v="${M.investiti}">${fmt0(M.investiti)}</span> €</b></div><div><small>${resta>=0?"Resta in liquidità":"Liquidità in calo"}</small><b style="color:${resta>=0?"var(--ink)":"var(--warn)"}"><span class="cnt" data-v="${Math.abs(resta)}">${fmt0(Math.abs(resta))}</span> €</b><em class="dv">risparmio ${Math.round(M.tasso*100)}% delle entrate</em></div></div>
     <ul class="rows" style="margin-top:12px">
-      ${sumLi("in","Entrate",M.entrate,M.byCatIn.map(c=>({...c,v:c.incassato})),"var(--in)","tocca per vedere le categorie")}
+      ${sumLi("in","Entrate",M.entrate,M.byCatIn.map(c=>({...c,v:c.incassato})),"var(--in)","tocca per le categorie")}
       ${sumLi("out","Uscite",M.spese,M.byCat.map(c=>({...c,v:c.speso})),"var(--warn)","")}
       ${sumLi("inv","Investimenti",M.investiti,M.byCatInv.map(c=>({...c,v:c.versato})),"#2FB27A","non sono una spesa: restano nel patrimonio")}
-    </ul>${isCur?`<p class="fn" style="margin-top:8px">Mese in corso: entrate e uscite non sono ancora complete.</p>`:""}</div>`;
-  // confronto mesi
-  const yearNow=today().getFullYear(); const ms=D.months.filter(m=>m.startsWith(String(yearNow))).slice(-12);
-  const series=ms.map(m=>{ const x=D.month(m); return {label:MESI_S[+m.slice(5,7)-1],a:x.entrate,b:x.spese}; });
-  h+=`<div class="card"><h3>Entrate e uscite mese per mese<small>${yearNow}</small></h3>${barsSVG(series)}<div class="lg"><span><i style="background:#1F6FD0"></i>Entrate</span><span><i style="background:#E4572E"></i>Uscite</span></div></div>`;
+    </ul>${isCur?`<p class="fn" style="margin-top:8px">Mese in corso: entrate e uscite non sono ancora complete.</p>`:""}
+    <h3 style="margin-top:14px">Mese per mese<small>${yearNow}</small></h3>${barsSVG(series)}<div class="lg"><span><i style="background:#1F6FD0"></i>Entrate</span><span><i style="background:#E4572E"></i>Uscite</span></div>`;
+  h+=sec("mese","Il mese","quanto entra, quanto esce",mese);
 
-  // ===== 5. DETTAGLIO per categoria, fino alla singola transazione =====
+  // ===== 5. DETTAGLIO per categoria =====
   const inItems=M.byCatIn.map(c=>({name:c.name,emoji:c.emoji,v:c.incassato}));
-  h+=`<div class="card" id="inCard"><h3>Entrate per categoria<small>${monthLabel(R.month)}</small></h3>`;
-  if(!inItems.length) h+=`<div class="empty">${EMPTY_ART.chart}Nessuna entrata in questo mese.</div>`;
-  else h+=donutHTML(inItems,M.entrate,"Entrate")+`<ul class="rows" style="margin-top:10px">${M.byCatIn.map(c=>expLi(c.name,`<span>${c.emoji?c.emoji+" ":""}${esc(c.name)}<small>tocca per i movimenti</small></span>`,`<b style="color:var(--in)">${fmtIT(c.incassato)} €</b>`,"Entrata")).join("")}<li class="tot"><span>Totale entrate</span><b style="color:var(--in)">${fmtIT(M.entrate)} €</b></li></ul>`;
-  h+=`</div>`;
+  let inn=!inItems.length?`<div class="empty">${EMPTY_ART.chart}Nessuna entrata in questo mese.</div>`:donutHTML(inItems,M.entrate,"Entrate")+`<ul class="rows" style="margin-top:10px">${M.byCatIn.map(c=>expLi(c.name,`<span>${c.emoji?c.emoji+" ":""}${esc(c.name)}<small>tocca per i movimenti</small></span>`,`<b style="color:var(--in)">${fmtIT(c.incassato)} €</b>`,"Entrata")).join("")}<li class="tot"><span>Totale entrate</span><b style="color:var(--in)">${fmtIT(M.entrate)} €</b></li></ul>`;
+  h+=sec("in","Entrate per categoria",monthLabel(R.month),inn,"secin");
   const top=M.byCat.slice(0,9); const rest=M.byCat.slice(9); const items=(rest.length?[...top,{name:"Altre",emoji:"…",speso:rest.reduce((a,c)=>a+c.speso,0)}]:top).map(c=>({name:c.name,emoji:c.emoji,v:c.speso}));
-  h+=`<div class="card" id="outCard"><h3>Uscite per categoria<small>${monthLabel(R.month)}</small></h3>`;
-  if(!items.length) h+=`<div class="empty">${EMPTY_ART.chart}Nessuna uscita registrata in questo mese.</div>`;
-  else h+=donutHTML(items,M.spese,"Uscite")+`<ul class="rows" style="margin-top:10px">${M.byCat.map(c=>expLi(c.name,`<span>${c.emoji?c.emoji+" ":""}${esc(c.name)}<small>${Math.round(c.speso/M.spese*100)}% delle uscite · tocca per i movimenti</small></span>`,`<b>${fmtIT(c.speso)} €</b>`,"Spesa")).join("")}<li class="tot"><span>Totale uscite</span><b style="color:var(--warn)">${fmtIT(M.spese)} €</b></li></ul>`;
-  h+=`</div>`;
-  h+=`<div class="card" id="invCard"><h3>Investimenti per categoria<small>${monthLabel(R.month)}</small></h3>`;
-  if(!M.byCatInv.length) h+=`<div class="empty">${EMPTY_ART.chart}Nessun versamento in questo mese.</div>`;
-  else h+=`<ul class="rows">${M.byCatInv.map(c=>expLi(c.name,`<span>${c.emoji?c.emoji+" ":""}${esc(c.name)}<small>versato, non una spesa · tocca per i movimenti</small></span>`,`<b style="color:#2FB27A">${fmtIT(c.versato)} €</b>`,"Investimento")).join("")}<li class="tot"><span>Totale investito</span><b style="color:#2FB27A">${fmtIT(M.investiti)} €</b></li></ul>`;
-  h+=`</div>`;
+  let out=!items.length?`<div class="empty">${EMPTY_ART.chart}Nessuna uscita registrata in questo mese.</div>`:donutHTML(items,M.spese,"Uscite")+`<ul class="rows" style="margin-top:10px">${M.byCat.map(c=>expLi(c.name,`<span>${c.emoji?c.emoji+" ":""}${esc(c.name)}<small>${Math.round(c.speso/M.spese*100)}% delle uscite · tocca per i movimenti</small></span>`,`<b>${fmtIT(c.speso)} €</b>`,"Spesa")).join("")}<li class="tot"><span>Totale uscite</span><b style="color:var(--warn)">${fmtIT(M.spese)} €</b></li></ul>`;
+  h+=sec("out","Uscite per categoria",monthLabel(R.month),out,"secout");
+  let inv=!M.byCatInv.length?`<div class="empty">${EMPTY_ART.chart}Nessun versamento in questo mese.</div>`:`<ul class="rows">${M.byCatInv.map(c=>expLi(c.name,`<span>${c.emoji?c.emoji+" ":""}${esc(c.name)}<small>versato, non una spesa · tocca per i movimenti</small></span>`,`<b style="color:#2FB27A">${fmtIT(c.versato)} €</b>`,"Investimento")).join("")}<li class="tot"><span>Totale investito</span><b style="color:#2FB27A">${fmtIT(M.investiti)} €</b></li></ul>`;
+  h+=sec("inv","Investimenti per categoria",monthLabel(R.month),inv);
 
   // ===== 6. BUDGET =====
-  h+=pianoHTML(D,M,curM);
   const bOut=D.cats.filter(c=>c.tipo==="Spesa"&&c.budget>0).map(c=>{ const x=M.byCat.find(y=>y.name===c.name); return {...c,speso:x?x.speso:0}; }).sort((a,b)=>b.speso/b.budget-a.speso/a.budget);
   const bIn=D.cats.filter(c=>c.tipo==="Entrata"&&c.budget>0).map(c=>{ const x=M.byCatIn.find(y=>y.name===c.name); return {...c,incassato:x?x.incassato:0}; });
-  h+=`<div class="card"><h3>Budget<small>${monthLabel(R.month)}</small><button class="btn" id="btnBudget" style="float:right;margin:-6px 0 0;padding:6px 10px;min-height:30px;font-size:13px">✎ Modifica</button></h3>`;
-  if(!bOut.length&&!bIn.length) h+=`<p class="fn">Nessun budget impostato: tocca Modifica per aggiungerne.</p>`;
-  else h+=`<ul class="rows">${bOut.map(c=>`<li><span>${c.emoji?c.emoji+" ":""}${esc(c.name)}<small>${fmt0(c.speso)} di ${fmt0(c.budget)} € · ${Math.round(c.speso/c.budget*100)}%${c.speso>c.budget?" · sopra il budget":""}</small><div class="bar"><i class="${c.speso>c.budget?"over":""}" style="width:${Math.min(100,c.speso/c.budget*100)}%"></i></div></span><b style="color:${c.speso>c.budget?"var(--warn)":"var(--ink)"}">${fmtIT(Math.max(0,c.budget-c.speso))} €<small style="display:block;text-align:right">${c.speso>c.budget?"sforato":"restano"}</small></b></li>`).join("")}
+  let bud=pianoHTML(D,M,curM).replace(/^<div class="card" id="pianoCard"><h3>Piano del mese<small>quanto investire, quanto resta<\/small><\/h3>/,'<div id="pianoCard"><h3 style="margin-top:0">Piano del mese<small>quanto investire, quanto resta</small></h3>');
+  bud+=`<h3 style="margin-top:14px">Budget per categoria<small>${monthLabel(R.month)}</small></h3><div style="margin:0 0 10px"><button class="btn" id="btnBudget" style="margin:0">✎ Modifica budget e obiettivi</button></div>`;
+  if(!bOut.length&&!bIn.length) bud+=`<p class="fn">Nessun budget impostato.</p>`;
+  else bud+=`<ul class="rows">${bOut.map(c=>`<li><span>${c.emoji?c.emoji+" ":""}${esc(c.name)}<small>${fmt0(c.speso)} di ${fmt0(c.budget)} € · ${Math.round(c.speso/c.budget*100)}%${c.speso>c.budget?" · sopra il budget":""}</small><div class="bar"><i class="${c.speso>c.budget?"over":""}" style="width:${Math.min(100,c.speso/c.budget*100)}%"></i></div></span><b style="color:${c.speso>c.budget?"var(--warn)":"var(--ink)"}">${fmtIT(Math.max(0,c.budget-c.speso))} €<small style="display:block;text-align:right">${c.speso>c.budget?"sforato":"restano"}</small></b></li>`).join("")}
     ${bIn.map(c=>`<li><span>${c.emoji?c.emoji+" ":""}${esc(c.name)}<small>obiettivo ${fmt0(c.budget)} € · ${Math.round(c.incassato/c.budget*100)}%</small><div class="bar"><i class="ok" style="width:${Math.min(100,c.incassato/c.budget*100)}%"></i></div></span><b style="color:var(--in)">${fmtIT(c.incassato)} €</b></li>`).join("")}</ul>`;
-  h+=`</div>`;
+  h+=sec("budget","Budget e piano","",bud);
   h+=`<div class="card"><h3>Report PDF</h3><p style="font-size:13.5px;color:var(--ink-2);margin:0 0 10px">Un resoconto completo del mese chiuso: patrimonio, spese per categoria, trend, investimenti e stato FIRE.</p><button class="btn" id="btnReport" style="width:100%">📄 Genera report PDF</button></div>`;
 
   body.innerHTML=`<div class="ptr ${R.loading?"on":""}"><span><i class="spin"></i>Aggiorno da Excel…</span></div>`+h;
   animateCounts(body); bindExp(body);
-  { const cc=$("compoCard"); if(cc&&cc.querySelector(".donutwrap")) bindDonut(cc.querySelector(".donutwrap"),compItems,compTot,"Totale");
+  body.querySelectorAll(".card.sec>h3.sh").forEach(hd=>hd.onclick=()=>{ haptic(); const c=hd.parentElement, k=c.dataset.sec; c.classList.toggle("closed"); S.rpSec=S.rpSec||{}; if(c.classList.contains("closed")) S.rpSec[k]=true; else delete S.rpSec[k]; save(); });
+  $("rpToggleAll").onclick=()=>{ haptic(); const cards=[...body.querySelectorAll(".card.sec")]; const close=!cards.every(c=>c.classList.contains("closed")); S.rpSec={}; cards.forEach(c=>{ c.classList.toggle("closed",close); if(close) S.rpSec[c.dataset.sec]=true; }); $("rpToggleAll").textContent=close?"Espandi tutto":"Comprimi tutto"; save(); };
+  { const cc=body.querySelector('.card[data-sec="compo"]'); if(cc&&cc.querySelector(".donutwrap")) bindDonut(cc.querySelector(".donutwrap"),compItems,compTot,"Patrimonio");
     const oc=$("outCard"); if(oc&&oc.querySelector(".donutwrap")) bindDonut(oc.querySelector(".donutwrap"),items,M.spese,"Uscite");
     const ic=$("inCard"); if(ic&&ic.querySelector(".donutwrap")) bindDonut(ic.querySelector(".donutwrap"),inItems,M.entrate,"Entrate"); }
   if(D.storico.length>=2){ const pc=$("patCard"); if(pc) pc._bound=false; initPat(D.storico); initComp(); initLines(); }
