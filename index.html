@@ -344,6 +344,10 @@
   .rp .donutwrap path{transition:opacity .18s;cursor:pointer}
   .rp .donutwrap path.hi{filter:drop-shadow(0 2px 6px rgba(0,0,0,.35))}
   .rp .donutwrap path.dim{opacity:.32}
+  .rp .donutwrap path{-webkit-tap-highlight-color:transparent}
+  .rp .rows li.hl{background:color-mix(in srgb,var(--hlc,var(--go)) 14%,transparent)!important;box-shadow:inset 4px 0 0 var(--hlc,var(--go));border-radius:12px;margin:0 -8px;padding-left:12px!important;padding-right:8px!important;transition:background .2s}
+  .rp .legend li.hi{background:var(--surface-2)!important;color:var(--ink)!important;transform:none!important;border-color:var(--hair)!important;font-weight:700}
+  .rp .legend li.hi small,.rp .legend li.hi b{color:var(--ink)!important}
   .rp .legend li{border-radius:9px;padding:3px 8px;margin:0 -8px;transition:background .18s,transform .18s;border:1.5px solid transparent}
   .rp .legend li.hi{background:var(--go);color:#fff;transform:scale(1.03);border-color:rgba(255,255,255,.35)}
   .rp .legend li.hi small,.rp .legend li.hi b{color:#fff}
@@ -1111,7 +1115,7 @@
   </div>
   <div class="field">
     <label>Versione app</label>
-    <p><b>v79</b> · Occhio nella barra in alto: nasconde tutti gli importi con una sfocatura; per mostrarli di nuovo serve Face ID, se attivo.  Se non leggi "v79" qui, versione vecchia.</p>
+    <p><b>v80</b> · Torte: tocca una fetta o una voce della legenda per ingrandirla ed evidenziare la categoria nell'elenco; nuovo tocco per deselezionare.  Se non leggi "v80" qui, versione vecchia.</p>
   </div>
   <div class="field">
     <label>Dettatura</label>
@@ -1675,22 +1679,26 @@ function donutSVG(items,total,label){ // items: [{name,emoji,v}]
 function donutHTML(items,total,label){
   return `<div class="donutwrap">${donutSVG(items,total,label)}<ul class="legend">${items.map((c,i)=>`<li data-i="${i}"><i style="background:${PALETTE[i%PALETTE.length]}"></i><span>${c.emoji?c.emoji+" ":""}${esc(c.name)}</span><b>${fmt0(c.v)} €<small>${Math.round(c.v/total*100)}%</small></b></li>`).join("")}</ul></div>`;
 }
-function bindDonut(wrap,items,total,label){
-  const svg=wrap.querySelector("svg"), c1=svg.querySelector(".c1"), c2=svg.querySelector(".c2"); let hi=null, tmr=null;
-  const set=i=>{ if(i===hi) return; hi=i;
-    svg.querySelectorAll("path").forEach(p=>{ const hi=+p.dataset.i===i; p.classList.toggle("hi",hi); p.classList.toggle("dim",i!=null&&!hi);
-      p.setAttribute("d",arcD(+p.dataset.a0,+p.dataset.a1,hi?68:60,hi?35:38,75,75)); });
+// Tocco su fetta o legenda: la fetta si ingrandisce e resta selezionata, si evidenziano la voce della legenda
+// e la riga corrispondente nell'elenco sotto. Nuovo tocco sulla stessa voce, o fuori dalla torta, deseleziona.
+// rowFor(i) restituisce la riga dell'elenco da evidenziare (facoltativo).
+function bindDonut(wrap,items,total,label,rowFor){
+  const svg=wrap.querySelector("svg"), c1=svg.querySelector(".c1"), c2=svg.querySelector(".c2"); let hi=null;
+  const card=wrap.closest(".card")||wrap.parentElement;
+  const set=i=>{ hi=i;
+    svg.querySelectorAll("path").forEach(p=>{ const on=+p.dataset.i===i; p.classList.toggle("hi",on); p.classList.toggle("dim",i!=null&&!on);
+      p.setAttribute("d",arcD(+p.dataset.a0,+p.dataset.a1,on?70:60,on?34:38,75,75)); if(on) p.parentNode.insertBefore(p,c1); });
     wrap.querySelectorAll(".legend li").forEach(l=>l.classList.toggle("hi",+l.dataset.i===i));
+    card.querySelectorAll(".rows li.hl").forEach(r=>r.classList.remove("hl"));
+    if(i!=null&&rowFor){ const r=rowFor(i); if(r){ r.classList.add("hl"); r.style.setProperty("--hlc",PALETTE[i%PALETTE.length]); } }
     if(i==null){ c1.textContent=label; c2.textContent=fmt0(total)+" €"; }
     else { const it=items[i]; c1.textContent=(it.name.length>14?it.name.slice(0,13)+"…":it.name); c2.textContent=fmt0(it.v)+" €"; } };
-  const at=(x,y)=>{ const el=document.elementFromPoint(x,y); const p=el&&el.closest&&el.closest("path[data-i]"); return p?+p.dataset.i:null; };
-  const later=()=>{ clearTimeout(tmr); tmr=setTimeout(()=>set(null),1800); };
-  svg.addEventListener("touchstart",e=>{ clearTimeout(tmr); const t=e.touches[0]; set(at(t.clientX,t.clientY)); },{passive:true});
-  svg.addEventListener("touchmove",e=>{ const t=e.touches[0]; const i=at(t.clientX,t.clientY); if(i!=null) set(i); },{passive:true});
-  svg.addEventListener("touchend",later,{passive:true});
-  svg.addEventListener("mousemove",e=>{ clearTimeout(tmr); const i=at(e.clientX,e.clientY); if(i!=null) set(i); });
-  svg.addEventListener("mouseleave",()=>set(null));
-  wrap.querySelectorAll(".legend li").forEach(l=>l.onclick=()=>{ clearTimeout(tmr); set(hi===+l.dataset.i?null:+l.dataset.i); later(); });
+  const pick=i=>{ haptic(); set(hi===i?null:i); };
+  svg.querySelectorAll("path[data-i]").forEach(p=>p.addEventListener("click",e=>{ e.stopPropagation(); pick(+p.dataset.i); }));
+  svg.addEventListener("click",e=>{ if(!e.target.closest("path[data-i]")&&hi!=null) set(null); });
+  wrap.querySelectorAll(".legend li").forEach(l=>l.onclick=e=>{ e.stopPropagation(); pick(+l.dataset.i); });
+  // scorrendo il dito sulla torta la selezione segue il dito
+  svg.addEventListener("touchmove",e=>{ const t=e.touches[0]; const el=document.elementFromPoint(t.clientX,t.clientY); const p=el&&el.closest&&el.closest("path[data-i]"); if(p&&+p.dataset.i!==hi) set(+p.dataset.i); },{passive:true});
 }
 function barsSVG(series){ // series: [{label, a(entrate), b(spese)}]
   const W=440,H=170,padL=8,padB=22,padT=8; const n=series.length; if(!n) return "";
@@ -2039,9 +2047,11 @@ function renderRp(){
   animateCounts(body); bindExp(body);
   body.querySelectorAll(".card.sec>h3.sh").forEach(hd=>hd.onclick=()=>{ haptic(); const c=hd.parentElement, k=c.dataset.sec; c.classList.toggle("closed"); S.rpSec=S.rpSec||{}; if(c.classList.contains("closed")) S.rpSec[k]=true; else delete S.rpSec[k]; save(); });
   $("rpToggleAll").onclick=()=>{ haptic(); const cards=[...body.querySelectorAll(".card.sec")]; const close=!cards.every(c=>c.classList.contains("closed")); S.rpSec={}; cards.forEach(c=>{ c.classList.toggle("closed",close); if(close) S.rpSec[c.dataset.sec]=true; }); $("rpToggleAll").textContent=close?"Espandi tutto":"Comprimi tutto"; save(); };
-  { const cc=body.querySelector('.card[data-sec="compo"]'); if(cc&&cc.querySelector(".donutwrap")) bindDonut(cc.querySelector(".donutwrap"),compItems,compTot,"Patrimonio");
-    const oc=$("outCard"); if(oc&&oc.querySelector(".donutwrap")) bindDonut(oc.querySelector(".donutwrap"),items,M.spese,"Uscite");
-    const ic=$("inCard"); if(ic&&ic.querySelector(".donutwrap")) bindDonut(ic.querySelector(".donutwrap"),inItems,M.entrate,"Entrate"); }
+  { const cc=body.querySelector('.card[data-sec="compo"]'); if(cc&&cc.querySelector(".donutwrap")) bindDonut(cc.querySelector(".donutwrap"),compItems,compTot,"Patrimonio",
+      i=>cc.querySelector(`.rows li[data-k="${compItems[i].name==="Liquidità"?"liq":"ass"}"]`));
+    const rowOf=(c,name)=>[...c.querySelectorAll(".rows li.exp")].find(li=>li.dataset.cat===name)||(name==="Altre"?c.querySelector(".rows li.tot"):null);
+    const oc=body.querySelector('.card[data-sec="out"]'); if(oc&&oc.querySelector(".donutwrap")) bindDonut(oc.querySelector(".donutwrap"),items,M.spese,"Uscite",i=>rowOf(oc,items[i].name));
+    const ic=body.querySelector('.card[data-sec="in"]'); if(ic&&ic.querySelector(".donutwrap")) bindDonut(ic.querySelector(".donutwrap"),inItems,M.entrate,"Entrate",i=>rowOf(ic,inItems[i].name)); }
   if(D.storico.length>=2){ const pc=$("patCard"); if(pc) pc._bound=false; initPat(D.storico); initComp(); initLines(); }
   const br=$("btnReport"); if(br) br.onclick=openReport;
   const bri=$("btnRimborso"); if(bri) bri.onclick=()=>{ $("sheetRp").classList.remove("open");
