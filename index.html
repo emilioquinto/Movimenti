@@ -419,10 +419,27 @@
   .rp .flow{margin:8px 0 12px}
   .rp .flow .ft{display:flex;justify-content:space-between;align-items:baseline;font-size:13.5px;font-weight:600;margin-bottom:5px}
   .rp .flow .ft b{font-family:ui-rounded,-apple-system,system-ui,sans-serif;font-size:14px}
+  .rp .flow .ft{gap:10px}.rp .flow .ft b{white-space:nowrap}
   .rp .flow .ft b.up{color:#2FB27A}.rp .flow .ft b.down{color:var(--warn)}
-  .rp .flow .fb{display:flex;height:22px;border-radius:8px;overflow:hidden;background:var(--key);gap:2px}
+  .rp .flow .fr{display:grid;grid-template-columns:58px 1fr auto;align-items:center;gap:8px;margin-top:6px;font-size:12.5px}
+  .rp .flow .fr .fk{color:var(--ink-2);font-weight:600}
+  .rp .flow .fr .fv{font-family:ui-rounded,-apple-system,system-ui,sans-serif;font-variant-numeric:tabular-nums;font-size:13.5px;min-width:64px;text-align:right}
+  .rp .flow .fr .fv.in{color:#2FB27A}.rp .flow .fr .fv.out{color:#E4572E}
+  .rp .flow .fb{display:flex;height:16px;border-radius:6px;overflow:hidden;background:var(--key);gap:2px}
   .rp .flow .fb i{display:block;height:100%;transition:width .5s cubic-bezier(.22,1,.36,1)}
-  .rp .flow .fl{display:flex;justify-content:space-between;font-size:11.5px;color:var(--ink-2);margin-top:4px;font-variant-numeric:tabular-nums}
+  .rp .flow .fl i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+  /* selettore del mese fisso in cima al Riepilogo */
+  .rp .mbar{position:sticky;top:0;z-index:9;display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 10px;padding:6px 8px;
+    background:var(--surface-2);border:1px solid var(--hair);border-radius:16px;box-shadow:0 6px 18px rgba(0,0,0,.12)}
+  .rp .mbar button{width:44px;height:38px;border-radius:12px;font-size:22px;font-weight:700;color:var(--ink)}
+  .rp .mbar button:disabled{opacity:.3}
+  .rp .mbar .mt{flex:1;text-align:center;line-height:1.15}
+  .rp .mbar .mt b{display:block;font-size:17px}
+  .rp .mbar .mt small{display:block;font-size:11.5px;color:var(--ink-2)}
+  .rp .mbar .mt small button{width:auto;height:auto;font-size:11.5px;font-weight:600;color:var(--go);padding:0 0 0 4px}
+  .rp .trh{display:flex;align-items:center;gap:10px}
+  .rp .trh img{height:15px;width:auto;display:block}
+  .rp .flow .fl{display:flex;justify-content:flex-start;gap:14px;padding-left:66px;font-size:11.5px;color:var(--ink-2);margin-top:4px;font-variant-numeric:tabular-nums}
   .rp .fn{font-size:12px;color:var(--ink-2);line-height:1.4;margin-top:4px}
   .rp .kpi em.dv{display:block;font-style:normal;font-size:11px;color:var(--ink-2);margin-top:2px}
   .rp .ip label{font-size:13.5px;color:var(--ink-2)} .rp .ip .r1{display:flex;justify-content:space-between;align-items:baseline}
@@ -860,7 +877,7 @@
     .flash{left:var(--sb)}
     /* pannelli a griglia */
     .rp #rpBody,.fire #fireBody{display:grid;grid-template-columns:1fr 1fr;gap:0 16px;align-items:start}
-    .rp #rpBody>.ptr,.rp #rpBody>.hero,.rp #rpBody>.sync,.rp #rpBody>.pat,.fire #fireBody>.hero{grid-column:1/-1}
+    .rp #rpBody>.ptr,.rp #rpBody>.mbar,.rp #rpBody>.hero,.rp #rpBody>.sync,.rp #rpBody>.pat,.fire #fireBody>.hero{grid-column:1/-1}
     .rp .hero{display:grid;grid-template-columns:auto 1fr;gap:0 28px;align-items:center}
     .rp .hero .lbl{grid-column:1/-1} .rp .hero .ring{margin:0;grid-row:span 3} .rp .hero .grid3{grid-column:2}
     .mv{display:grid!important;grid-template-columns:1fr 1fr 1fr;gap:0 14px;align-content:start}
@@ -1115,7 +1132,7 @@
   </div>
   <div class="field">
     <label>Versione app</label>
-    <p><b>v80</b> · Torte: tocca una fetta o una voce della legenda per ingrandirla ed evidenziare la categoria nell'elenco; nuovo tocco per deselezionare.  Se non leggi "v80" qui, versione vecchia.</p>
+    <p><b>v82</b> · Riepilogo: mese scelto dalla barra fissa in alto (vale per tutte le sezioni); entrate in verde, uscite in rosso, investimenti in blu, con entrate e uscite affiancate sulla stessa scala; grafico del patrimonio con il valore di oggi; Trasferte con logo Siemens in fondo.  Se non leggi "v82" qui, versione vecchia.</p>
   </div>
   <div class="field">
     <label>Dettatura</label>
@@ -1665,6 +1682,14 @@ function serieComposizione(){
 
 // ---------- Riepilogo UI ----------
 function monthLabel(m){ const [y,mm]=m.split("-"); return `${MESI[+mm-1]} ${y}`; }
+// Patrimonio a fine mese m: lo storico ha una fotografia al giorno 1 di ogni mese, quindi la fine di m
+// è la fotografia del mese dopo. Se non c'è ancora (mese appena chiuso) vale il patrimonio di oggi.
+function patFineMese(D,m){
+  const nx=shiftMonth(m,1)+"-01", cur=dateISO(today()).slice(0,7);
+  const dentro=D.storico.filter(p=>p.d>m+"-01"&&p.d<=nx); if(dentro.length) return dentro[dentro.length-1].v;
+  if(nx.slice(0,7)>=cur) return D.patrimonio;
+  const prima=D.storico.filter(p=>p.d<=nx); return prima.length?prima[prima.length-1].v:D.patrimonio;
+}
 function shiftMonth(m,k){ const [y,mm]=m.split("-").map(Number); const d=new Date(y,mm-1+k,1); return `${d.getFullYear()}-${pad2(d.getMonth()+1)}`; }
 function arcD(a0,a1,R,r,cx,cy){ if(a1-a0>=2*Math.PI-1e-4) a1=a0+2*Math.PI-1e-4; const large=(a1-a0)>Math.PI?1:0;
   const p=(ang,rad)=>[cx+rad*Math.cos(ang),cy+rad*Math.sin(ang)];
@@ -1705,7 +1730,7 @@ function barsSVG(series){ // series: [{label, a(entrate), b(spese)}]
   const max=Math.max(1,...series.flatMap(s=>[s.a,s.b])); const gw=(W-padL*2)/n; const bw=Math.min(18,gw*0.32);
   let g="";
   series.forEach((s,i)=>{ const x=padL+i*gw+gw/2; const ha=(s.a/max)*(H-padB-padT), hb=(s.b/max)*(H-padB-padT);
-    g+=`<rect x="${(x-bw-1).toFixed(1)}" y="${(H-padB-ha).toFixed(1)}" width="${bw}" height="${ha.toFixed(1)}" rx="3" fill="#1F6FD0"/>`;
+    g+=`<rect x="${(x-bw-1).toFixed(1)}" y="${(H-padB-ha).toFixed(1)}" width="${bw}" height="${ha.toFixed(1)}" rx="3" fill="#2FB27A"/>`;
     g+=`<rect x="${(x+1).toFixed(1)}" y="${(H-padB-hb).toFixed(1)}" width="${bw}" height="${hb.toFixed(1)}" rx="3" fill="#E4572E"/>`;
     g+=`<text x="${x.toFixed(1)}" y="${H-6}" text-anchor="middle" font-size="11" fill="var(--ink-2)">${s.label}</text>`; });
   return `<svg class="chart" viewBox="0 0 ${W} ${H}" aria-hidden="true"><line x1="${padL}" y1="${H-padB}" x2="${W-padL}" y2="${H-padB}" stroke="#CFDCEA"/>${g}</svg>`;
@@ -1892,12 +1917,15 @@ function pianoData(D,curM){
   const avg=k=>ms.reduce((a,x)=>a+D.month(x)[k],0)/n;
   return {bIn,bOut,bInv,avgIn:avg("entrate"),avgOut:avg("spese"),avgInv:avg("investiti"),nMesi:ms.length};
 }
+// Entrate (verde) sopra, uscite (rosso) + investimenti (blu) sotto, sulla stessa scala:
+// la differenza di lunghezza tra le due righe è la liquidità che resta o che manca.
 function flowBar(title,inV,outV,invV,note){
   const liq=inV-outV-invV; const base=Math.max(1,inV,outV+invV);
   const w=v=>Math.max(0,v/base*100).toFixed(1);
-  return `<div class="flow"><div class="ft"><span>${title}</span><b class="${liq>=0?"up":"down"}">${liq>=0?"+":"−"}${fmt0(Math.abs(liq))} € liquidità</b></div>
-    <div class="fb"><i style="width:${w(outV)}%;background:#E4572E" title="Spese"></i><i style="width:${w(invV)}%;background:#2FB27A"></i>${liq>=0?`<i style="width:${w(liq)}%;background:#3B82F6"></i>`:`<i style="width:${w(-liq)}%;background:repeating-linear-gradient(45deg,#E4572E 0 4px,#8E2E1B 4px 8px)"></i>`}</div>
-    <div class="fl"><span>Entrate ${fmt0(inV)}</span><span>Spese ${fmt0(outV)}</span><span>Investiti ${fmt0(invV)}</span></div>${note?`<div class="fn">${note}</div>`:""}</div>`;
+  return `<div class="flow"><div class="ft"><span>${title}</span><b class="${liq>=0?"up":"down"}">${liq>=0?"restano +":"mancano −"}${fmt0(Math.abs(liq))} €</b></div>
+    <div class="fr"><span class="fk">Entrano</span><div class="fb"><i style="width:${w(inV)}%;background:#2FB27A"></i></div><b class="fv in">+${fmt0(inV)}</b></div>
+    <div class="fr"><span class="fk">Escono</span><div class="fb"><i style="width:${w(outV)}%;background:#E4572E"></i>${invV>0.5?`<i style="width:${w(invV)}%;background:#1F6FD0"></i>`:""}</div><b class="fv out">−${fmt0(outV+invV)}</b></div>
+    <div class="fl"><span><i style="background:#E4572E"></i>spese ${fmt0(outV)}</span><span><i style="background:#1F6FD0"></i>investiti ${fmt0(invV)}</span></div>${note?`<div class="fn">${note}</div>`:""}</div>`;
 }
 function pianoHTML(D,M,curM){
   const P=pianoData(D,curM); if(!P.bIn&&!P.avgIn) return "";
@@ -1905,7 +1933,7 @@ function pianoHTML(D,M,curM){
   const maxInv=Math.max(500,Math.ceil(Math.max(P.bIn,P.avgIn)/100)*100);
   const runway=P.avgOut>0?D.liquidita/P.avgOut:null;
   return `<div class="card" id="pianoCard"><h3>Piano del mese<small>quanto investire, quanto resta</small></h3>
-    <div class="lg" style="margin:0 0 6px"><span><i style="background:#E4572E"></i>Spese</span><span><i style="background:#2FB27A"></i>Investimenti</span><span><i style="background:#3B82F6"></i>Liquidità che cresce</span></div>
+    <div class="lg" style="margin:0 0 6px"><span><i style="background:#2FB27A"></i>Entrate</span><span><i style="background:#E4572E"></i>Spese</span><span><i style="background:#1F6FD0"></i>Investimenti</span></div>
     ${flowBar("Budget",P.bIn,P.bOut,inv)}
     ${P.nMesi?flowBar(`Media ultimi ${P.nMesi} mesi`,P.avgIn,P.avgOut,inv):""}
     ${flowBar(monthLabel(R.month),M.entrate,M.spese,M.investiti,R.month>=curM?"mese in corso: entrate e spese non ancora complete":"")}
@@ -1951,14 +1979,15 @@ function bindExp(root){
 function renderRp(){
   const body=$("rpBody"); const D=calc(); if(!R.openCats) R.openCats=new Set();
   if(!D){ body.innerHTML=R.loading?skeletonHTML():`<div class="card"><div class="empty">${EMPTY_ART.chart}<b>Nessun dato ancora</b>${S.share?"Trascina in giù o tocca Aggiorna per leggere il file.":"In ⚙︎ incolla l'indirizzo del relay, poi torna qui."}</div></div>`; return; }
-  if(!R.month) R.month=D.months.length?D.months[D.months.length-1]:dateISO(today()).slice(0,7);
+  // il mese mostrato è quello in corso, finché non lo cambi con le frecce
+  if(!R.month||!R.monthPicked) R.month=dateISO(today()).slice(0,7);
   const M=D.month(R.month); const ytd=D.inizioAnno!=null?D.patrimonio-D.inizioAnno:null;
   const when=new Date(D.ts); const ago=Math.round((Date.now()-D.ts)/60000);
   const msPrev=D.months.filter(x=>x<R.month).slice(-12); const avgSp=msPrev.length?msPrev.reduce((a,x)=>a+D.month(x).spese,0)/msPrev.length:0;
   const avgIn=msPrev.length?msPrev.reduce((a,x)=>a+D.month(x).entrate,0)/msPrev.length:0;
   const ratio=avgSp?M.spese/avgSp:0; const stato=!avgSp?"":(ratio<=0.85?"ok":(ratio<=1.05?"warn":"over"));
   const curM=dateISO(today()).slice(0,7); const isCur=R.month>=curM;
-  const stM=D.storico.filter(p=>p.d<=R.month+"-31"); const patM=isCur?D.patrimonio:(stM.length?stM[stM.length-1].v:D.patrimonio);
+  const patM=isCur?D.patrimonio:patFineMese(D,R.month);
   const SCx=serieComposizione(); const prevPt=SCx?[...SCx.pts].reverse().find(p=>p.kind==="hist"&&p.d<dateISO(today()).slice(0,7)+"-02"&&p.liq!=null):null;
   const dLiq=prevPt?D.liquidita-prevPt.liq:null, dAss=prevPt?D.assetTot-prevPt.asset:null;
   const delta=v=>v==null?"":`<em class="dv ${v>=0?"up":"down"}">${v>=0?"+":"−"}${fmt0(Math.abs(v))} € sul mese scorso</em>`;
@@ -1967,8 +1996,10 @@ function renderRp(){
   const SEC=S.rpSec||{}; const sec=(key,title,sub,inner,extraCls)=>`<div class="card sec${SEC[key]?" closed":""}${extraCls?" "+extraCls:""}" data-sec="${key}"><h3 class="sh">${title}${sub?`<small>${sub}</small>`:""}<em class="chev">▾</em></h3><div class="cbody">${inner}</div></div>`;
   const allClosed=["compo","trend","mese","in","out","inv","budget"].every(k=>SEC[k]);
 
+  // ===== 0. MESE (fisso in alto: vale per patrimonio, il mese, categorie e budget) =====
+  let h=`<div class="mbar"><button id="mPrev" aria-label="Mese precedente">‹</button><div class="mt"><b>${monthLabel(R.month)}</b><small>${isCur?"mese in corso":`mese chiuso<button id="mNow">torna a oggi</button>`}</small></div><button id="mNext" aria-label="Mese successivo" ${isCur?"disabled":""}>›</button></div>`;
   // ===== 1. PATRIMONIO =====
-  let h=`<div class="hero ${stato}">
+  h+=`<div class="hero ${stato}">
     <div class="lbl"><img class="famav sm" src="${FAM_SRC}" alt="" onerror="this.remove()">Patrimonio di famiglia${isCur?"":" · fine "+monthLabel(R.month).toLowerCase()}</div>
     <div class="big"><span class="cnt" data-v="${patM}" data-d="2">${fmtIT(patM)}</span> €</div>`;
   if(ytd!=null) h+=`<div class="ytd">Da inizio anno <em class="${ytd<0?"neg":""}">${ytd>=0?"+":"−"}${fmtIT(Math.abs(ytd))} €</em></div>`;
@@ -1991,12 +2022,6 @@ function renderRp(){
     <li class="tot"><span>Patrimonio<small>liquidità ${D.carte.length?"+ carte ":""}+ investimenti${D.trasferte.credito>0.005?" + crediti":""}</small></span><b>${fmtIT(D.patrimonio)} €</b></li></ul>
     <div style="display:flex;gap:8px;margin-top:10px"><button class="btn" id="btnPrezziOpen" style="flex:1;margin:0">✎ Aggiorna valori</button><button class="btn" id="btnPacOpen" style="flex:1;margin:0">📥 Da Trade</button></div>`;
   h+=sec("compo","Com'è diviso il patrimonio","oggi",compo);
-  if(D.trasferte.righe) h+=`<div class="card"><h3>Trasferte Siemens</h3><ul class="rows">
-    <li><span>Da farsi rimborsare<small>spese fatte e non ancora accreditate da Siemens</small></span><b>${fmtIT(D.trasferte.credito)} €</b></li>
-    <li><span>Speso su Amex Siemens<small>non ancora addebitato sul conto</small></span><b>${fmtIT(D.trasferte.daAddebitare)} €</b></li>
-    ${Object.entries(D.trasferte.perConto).filter(([c,v])=>v<-0.005&&c!==CONTO_TRASFERTE).map(([c,v])=>`<li><span>Anticipato con ${esc(lbl(c))}<small>rientrerà con la nota spese</small></span><b>${fmtIT(-v)} €</b></li>`).join("")}</ul>
-    ${D.trasferte.credito>0.005?`<button class="btn" id="btnRimborso" style="width:100%;margin-top:10px">Registra rimborso di ${fmtIT(D.trasferte.credito)} €</button>`:""}
-    <p style="font-size:12.5px;color:var(--ink-2);margin:8px 0 0">Non entra nelle spese del mese né nel patrimonio: l'uscita è compensata dal rimborso. L'indennità di trasferta va registrata a parte come Stipendio Emi, perché è reddito e non un rimborso.</p></div>`;
 
   // ===== 3. ANDAMENTO NEL TEMPO =====
   if(D.storico.length>=2) h+=sec("trend","Andamento nel tempo","",`<div class="pat" id="patCard"></div><div class="pat" id="compCard"></div><div class="pat" id="linesCard"></div>`);
@@ -2010,17 +2035,16 @@ function renderRp(){
   const vs=(v,a)=>a?`${v>=a?"+":"−"}${Math.round(Math.abs(v-a)/a*100)}% sulla media`:"";
   const yearNow=today().getFullYear(); const ms=D.months.filter(m=>m.startsWith(String(yearNow))).slice(-12);
   const series=ms.map(m=>{ const x=D.month(m); return {label:MESI_S[+m.slice(5,7)-1],a:x.entrate,b:x.spese}; });
-  let mese=`<div class="mnav"><button id="mPrev">‹</button><b>${monthLabel(R.month)}</b><button id="mNext">›</button></div>
-    <div class="kpi" style="grid-template-columns:1fr 1fr"><div style="--kc:#0B8A4B"><small>Entrate</small><b class="amt in">+<span class="cnt" data-v="${M.entrate}">${fmt0(M.entrate)}</span> €</b>${avgIn?`<em class="dv">${vs(M.entrate,avgIn)}</em>`:""}</div><div style="--kc:#E4572E"><small>Uscite</small><b class="amt out">−<span class="cnt" data-v="${M.spese}">${fmt0(M.spese)}</span> €</b>${avgSp?`<em class="dv">${vs(M.spese,avgSp)}</em>`:""}</div>
+  let mese=`<div class="kpi" style="grid-template-columns:1fr 1fr"><div style="--kc:#0B8A4B"><small>Entrate</small><b class="amt in">+<span class="cnt" data-v="${M.entrate}">${fmt0(M.entrate)}</span> €</b>${avgIn?`<em class="dv">${vs(M.entrate,avgIn)}</em>`:""}</div><div style="--kc:#E4572E"><small>Uscite</small><b class="amt out">−<span class="cnt" data-v="${M.spese}">${fmt0(M.spese)}</span> €</b>${avgSp?`<em class="dv">${vs(M.spese,avgSp)}</em>`:""}</div>
       <div style="--kc:${M.risparmio>=0?"#0B8A4B":"#E4572E"}"><small>Risparmio netto</small><b class="amt ${M.risparmio>=0?"in":"out"}">${M.risparmio>=0?"+":"−"}<span class="cnt" data-v="${Math.abs(M.risparmio)}">${fmt0(Math.abs(M.risparmio))}</span> €</b><em class="dv">entrate meno uscite · ${M.tasso<0?"−":""}${Math.abs(Math.round(M.tasso*100))}% delle entrate</em></div><div style="--kc:#1F6FD0"><small>Investiti</small><b class="amt inv">−<span class="cnt" data-v="${M.investiti}">${fmt0(M.investiti)}</span> €</b><em class="dv">${resta>=0?"la liquidità cresce di "+fmt0(resta)+" €":"la liquidità cala di "+fmt0(-resta)+" €"}</em></div></div>
-    ${M.entrate>0?flowBar("Dove sono finite le entrate",M.entrate,M.spese,M.investiti):""}
+    ${M.entrate>0?flowBar("Quanto entra e quanto esce",M.entrate,M.spese,M.investiti):""}
     <ul class="rows" style="margin-top:12px">
       ${sumLi("in","Entrate",M.entrate,M.byCatIn.map(c=>({...c,v:c.incassato})),"in","tocca per le categorie")}
       ${sumLi("out","Uscite",M.spese,M.byCat.map(c=>({...c,v:c.speso})),"out","")}
       ${sumLi("inv","Investimenti",M.investiti,M.byCatInv.map(c=>({...c,v:c.versato})),"inv","non sono una spesa: restano nel patrimonio")}
     </ul>${isCur?`<p class="fn" style="margin-top:8px">Mese in corso: entrate e uscite non sono ancora complete.</p>`:""}
-    <h3 style="margin-top:14px">Mese per mese<small>${yearNow}</small></h3>${barsSVG(series)}<div class="lg"><span><i style="background:#1F6FD0"></i>Entrate</span><span><i style="background:#E4572E"></i>Uscite</span></div>`;
-  h+=sec("mese","Il mese","quanto entra, quanto esce",mese);
+    <h3 style="margin-top:14px">Mese per mese<small>${yearNow}</small></h3>${barsSVG(series)}<div class="lg"><span><i style="background:#2FB27A"></i>Entrate</span><span><i style="background:#E4572E"></i>Uscite</span></div>`;
+  h+=sec("mese","Il mese",monthLabel(R.month),mese);
 
   // ===== 5. DETTAGLIO per categoria =====
   const inItems=M.byCatIn.map(c=>({name:c.name,emoji:c.emoji,v:c.incassato}));
@@ -2039,9 +2063,16 @@ function renderRp(){
   bud+=`<h3 style="margin-top:14px">Budget per categoria<small>${monthLabel(R.month)}</small></h3><div style="margin:0 0 10px"><button class="btn" id="btnBudget" style="margin:0">✎ Modifica budget e obiettivi</button></div>`;
   if(!bOut.length&&!bIn.length) bud+=`<p class="fn">Nessun budget impostato.</p>`;
   else bud+=`<ul class="rows">${bOut.map(c=>`<li><span>${c.emoji?c.emoji+" ":""}${esc(c.name)}<small>${fmt0(c.speso)} di ${fmt0(c.budget)} € · ${Math.round(c.speso/c.budget*100)}%${c.speso>c.budget?" · sopra il budget":""}</small><div class="bar"><i class="${c.speso>c.budget?"over":""}" style="width:${Math.min(100,c.speso/c.budget*100)}%"></i></div></span><b style="color:${c.speso>c.budget?"var(--warn)":"var(--ink)"}">${fmtIT(Math.max(0,c.budget-c.speso))} €<small style="display:block;text-align:right">${c.speso>c.budget?"sforato":"restano"}</small></b></li>`).join("")}
-    ${bIn.map(c=>`<li><span>${c.emoji?c.emoji+" ":""}${esc(c.name)}<small>obiettivo ${fmt0(c.budget)} € · ${Math.round(c.incassato/c.budget*100)}%</small><div class="bar"><i class="ok" style="width:${Math.min(100,c.incassato/c.budget*100)}%"></i></div></span><b style="color:var(--in)">${fmtIT(c.incassato)} €</b></li>`).join("")}</ul>`;
+    ${bIn.map(c=>`<li><span>${c.emoji?c.emoji+" ":""}${esc(c.name)}<small>obiettivo ${fmt0(c.budget)} € · ${Math.round(c.incassato/c.budget*100)}%</small><div class="bar"><i class="ok" style="width:${Math.min(100,c.incassato/c.budget*100)}%"></i></div></span><b class="amt in">+${fmtIT(c.incassato)} €</b></li>`).join("")}</ul>`;
   h+=sec("budget","Budget e piano","",bud);
   h+=`<div class="card"><h3>Report PDF</h3><p style="font-size:13.5px;color:var(--ink-2);margin:0 0 10px">Un resoconto completo del mese chiuso: patrimonio, spese per categoria, trend, investimenti e stato FIRE.</p><button class="btn" id="btnReport" style="width:100%">📄 Genera report PDF</button></div>`;
+  // ===== 7. TRASFERTE SIEMENS (in fondo) =====
+  if(D.trasferte.righe) h+=`<div class="card"><h3 class="trh"><img src="siemens-logo.png" alt="Siemens" onerror="this.replaceWith('Siemens')"><span>Trasferte</span></h3><ul class="rows">
+    <li><span>Da farsi rimborsare<small>spese fatte e non ancora accreditate da Siemens</small></span><b>${fmtIT(D.trasferte.credito)} €</b></li>
+    <li><span>Speso su Amex Siemens<small>non ancora addebitato sul conto</small></span><b>${fmtIT(D.trasferte.daAddebitare)} €</b></li>
+    ${Object.entries(D.trasferte.perConto).filter(([c,v])=>v<-0.005&&c!==CONTO_TRASFERTE).map(([c,v])=>`<li><span>Anticipato con ${esc(lbl(c))}<small>rientrerà con la nota spese</small></span><b>${fmtIT(-v)} €</b></li>`).join("")}</ul>
+    ${D.trasferte.credito>0.005?`<button class="btn" id="btnRimborso" style="width:100%;margin-top:10px">Registra rimborso di ${fmtIT(D.trasferte.credito)} €</button>`:""}
+    <p style="font-size:12.5px;color:var(--ink-2);margin:8px 0 0">Non entra nelle spese del mese né nel patrimonio: l'uscita è compensata dal rimborso. L'indennità di trasferta va registrata a parte come Stipendio Emi, perché è reddito e non un rimborso.</p></div>`;
 
   body.innerHTML=`<div class="ptr ${R.loading?"on":""}"><span><i class="spin"></i>Aggiorno da Excel…</span></div>`+h;
   animateCounts(body); bindExp(body);
@@ -2052,7 +2083,8 @@ function renderRp(){
     const rowOf=(c,name)=>[...c.querySelectorAll(".rows li.exp")].find(li=>li.dataset.cat===name)||(name==="Altre"?c.querySelector(".rows li.tot"):null);
     const oc=body.querySelector('.card[data-sec="out"]'); if(oc&&oc.querySelector(".donutwrap")) bindDonut(oc.querySelector(".donutwrap"),items,M.spese,"Uscite",i=>rowOf(oc,items[i].name));
     const ic=body.querySelector('.card[data-sec="in"]'); if(ic&&ic.querySelector(".donutwrap")) bindDonut(ic.querySelector(".donutwrap"),inItems,M.entrate,"Entrate",i=>rowOf(ic,inItems[i].name)); }
-  if(D.storico.length>=2){ const pc=$("patCard"); if(pc) pc._bound=false; initPat(D.storico); initComp(); initLines(); }
+  if(D.storico.length>=2){ const pc=$("patCard"); if(pc) pc._bound=false; const oggi=dateISO(today()); const last=D.storico[D.storico.length-1];
+    initPat(last.d<oggi?[...D.storico,{d:oggi,v:D.patrimonio,now:true}]:D.storico); initComp(); initLines(); }
   const br=$("btnReport"); if(br) br.onclick=openReport;
   const bri=$("btnRimborso"); if(bri) bri.onclick=()=>{ $("sheetRp").classList.remove("open");
     F.desc="Rimborso nota spese"; $("desc").value=F.desc; F.cat=CAT_TRASFERTE; F.conto="BNL"; F.sign=1; F.amt=fmtIT(D.trasferte.credito);
@@ -2062,8 +2094,9 @@ function renderRp(){
   const bz=$("btnPrezziOpen"); if(bz) bz.onclick=openPrezzi;
   const bb=$("btnBudget"); if(bb) bb.onclick=openBudget;
   bindPiano(body,D,curM);
-  $("mPrev").onclick=()=>{ R.month=shiftMonth(R.month,-1); renderRp(); };
-  $("mNext").onclick=()=>{ R.month=shiftMonth(R.month,1); renderRp(); };
+  $("mPrev").onclick=()=>{ R.monthPicked=true; R.month=shiftMonth(R.month,-1); renderRp(); };
+  $("mNext").onclick=()=>{ if(isCur) return; R.monthPicked=true; R.month=shiftMonth(R.month,1); renderRp(); };
+  const mn=$("mNow"); if(mn) mn.onclick=()=>{ haptic(); R.monthPicked=false; renderRp(); };
 }
 async function doRefresh(force){
   if(R.loading) return; R.loading=true; renderRp();
@@ -2516,8 +2549,8 @@ function buildPDF(){
   doc.setFillColor(...RP_BLUE); doc.rect(0,54,W,1.6,"F");
   doc.setTextColor(169,195,230); doc.setFontSize(9); doc.text("REPORT FINANZIARIO · FAMIGLIA QUINTO",L,15);
   doc.setTextColor(255,255,255); doc.setFontSize(25); doc.setFont(undefined,"bold"); doc.text(monthLabel(m),L,28); doc.setFont(undefined,"normal");
-  const st=D.storico.filter(p=>p.d<=m+"-31"); const patMese=st.length?st[st.length-1].v:D.patrimonio;
-  const prevPt=st.length>1?st[st.length-2].v:null;
+  const patMese=patFineMese(D,m);
+  const prevPt=D.storico.some(p=>p.d<=m+"-01")?patFineMese(D,shiftMonth(m,-1)):null;
   doc.setFontSize(8.5); doc.setTextColor(169,195,230); doc.text("PATRIMONIO A FINE PERIODO",L,39);
   doc.setFontSize(20); doc.setTextColor(255,255,255); doc.setFont(undefined,"bold"); doc.text(eur(patMese),L,47.5); doc.setFont(undefined,"normal");
   if(prevPt!=null){ const dv=patMese-prevPt, up=dv>=0, col=up?[139,224,181]:[246,162,140];
@@ -2592,13 +2625,13 @@ function buildPDF(){
   doc.setDrawColor(236,241,247); for(let g=1;g<=3;g++){ const gy=y+cH-cH*g/3; doc.line(L,gy,R,gy); }
   doc.setDrawColor(...RP_LINE); doc.line(L,y+cH,R,y+cH);
   series.forEach((sr,i)=>{ const x=L+i*gw+gw/2, bw=Math.min(5,gw*0.3), isCur=sr.k===m;
-    doc.setFillColor(...(isCur?RP_BLUE:[150,190,235])); doc.rect(x-bw-0.6,y+cH-sr.a/maxV*cH,bw,sr.a/maxV*cH,"F");
+    doc.setFillColor(...(isCur?RP_GREEN:[150,215,180])); doc.rect(x-bw-0.6,y+cH-sr.a/maxV*cH,bw,sr.a/maxV*cH,"F");
     doc.setFillColor(...(isCur?RP_RED:[240,175,155])); doc.rect(x+0.6,y+cH-sr.b/maxV*cH,bw,sr.b/maxV*cH,"F");
     doc.setFontSize(6.4); doc.setTextColor(...(isCur?RP_INK:RP_GREY)); doc.text(sr.l,x,y+cH+4,{align:"center"}); });
   const yAvg=y+cH-avgSpese/maxV*cH;
   doc.setDrawColor(...RP_RED); doc.setLineDashPattern([1.2,1.2],0); doc.line(L,yAvg,R,yAvg); doc.setLineDashPattern([],0);
   doc.setFontSize(6.8); doc.setTextColor(...RP_RED); doc.text("media spese "+fmt0(avgSpese)+" €",L+1,yAvg-1.4);
-  doc.setFontSize(7.5); doc.setFillColor(...RP_BLUE); doc.rect(L,y+cH+7,3,3,"F"); doc.setTextColor(...RP_INK); doc.text("Entrate",L+5,y+cH+9.6);
+  doc.setFontSize(7.5); doc.setFillColor(...RP_GREEN); doc.rect(L,y+cH+7,3,3,"F"); doc.setTextColor(...RP_INK); doc.text("Entrate",L+5,y+cH+9.6);
   doc.setFillColor(...RP_RED); doc.rect(L+24,y+cH+7,3,3,"F"); doc.text("Spese",L+29,y+cH+9.6);
   doc.setTextColor(...RP_GREY); doc.text("Tasso di risparmio medio: "+Math.round(prevMs.reduce((a,x)=>a+D.month(x).tasso,0)/prevMs.length*100)+"% · questo mese "+Math.round(M.tasso*100)+"%",L+50,y+cH+9.6);
   y+=cH+17;
