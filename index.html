@@ -405,6 +405,32 @@
   .rp .peek .prg i{display:block;height:100%;background:var(--sc,var(--go));border-radius:3px}
   .rp .peek .prg i.over{background:#E4572E}
   .rp .peek svg.spk{display:block;width:100%;height:28px;margin-top:6px}
+  /* tessere generiche (Movimenti, FIRE, azioni del Riepilogo) */
+  .tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+  .tiles .tile.wide{grid-column:1/-1}
+  .tile{background:var(--paper);border-radius:var(--r);padding:12px 13px 13px;display:flex;flex-direction:column;min-width:0;border:1px solid var(--glass-brd);transition:transform .16s cubic-bezier(.22,1,.36,1)}
+  .tile.act{cursor:pointer;-webkit-tap-highlight-color:transparent} .tile.act:active{transform:scale(.97)}
+  .tile h4{margin:0;font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-2);font-weight:600;display:flex;align-items:center;gap:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tile h4 i{width:28px;height:28px;border-radius:9px;background:color-mix(in srgb,var(--sc,var(--go)) 18%,transparent);display:grid;place-items:center;font-size:14px;line-height:1;font-style:normal;flex:0 0 auto}
+  .tile .pv{display:block;margin:12px 0 auto;font-family:ui-rounded,"SF Pro Rounded",-apple-system,system-ui,sans-serif;font-variant-numeric:tabular-nums;font-size:21px;font-weight:700;letter-spacing:-.02em;line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink)}
+  .tile .pv.in,.tile .pv.up{color:#2FB27A} .tile .pv.out,.tile .pv.down{color:#E4572E} .tile .pv.inv{color:#1F6FD0}
+  .tile .ps{display:block;font-size:11.5px;color:var(--ink-2);margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tile .duo{margin-top:9px;display:grid;gap:3px} .tile .duo i{display:block;height:6px;border-radius:3px;min-width:4px} .tile .duo i.in{background:#2FB27A} .tile .duo i.out{background:#E4572E}
+  .tile .prg{height:6px;border-radius:3px;background:var(--key);overflow:hidden;margin-top:9px} .tile .prg i{display:block;height:100%;background:var(--sc,var(--go));border-radius:3px}
+  .tile .ring{position:absolute;top:10px;right:10px;width:40px;height:40px;transform:rotate(-90deg)} .tile .ring circle{fill:none;stroke-width:3.5;stroke-linecap:round}
+  .tile .ring .bg{stroke:var(--key)} .tile .ring .fg{stroke:var(--sc,var(--go));transition:stroke-dasharray 1s cubic-bezier(.22,1,.36,1)}
+  .mv .day{display:flex;justify-content:space-between;align-items:baseline;gap:8px} .mv .day small{font-family:ui-rounded,-apple-system,system-ui,sans-serif;font-variant-numeric:tabular-nums;font-size:12.5px;font-weight:600}
+  .mv .day small.in{color:#2FB27A} .mv .day small.out{color:#E4572E}
+  /* Ripeti: ultimi movimenti a un tocco */
+  .quick{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 10px;margin:0 -2px;scrollbar-width:none;-webkit-overflow-scrolling:touch;flex:0 0 auto;align-items:center}
+  .quick::-webkit-scrollbar{display:none}
+  .quick .ql{flex:0 0 auto;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);font-weight:600;padding-right:2px}
+  .quick button{flex:0 0 auto;display:flex;align-items:center;gap:8px;border-radius:14px;padding:6px 12px 6px 7px;text-align:left;color:var(--ink);transition:transform .14s;max-width:200px}
+  .quick button:active{transform:scale(.95)}
+  .quick button i{width:26px;height:26px;border-radius:8px;background:var(--key);display:grid;place-items:center;font-style:normal;font-size:13px;flex:0 0 auto}
+  .quick button span{display:flex;flex-direction:column;min-width:0;line-height:1.15}
+  .quick button b{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .quick button small{font-size:11px;color:var(--ink-2);font-family:ui-rounded,-apple-system,system-ui,sans-serif}
   .rp .legend li.xtra{color:var(--ink-2)} .rp .legend li.xtra i{background:transparent;border:1.5px dashed var(--ink-2);box-sizing:border-box;border-radius:3px}
   .rp .hero .now{font-size:13px;color:#fff;opacity:.9;margin:-2px 0 4px} .rp .hero .now b{font-weight:700}
   .rp .amt{font-family:ui-rounded,"SF Pro Rounded",-apple-system,system-ui,sans-serif;font-variant-numeric:tabular-nums;white-space:nowrap}
@@ -546,13 +572,13 @@
   .rp .lg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
 
   /* --- vetro --- */
-  .field,.amount,.dictate,.rp .card,.fire .card,.mv ul.list,.log li,.flash .fcard,.sheet .btn,.copy{
+  .field,.amount,.dictate,.rp .card,.fire .card,.mv ul.list,.log li,.flash .fcard,.sheet .btn,.copy,.tile,.quick button{
     background:var(--glass);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);
     box-shadow:var(--glass-sh);position:relative;overflow:hidden}
-  .field::before,.amount::before,.dictate::before,.rp .card::before,.fire .card::before,.flash .fcard::before{
+  .field::before,.amount::before,.dictate::before,.rp .card::before,.fire .card::before,.flash .fcard::before,.tile::before{
     content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;
     background:linear-gradient(150deg,rgba(255,255,255,.45) 0%,rgba(255,255,255,.10) 38%,rgba(255,255,255,0) 60%)}
-  .field>*,.amount>*,.dictate>*{position:relative;z-index:1}
+  .field>*,.amount>*,.dictate>*,.tile>*{position:relative;z-index:1}
   .flash .fcard{background:var(--glass-strong)}
   .padwrap{background:var(--glass-strong);-webkit-backdrop-filter:var(--blur);backdrop-filter:var(--blur);
     box-shadow:0 -10px 30px rgba(14,36,64,.16),inset 0 1px 0 rgba(255,255,255,.8)}
@@ -573,7 +599,15 @@
   .sheet{background:rgba(237,243,249,.42);-webkit-backdrop-filter:saturate(190%) blur(30px);backdrop-filter:saturate(190%) blur(30px)}
   .sheet.open{animation:sheetIn .42s cubic-bezier(.22,1,.36,1)}
   @keyframes sheetIn{from{opacity:0;transform:translateY(18px) scale(.985)}to{opacity:1;transform:none}}
-  .rp .card,.fire .card,.mv ul.list{animation:cardIn .5s cubic-bezier(.22,1,.36,1) both}
+  .rp .card,.fire .card,.mv ul.list,.tiles{animation:cardIn .5s cubic-bezier(.22,1,.36,1) both;animation-delay:min(calc(var(--i,0) * 35ms),320ms)}
+  ::view-transition-old(root),::view-transition-new(root){animation-duration:.26s}
+  @keyframes popIn{from{opacity:0;transform:translateY(6px) scale(.94)}to{opacity:1;transform:none}}
+  @keyframes shake{0%,100%{transform:translateX(-50%)}20%{transform:translateX(calc(-50% - 7px))}40%{transform:translateX(calc(-50% + 7px))}60%{transform:translateX(calc(-50% - 4px))}80%{transform:translateX(calc(-50% + 4px))}}
+  .rp .hero .big,.fire .hero .big,.tile .pv,.rp .peek .pv,.mv .day{animation:popIn .55s cubic-bezier(.22,1,.36,1) both;animation-delay:min(calc(var(--i,0) * 35ms + 60ms),380ms)}
+  .toast.show.warn{animation:shake .45s cubic-bezier(.36,.07,.19,.97)}
+  .tile.act::after,.rp .card.sec.closed::after{content:"";position:absolute;inset:0;border-radius:inherit;background:radial-gradient(120px 120px at var(--px,50%) var(--py,50%),color-mix(in srgb,var(--sc,var(--go)) 22%,transparent),transparent 70%);opacity:0;transition:opacity .35s;pointer-events:none}
+  .tile.act:active::after,.rp .card.sec.closed:active::after{opacity:1;transition:opacity .05s}
+  .chips button.on,.seg button.on,.navmini button.on{animation:popIn .3s cubic-bezier(.22,1,.36,1)}
   @keyframes cardIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
   .toast{-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);background:rgba(22,40,58,.82)}
 
@@ -597,7 +631,7 @@
   #hapt{position:fixed;left:0;bottom:0;width:1px;height:1px;opacity:0.01;overflow:hidden;pointer-events:none}
 
   /* --- importi nascosti --- */
-  body.blur .rp .hero .big,body.blur .rp .hero .now b,body.blur .rp .peek .pv,body.blur .rp .peek .ps,body.blur .rp .peek svg,body.blur .rp .hero .grid3 b,body.blur .rp .hero .ytd em,body.blur .rp .rows li b,body.blur .rp .legend li b,body.blur .rp .kpi b,
+  body.blur .rp .hero .big,body.blur .rp .hero .now b,body.blur .tile .pv,body.blur .tile .ps,body.blur .mv .day small,body.blur .quick button small,body.blur .rp .peek .pv,body.blur .rp .peek .ps,body.blur .rp .peek svg,body.blur .rp .hero .grid3 b,body.blur .rp .hero .ytd em,body.blur .rp .rows li b,body.blur .rp .legend li b,body.blur .rp .kpi b,
   body.blur .rp .donutwrap text.c2,body.blur .rp .flow,body.blur .rp .fn b,body.blur .rp .sync,body.blur .rp .ip .v b,body.blur .rp .chart,
   body.blur .pat .val,body.blur .pat .sub,body.blur .pat .dlt,body.blur .pat svg,
   body.blur .mv .v,body.blur .mv .sum b,body.blur .fire .hero .big,body.blur .fire .hero .g2 b,body.blur .fire .rows b,body.blur .fire .ip input,body.blur .fire svg.ch,body.blur .fire .ip .hint b,
@@ -660,7 +694,7 @@
     .navmini button.on{color:#fff}
     .sheet{background:rgba(15,27,42,.62)}
     .sheet .top{background:rgba(15,27,42,.92)}
-    .field::before,.amount::before,.rp .card::before,.fire .card::before,.flash .fcard::before{background:linear-gradient(150deg,rgba(255,255,255,.10),rgba(255,255,255,.02) 40%,transparent 60%)}
+    .field::before,.amount::before,.rp .card::before,.fire .card::before,.flash .fcard::before,.tile::before{background:linear-gradient(150deg,rgba(255,255,255,.10),rgba(255,255,255,.02) 40%,transparent 60%)}
     .chips button,.chips label{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.10);color:var(--ink)}
     .navmini{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.10)}
     .pad button{background:rgba(30,46,66,.9);color:var(--ink)}
@@ -908,7 +942,7 @@
     .rp #rpBody,.fire #fireBody{display:grid;grid-template-columns:1fr 1fr;gap:0 16px;align-items:start}
     .rp #rpBody{align-items:stretch}
     .rp #rpBody>.ptr,.rp #rpBody>.mbar,.rp #rpBody>.hero,.rp #rpBody>.sync,.rp #rpBody>.pat,.fire #fireBody>.hero{grid-column:1/-1}
-    .rp #rpBody>.card{grid-column:auto}
+    .rp #rpBody>.card,.rp #rpBody>.tiles{grid-column:auto}
     .rp .hero{display:grid;grid-template-columns:auto 1fr;gap:0 28px;align-items:center}
     .rp .hero .lbl{grid-column:1/-1} .rp .hero .ring{margin:0;grid-row:span 3} .rp .hero .grid3{grid-column:2}
     .mv{display:grid!important;grid-template-columns:1fr 1fr 1fr;gap:0 14px;align-content:start}
@@ -953,6 +987,7 @@
     </div>
   </div>
 
+  <div class="quick" id="quick" hidden></div>
   <div class="field">
     <label for="desc">Descrizione</label>
     <input type="text" id="desc" placeholder="Es. Esselunga" autocomplete="off" autocorrect="off" enterkeyhint="done">
@@ -1128,6 +1163,12 @@
   </div>
 
   <div class="field">
+    <label>Suoni e vibrazione</label>
+    <div class="chips" id="fxSel"><button data-k="sound">🔊 Suoni</button><button data-k="hapt">📳 Vibrazione</button></div>
+    <p style="margin-top:8px">Tocchi, tasti, conferme ed errori hanno un suono e una vibrazione propri. Su iPhone i suoni seguono l'interruttore silenzioso e la vibrazione usa il motore aptico di Safari (iOS 18 o successivo).</p>
+  </div>
+
+  <div class="field">
     <label>Aspetto</label>
     <div class="chips" id="themeSel"><button data-t="auto">Automatico</button><button data-t="light">Chiaro</button><button data-t="dark">Scuro</button></div>
     <p style="margin-top:8px">Automatico segue il tema del telefono.</p>
@@ -1247,7 +1288,7 @@ function save(){ clearTimeout(saveT); saveT=setTimeout(()=>writeStore(JSON.strin
 
 // ---------- helpers ----------
 const $=id=>document.getElementById(id);
-function toast(msg,warn){ const t=$("toast"); t.textContent=msg; t.className="toast show"+(warn?" warn":""); clearTimeout(t._t); t._t=setTimeout(()=>t.className="toast",2600); }
+function toast(msg,warn){ if(warn) haptic("warn"); const t=$("toast"); t.textContent=msg; t.className="toast show"+(warn?" warn":""); clearTimeout(t._t); t._t=setTimeout(()=>t.className="toast",2600); }
 function fmtIT(n){ return n.toLocaleString("it-IT",{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function fmt0(n){ return n.toLocaleString("it-IT",{minimumFractionDigits:0,maximumFractionDigits:0}); }
 function amtNum(){ return F.amt? parseFloat(F.amt.replace(",","."))||0 : 0; }
@@ -1329,7 +1370,7 @@ function render(){
   num.innerHTML=(F.amt?`<span>${F.sign<0?"−":"+"}${F.amt}</span>`:`<span class="ph">0,00</span>`)+`<span class="eur">€</span>`;
   $("segOut").className=F.sign<0?"on":""; $("segIn").className=F.sign>0?"on in":"";
   document.body.classList.toggle("mode-out",!!F.amt&&amtNum()>0&&F.sign<0); document.body.classList.toggle("mode-in",!!F.amt&&amtNum()>0&&F.sign>0);
-  renderSugg(); renderCats(); renderConti();
+  renderSugg(); renderCats(); renderConti(); renderQuick();
   $("dateChips").querySelectorAll("button").forEach(b=>b.classList.toggle("on",!F.dCustom&&+b.dataset.d===F.dOff));
   $("datePick").classList.toggle("on",!!F.dCustom);
   $("datePickTxt").textContent=F.dCustom?"📅 "+shortDate(fromISO(F.dCustom)):"📅 Altra…";
@@ -1350,6 +1391,20 @@ function applyEntry(e,withAmt){
   if(withAmt&&e.imp&&!F.amt) F.amt=fmtIT(e.imp);
   F.sign=IN_CATS.has(e.cat)?1:-1;
   haptic(); render();
+}
+// Ripeti: gli ultimi movimenti registrati e quelli più frequenti, un tocco e il modulo è compilato
+function renderQuick(){
+  const box=$("quick"); if(!box) return;
+  if(F.amt||F.desc||F.cat){ box.hidden=true; return; }
+  const seen=new Set(), items=[];
+  const push=e=>{ const k=norm(e.desc); if(!e.desc||!e.cat||seen.has(k)) return; seen.add(k); items.push(e); };
+  (S.log||[]).forEach(r=>push({desc:r.Descrizione,cat:r.Categoria,conto:r.Conto,imp:Math.abs(r.Importo||0)}));
+  if(items.length<6) Object.values(allDict()).sort((a,b)=>b.n-a.n).forEach(e=>{ if(items.length<6) push(e); });
+  if(!items.length){ box.hidden=true; return; }
+  const cats=(S.cache&&S.cache.cats)||[]; const em=c=>{ const x=cats.find(y=>y.name===c); return x&&x.emoji?x.emoji:"•"; };
+  box.hidden=false;
+  box.innerHTML=`<span class="ql">Ripeti</span>`+items.map((e,i)=>`<button data-i="${i}"><i>${em(e.cat)}</i><span><b>${esc(e.desc)}</b>${e.imp?`<small>${fmtIT(e.imp)} €</small>`:""}</span></button>`).join("");
+  box.querySelectorAll("button").forEach(b=>b.onclick=()=>{ const e=items[+b.dataset.i]; applyEntry({desc:e.desc,cat:e.cat,conto:e.conto||S.defConto,imp:e.imp},true); if(!e.imp) openPad(); });
 }
 function renderSugg(){
   const q=norm(F.desc); const box=$("sugg");
@@ -1383,7 +1438,7 @@ function closePad(){ $("padwrap").classList.remove("open"); $("scrim").classList
 $("amountTap").onclick=()=>{ $("padwrap").classList.contains("open")?closePad():openPad(); };
 $("scrim").onclick=closePad;
 $("pad").onclick=e=>{
-  const b=e.target.closest("button"); if(!b) return; haptic();
+  const b=e.target.closest("button"); if(!b) return; haptic(b.dataset.k==="ok"?"ok":b.dataset.k==="del"?"tick":"key",b.textContent);
   if(b.dataset.k==="ok"){ closePad(); return; }
   if(b.dataset.k==="del"){ F.amt=F.amt.slice(0,-1); }
   else{ const k=b.textContent;
@@ -1472,7 +1527,7 @@ async function send(){
   const r=currentRow();
   if(!S.hook){ toast("Manca l'indirizzo webhook: aggiungilo in ⚙︎",true); return; }
   const p=new URLSearchParams({Data:S.dateFmt==="iso"?r.DataISO:S.dateFmt==="serial"?String(r.DataSeriale):r.Data, Descrizione:r.Descrizione, Categoria:r.Categoria, Conto:r.Conto, Importo:String(r.Importo), ImportoIT:r.ImportoIT});
-  haptic("ok");
+  haptic("win");
   $("btnSend").disabled=true; $("btnSend").textContent="Invio…";
   let ok=true;
   try{ await fetch(S.hook+(S.hook.includes("?")?"&":"?")+p.toString(),{method:"POST",mode:"no-cors"}); }catch(e){ ok=false; }
@@ -1524,7 +1579,7 @@ $("btnClearLog").onclick=()=>{ if(confirm("Svuotare l'elenco degli inviati?")){ 
 
 function renderSettings(){
   $("hook").value=S.hook; $("share").value=S.share||""; $("pac").value=S.pac||""; $("wa").value=S.wa||"";
-  $("dateFmt").querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.f===S.dateFmt));
+  $("dateFmt").querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.f===S.dateFmt)); paintFx();
   $("defConto").innerHTML=CONTI.map(c=>`<button class="${c===S.defConto?"on":""}" data-c="${c}">${lbl(c)}</button>`).join("");
   $("defConto").querySelectorAll("button").forEach(b=>b.onclick=()=>{ S.defConto=b.dataset.c; save(); renderSettings(); });
   const nx=S.cache?S.cache.rows.length:0;
@@ -2114,7 +2169,9 @@ function renderRp(){
   const bTot=bOut.reduce((a,c)=>a+c.budget,0), bSp=bOut.reduce((a,c)=>a+c.speso,0), bPct=bTot?Math.round(bSp/bTot*100):0, nOver=bOut.filter(c=>c.speso>c.budget).length;
   h+=sec("budget","Budget e piano","",bud,"",{short:"Budget",ico:"🎯",
     peek:(bTot?`<b class="pv ${bSp>bTot?"down":""}"><span class="cnt" data-v="${bPct}" data-s="%">${bPct}%</span></b><div class="prg"><i class="${bSp>bTot?"over":""}" style="width:${Math.min(100,bPct)}%"></i></div><small class="ps">${fmt0(bSp)} di ${fmt0(bTot)} €${nOver?` · ${nOver} sopra budget`:""}</small>`:`<b class="pv">—</b><small class="ps">nessun budget impostato</small>`)});
-  h+=`<div class="card"><h3>Report PDF</h3><p style="font-size:13.5px;color:var(--ink-2);margin:0 0 10px">Un resoconto completo del mese chiuso: patrimonio, spese per categoria, trend, investimenti e stato FIRE.</p><button class="btn" id="btnReport" style="width:100%">📄 Genera report PDF</button></div>`;
+  // tessere di azione: FIRE (apre la scheda) e report PDF
+  const fx=(()=>{ try{ const f=fireDefaults(); const rr=realRate(f.rate,f.infl), target=f.spesa*12/(f.swr/100), y=yearsTo(f.cap,f.pac,rr,target); return {y,target,pct:target>0?Math.min(100,Math.round(f.cap/target*100)):0}; }catch(e){ return null; } })();
+  h+=`<div class="tiles">${fx?`<div class="tile act" id="tileFire" style="--sc:#F0A030"><h4><i>🔥</i>FIRE</h4><b class="pv">${fx.y!=null?fx.y.toFixed(1).replace(".",",")+" anni":"oltre 100 anni"}</b><div class="prg"><i style="width:${fx.pct}%"></i></div><small class="ps">${fx.pct}% dell'obiettivo di ${fmt0(fx.target)} €</small></div>`:""}<div class="tile act" id="btnReport" style="--sc:#8E5BD9"><h4><i>📄</i>Report PDF</h4><b class="pv">Genera</b><small class="ps">patrimonio, spese, trend e FIRE del mese chiuso</small></div></div>`;
   // ===== 7. TRASFERTE SIEMENS (in fondo) =====
   if(D.trasferte.righe) h+=`<div class="card"><h3 class="trh"><img src="siemens-logo.png" alt="Siemens" onerror="this.replaceWith('Siemens')"><span>Trasferte</span></h3><ul class="rows">
     <li><span>Da farsi rimborsare<small>spese fatte e non ancora accreditate da Siemens</small></span><b>${fmtIT(D.trasferte.credito)} €</b></li>
@@ -2124,11 +2181,12 @@ function renderRp(){
     <p style="font-size:12.5px;color:var(--ink-2);margin:8px 0 0">Non entra nelle spese del mese né nel patrimonio: l'uscita è compensata dal rimborso. L'indennità di trasferta va registrata a parte come Stipendio Emi, perché è reddito e non un rimborso.</p></div>`;
 
   body.innerHTML=`<div class="ptr ${R.loading?"on":""}"><span><i class="spin"></i>Aggiorno da Excel…</span></div>`+h;
-  animateCounts(body); bindExp(body);
+  stagger(body,":scope>.card,:scope>.tiles"); animateCounts(body); bindExp(body);
+  const tf=$("tileFire"); if(tf) tf.onclick=()=>goTab("fire");
   body.querySelectorAll(".card.sec").forEach(c=>{ const k=c.dataset.sec, hd=c.querySelector(":scope>h3.sh");
-    const tog=()=>{ haptic(); c.classList.toggle("closed"); S.rpSec=S.rpSec||{}; if(c.classList.contains("closed")) S.rpSec[k]=true; else delete S.rpSec[k]; save(); };
+    const tog=()=>{ haptic(c.classList.contains("closed")?"pop":"close"); vt(()=>{ c.classList.toggle("closed"); S.rpSec=S.rpSec||{}; if(c.classList.contains("closed")) S.rpSec[k]=true; else delete S.rpSec[k]; }); save(); };
     hd.onclick=e=>{ e.stopPropagation(); tog(); }; c.onclick=()=>{ if(c.classList.contains("closed")) tog(); }; });
-  $("rpToggleAll").onclick=()=>{ haptic(); const cards=[...body.querySelectorAll(".card.sec")]; const close=!cards.every(c=>c.classList.contains("closed")); S.rpSec={}; cards.forEach(c=>{ c.classList.toggle("closed",close); if(close) S.rpSec[c.dataset.sec]=true; }); $("rpToggleAll").textContent=close?"Espandi tutto":"Comprimi tutto"; save(); };
+  $("rpToggleAll").onclick=()=>{ haptic(); const cards=[...body.querySelectorAll(".card.sec")]; const close=!cards.every(c=>c.classList.contains("closed")); vt(()=>{ S.rpSec={}; cards.forEach(c=>{ c.classList.toggle("closed",close); if(close) S.rpSec[c.dataset.sec]=true; }); $("rpToggleAll").textContent=close?"Espandi tutto":"Comprimi tutto"; }); save(); };
   { const cc=body.querySelector('.card[data-sec="compo"]'); if(cc&&cc.querySelector(".donutwrap")) bindDonut(cc.querySelector(".donutwrap"),compItems,compTot,"Patrimonio",
       i=>cc.querySelector(`.rows li[data-k="${compItems[i].name==="Liquidità"?"liq":"ass"}"]`));
     const rowOf=(c,name)=>[...c.querySelectorAll(".rows li.exp")].find(li=>li.dataset.cat===name)||(name==="Altre"?c.querySelector(".rows li.tot"):null);
@@ -2140,14 +2198,14 @@ function renderRp(){
   const bri=$("btnRimborso"); if(bri) bri.onclick=()=>{ $("sheetRp").classList.remove("open");
     F.desc="Rimborso nota spese"; $("desc").value=F.desc; F.cat=CAT_TRASFERTE; F.conto="BNL"; F.sign=1; F.amt=fmtIT(D.trasferte.credito);
     render(); toast("Controlla l'importo: l'indennità va registrata a parte come Stipendio Emi"); };
-  $("rpRefresh").onclick=()=>doRefresh(true);
+  $("rpRefresh").onclick=()=>{ haptic(); doRefresh(true); };
   const bp=$("btnPacOpen"); if(bp) bp.onclick=openPac;
   const bz=$("btnPrezziOpen"); if(bz) bz.onclick=openPrezzi;
   const bb=$("btnBudget"); if(bb) bb.onclick=openBudget;
   bindPiano(body,D,curM);
-  $("mPrev").onclick=()=>{ R.monthPicked=true; R.month=shiftMonth(R.month,-1); renderRp(); };
-  $("mNext").onclick=()=>{ if(isCur) return; R.monthPicked=true; R.month=shiftMonth(R.month,1); renderRp(); };
-  const mn=$("mNow"); if(mn) mn.onclick=()=>{ haptic(); R.monthPicked=false; renderRp(); };
+  $("mPrev").onclick=()=>{ haptic(); R.monthPicked=true; R.month=shiftMonth(R.month,-1); vt(renderRp); };
+  $("mNext").onclick=()=>{ if(isCur) return; haptic(); R.monthPicked=true; R.month=shiftMonth(R.month,1); vt(renderRp); };
+  const mn=$("mNow"); if(mn) mn.onclick=()=>{ haptic(); R.monthPicked=false; vt(renderRp); };
 }
 async function doRefresh(force){
   if(R.loading) return; R.loading=true; renderRp();
@@ -2470,10 +2528,44 @@ window.addEventListener("resize",()=>{ const on=$("hdr")&&$("hdr").querySelector
 
 // ---------- finiture: splash, feedback aptico, numeri animati, gesti ----------
 window.addEventListener("load",()=>{ setTimeout(()=>{ const sp=$("splash"); if(sp) sp.classList.add("hide"); },650); });
-function haptic(kind){
-  try{ if(navigator.vibrate) navigator.vibrate(kind==="ok"?[10,30,10]:8); }catch(e){}
-  try{ const sw=document.querySelector("#hapt input"); if(sw) sw.click(); }catch(e){}
+// ---------- suoni di interfaccia: sintetizzati al volo, nessun file ----------
+let AC=null;
+function audioCtx(){ if(S.sound===false) return null;
+  try{ if(!AC){ AC=new (window.AudioContext||window.webkitAudioContext)(); try{ if(navigator.audioSession) navigator.audioSession.type="transient"; }catch(e){} }
+    if(AC.state==="suspended") AC.resume(); return AC; }catch(e){ return null; } }
+function tone(ac,o){ const f=o.f||880, t0=ac.currentTime+(o.t||0), dur=o.dur||.06, g=o.g||.1;
+  const osc=ac.createOscillator(), v=ac.createGain(); osc.type=o.type||"sine";
+  osc.frequency.setValueAtTime(f,t0); if(o.f2) osc.frequency.exponentialRampToValueAtTime(o.f2,t0+dur);
+  v.gain.setValueAtTime(0,t0); v.gain.linearRampToValueAtTime(g,t0+.004); v.gain.exponentialRampToValueAtTime(.0001,t0+dur);
+  osc.connect(v).connect(ac.destination); osc.start(t0); osc.stop(t0+dur+.03); }
+function sound(kind,x){ const ac=audioCtx(); if(!ac) return;
+  switch(kind){
+    case "tick": tone(ac,{f:1700,dur:.022,g:.045}); break;
+    case "key": tone(ac,{f:980+(+x||0)*45,dur:.05,g:.09,type:"triangle"}); break;
+    case "ok": tone(ac,{f:784,dur:.11,type:"triangle",g:.13}); tone(ac,{f:1175,t:.09,dur:.2,type:"triangle",g:.13}); break;
+    case "win": [659,784,988,1319].forEach((f,i)=>tone(ac,{f,t:i*.08,dur:.22,type:"triangle",g:.12})); break;
+    case "warn": tone(ac,{f:220,dur:.09,type:"square",g:.05}); tone(ac,{f:185,t:.12,dur:.14,type:"square",g:.05}); break;
+    case "nav": tone(ac,{f:520,f2:900,dur:.09,g:.07}); break;
+    case "close": tone(ac,{f:900,f2:520,dur:.09,g:.07}); break;
+    case "pop": tone(ac,{f:600,f2:1400,dur:.07,g:.08,type:"triangle"}); break;
+    default: tone(ac,{f:1250,dur:.035,g:.07}); } }
+// feedback unico: vibrazione (Android) + motore aptico (iPhone, iOS 18) + suono
+// light: tocco · tick: scorrimento (limitato) · key: tasto numerico · nav: cambio scheda · pop: apertura tessera · ok: conferma · win: registrato · warn: errore
+let HAPT_T=0;
+function haptic(kind,x){
+  kind=kind||"light"; const now=performance.now(); if(kind==="tick"&&now-HAPT_T<45) return; HAPT_T=now;
+  sound(kind,x);
+  if(S.hapt===false) return;
+  const pat={ok:[12,40,12],win:[12,40,12,40,20],warn:[18,50,18,50,18],tick:[4],key:[6],light:[8]}[kind]||[8];
+  try{ if(navigator.vibrate) navigator.vibrate(pat); }catch(e){}
+  try{ const sw=document.querySelector("#hapt input"); if(!sw) return; sw.click(); const n=(kind==="ok"||kind==="win")?2:kind==="warn"?3:1; for(let i=1;i<n;i++) setTimeout(()=>sw.click(),i*(kind==="warn"?70:95)); }catch(e){}
 }
+document.addEventListener("touchstart",()=>audioCtx(),{once:true,passive:true});
+document.addEventListener("pointerdown",e=>{ const el=e.target.closest&&e.target.closest(".tile.act,.rp .card.sec.closed"); if(!el) return; const r=el.getBoundingClientRect(); el.style.setProperty("--px",(e.clientX-r.left)+"px"); el.style.setProperty("--py",(e.clientY-r.top)+"px"); },{passive:true});
+document.addEventListener("pointerdown",()=>audioCtx(),{once:true,passive:true});
+// cambio di layout animato dal browser (View Transitions), se disponibile
+function vt(fn){ const rm=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches; if(document.startViewTransition&&!rm) document.startViewTransition(fn); else fn(); }
+function stagger(root,sel){ (root||document).querySelectorAll(sel).forEach((el,i)=>el.style.setProperty("--i",i)); }
 function animateCounts(root){
   const els=(root||document).querySelectorAll(".cnt[data-v]");
   const reduce=!!(window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches);
@@ -2495,11 +2587,11 @@ document.querySelectorAll(".sheet").forEach(sh=>{ let x0=null,y0=null;
 (()=>{ const pw=$("padwrap"); if(!pw) return; let y0=null;
   pw.addEventListener("touchstart",e=>{ y0=e.touches[0]?e.touches[0].clientY:null; },{passive:true});
   pw.addEventListener("touchmove",e=>{ if(y0==null) return; const dy=e.touches[0].clientY-y0; if(dy>0){ pw.style.transition="none"; pw.style.transform=document.documentElement.classList.contains("sa")?`translateY(calc(-100% + ${dy}px))`:`translateY(${dy}px)`; } },{passive:true});
-  pw.addEventListener("touchend",e=>{ const t=e.changedTouches[0]; pw.style.transition=""; pw.style.transform=""; if(y0!=null&&t&&t.clientY-y0>70) closePad(); y0=null; },{passive:true}); })();
+  pw.addEventListener("touchend",e=>{ const t=e.changedTouches[0]; pw.style.transition=""; pw.style.transform=""; if(y0!=null&&t&&t.clientY-y0>70){ haptic("close"); closePad(); } y0=null; },{passive:true}); })();
 
 // ---------- navigazione tra i fogli ----------
 function goTab(t){
-  haptic(); setActiveNav(t);
+  haptic("nav"); setActiveNav(t);
   if(t==="main"){ SHEETS.forEach(sid=>{ const el=$(sid); if(el&&el.classList.contains("open")) el.classList.remove("open"); }); paintNav(); return; }
   if(t==="rp") openRp(); else if(t==="mv") openMv(); else if(t==="stories"){ setActiveNav("main"); openStories(); } else if(t==="fire"){ openSheet("sheetFire"); renderFire(); if(S.share) doRefresh(false); }
   paintNav();
@@ -2929,7 +3021,10 @@ function renderFire(){
     extra=ipRange("f_anni","In quanti anni",f.anni,"anni",1,45,1);
   }
   hero=hero.replace(/<\/div>$/,`<div class="forwho"><img class="famav sm" src="${FAM_SRC}" alt="" onerror="this.remove()">La libertà finanziaria di <i>Emi</i>, <i>Ele</i>, <i>Leo</i> e <i>Grace</i></div></div>`);
-  body.innerHTML=hero+
+  const pct=target>0?Math.min(100,f.cap/target*100):0, yr=yFire!=null?today().getFullYear()+Math.ceil(yFire):null;
+  const tiles=`<div class="tiles"><div class="tile" style="--sc:#F0A030"><svg class="ring" viewBox="0 0 36 36" aria-hidden="true"><circle class="bg" cx="18" cy="18" r="15.5" pathLength="100"/><circle class="fg" cx="18" cy="18" r="15.5" pathLength="100" stroke-dasharray="${pct.toFixed(1)} 100"/></svg><h4><i>🎯</i>Verso FIRE</h4><b class="pv"><span class="cnt" data-v="${Math.round(pct)}" data-s="%">${Math.round(pct)}%</span></b><small class="ps">${fmt0(f.cap)} di ${fmt0(target)} €</small></div>
+    <div class="tile" style="--sc:#2FB27A"><h4><i>🗓️</i>Traguardo</h4><b class="pv">${yr!=null?yr:"—"}</b><small class="ps">${yFire!=null?"tra "+yFire.toFixed(1).replace(".",",")+" anni con "+fmt0(f.pac)+" €/mese":"oltre 100 anni: alza PAC o rendimento"}</small></div></div>`;
+  body.innerHTML=hero+tiles+
   `<div class="card"><h3>Punto di partenza</h3>
     <div class="seg2" id="f_base"><button data-b="asset" class="${f.base==="asset"?"on":""}">Solo investito</button><button data-b="tot" class="${f.base==="tot"?"on":""}">Patrimonio totale</button></div>
     ${ipNum("f_cap","Capitale iniziale",fmt0(f.cap),"€","Dal file: investito ${a} € · totale ${b} €".replace("${a}",fmt0(D.assetTot)).replace("${b}",fmt0(D.patrimonio)))}
@@ -2951,19 +3046,20 @@ function renderFire(){
       <li><span>Al traguardo FIRE<small>${yFire!=null?"tra "+yFire.toFixed(1)+" anni":"non raggiunto entro 100 anni"}</small></span><b>${fmt0(target)} €</b></li>
     </ul></div>
   <div class="card"><p class="note">Tutti gli importi sono in potere d'acquisto di oggi: il rendimento usato è quello reale (rendimento meno inflazione). Il prelievo sicuro è una regola pratica, non una garanzia: i mercati non salgono in linea retta e le sequenze negative dei primi anni pesano più di quelle successive. Sono stime, non consulenza finanziaria.</p></div>`;
+  stagger(body,":scope>.card,:scope>.tiles"); animateCounts(body);
   // handlers
-  $("f_base").querySelectorAll("button").forEach(b=>b.onclick=()=>{ f.base=b.dataset.b; f.cap=Math.round(f.base==="tot"?D.patrimonio:D.assetTot); save(); renderFire(); });
+  $("f_base").querySelectorAll("button").forEach(b=>b.onclick=()=>{ haptic(); f.base=b.dataset.b; f.cap=Math.round(f.base==="tot"?D.patrimonio:D.assetTot); save(); renderFire(); });
   const bindNum=(id,key,int)=>{ const el=$(id); if(!el) return;
     el.onchange=()=>{ const v=parseFloat(el.value.replace(/\./g,"").replace(",",".")); if(!isNaN(v)){ f[key]=int?Math.round(v):v; save(); renderFire(); } };
     el.onfocus=()=>{ el.value=String(f[key]).replace(".",","); el.select&&el.select(); }; };
   bindNum("f_cap","cap",true); bindNum("f_pac","pac",true); bindNum("f_spesa","spesa",true);
   bindNum("f_rate","rate"); bindNum("f_infl","infl"); bindNum("f_swr","swr"); bindNum("f_anni","anni",true);
   [["f_rate_r","rate"],["f_infl_r","infl"],["f_swr_r","swr"],["f_anni_r","anni"]].forEach(([id,key])=>{ const r=$(id); if(!r) return;
-    r.oninput=()=>{ f[key]=+r.value; const t=$(id.replace("_r","")); if(t) t.value=String(f[key]).replace(".",","); fireLive(); };
+    r.oninput=()=>{ if(+r.value!==f[key]) haptic("tick"); f[key]=+r.value; const t=$(id.replace("_r","")); if(t) t.value=String(f[key]).replace(".",","); fireLive(); };
     r.onchange=()=>{ f[key]=+r.value; save(); renderFire(); }; });
 }
 
-$("fireModes").onclick=e=>{ const b=e.target.closest("button"); if(!b) return; fireCfg().mode=b.dataset.m; save(); renderFire(); };
+$("fireModes").onclick=e=>{ const b=e.target.closest("button"); if(!b) return; haptic(); fireCfg().mode=b.dataset.m; save(); vt(renderFire); };
 
 // ---------- elenco movimenti ----------
 let MV={q:"",month:null,cat:"",conto:"",tipo:"",limit:60};
@@ -2979,32 +3075,36 @@ function renderMv(){
   const C=S.cache; if(!C) return;
   const months=[...new Set(C.rows.map(r=>r.d.slice(0,7)))].sort().reverse();
   $("mvMonth").innerHTML=`<button class="${MV.month?"":"on"}" data-m="">Tutti</button>`+months.slice(0,18).map(m=>`<button class="${MV.month===m?"on":""}" data-m="${m}">${MESI_S[+m.slice(5,7)-1]} ${m.slice(2,4)}</button>`).join("");
-  $("mvMonth").querySelectorAll("button").forEach(b=>b.onclick=()=>{ MV.month=b.dataset.m||null; MV.limit=60; renderMv(); });
+  $("mvMonth").querySelectorAll("button").forEach(b=>b.onclick=()=>{ haptic(); MV.month=b.dataset.m||null; MV.limit=60; renderMv(); });
   const cats=[...new Set(C.rows.map(r=>r.cat))].sort();
   $("mvCat").innerHTML=`<button class="${MV.cat?"":"on"}" data-c="">Tutte</button>`+cats.map(c=>`<button class="${MV.cat===c?"on":""}" data-c="${esc(c)}">${esc(c)}</button>`).join("");
-  $("mvCat").querySelectorAll("button").forEach(b=>b.onclick=()=>{ MV.cat=b.dataset.c; MV.limit=60; renderMv(); });
+  $("mvCat").querySelectorAll("button").forEach(b=>b.onclick=()=>{ haptic(); MV.cat=b.dataset.c; MV.limit=60; renderMv(); });
   const conti=[...new Set(C.rows.map(r=>r.conto))].sort();
   $("mvConto").innerHTML=`<button class="${MV.conto?"":"on"}" data-c="">Tutti</button>`+conti.map(c=>`<button class="${MV.conto===c?"on":""}" data-c="${esc(c)}">${esc(lbl(c))}</button>`).join("");
-  $("mvConto").querySelectorAll("button").forEach(b=>b.onclick=()=>{ MV.conto=b.dataset.c; MV.limit=60; renderMv(); });
+  $("mvConto").querySelectorAll("button").forEach(b=>b.onclick=()=>{ haptic(); MV.conto=b.dataset.c; MV.limit=60; renderMv(); });
   const rows=mvRows(); const inTot=rows.filter(r=>r.imp>0).reduce((a,r)=>a+r.imp,0), outTot=-rows.filter(r=>r.imp<0).reduce((a,r)=>a+r.imp,0);
   const expBar=rows.length?`<div class="expbar"><button class="btn" id="mvCopy">⧉ Copia testo</button><button class="btn" id="mvShare">⇪ Esporta .txt</button></div>`:"";
-  let h=expBar+`<div class="sum"><span><small>${rows.length} movimenti</small><b>${fmtIT(inTot-outTot)} €</b></span><span><small>Entrate</small><b>${fmt0(inTot)} €</b></span><span><small>Uscite</small><b>${fmt0(outTot)} €</b></span></div>`;
+  const net=inTot-outTot, nIn=rows.filter(r=>r.imp>0).length, nOut=rows.length-nIn, mx=Math.max(inTot,outTot,1);
+  const dayTot={}; rows.forEach(r=>{ dayTot[r.d]=(dayTot[r.d]||0)+r.imp; });
+  let h=expBar+`<div class="tiles mv3"><div class="tile wide" style="--sc:#1F6FD0"><h4><i>Σ</i>Saldo${MV.month?" · "+monthLabel(MV.month):""}</h4><b class="pv ${net>=0?"up":"down"}">${net>=0?"+":"−"}<span class="cnt" data-v="${Math.abs(net)}">${fmt0(Math.abs(net))}</span> €</b><div class="duo"><i class="in" style="width:${Math.round(inTot/mx*100)}%"></i><i class="out" style="width:${Math.round(outTot/mx*100)}%"></i></div><small class="ps">${rows.length} movimenti</small></div>
+    <div class="tile" style="--sc:#2FB27A"><h4><i>💶</i>Entrate</h4><b class="pv in">+<span class="cnt" data-v="${inTot}">${fmt0(inTot)}</span> €</b><small class="ps">${nIn} ${nIn===1?"movimento":"movimenti"}</small></div>
+    <div class="tile" style="--sc:#E4572E"><h4><i>🧾</i>Uscite</h4><b class="pv out">−<span class="cnt" data-v="${outTot}">${fmt0(outTot)}</span> €</b><small class="ps">${nOut} ${nOut===1?"movimento":"movimenti"}</small></div></div>`;
   if(!rows.length) h+=`<div class="empty">${EMPTY_ART.list}Niente da vedere qui, <i>Leo</i> ne approva.</div>`;
   else{ let day=null;
     const shown=rows.slice(0,MV.limit);
-    for(const r of shown){ if(r.d!==day){ if(day)h+=`</ul>`; day=r.d; h+=`<div class="day">${fromISO(r.d).toLocaleDateString("it-IT",{weekday:"short",day:"numeric",month:"long"})}</div><ul class="list">`; }
+    for(const r of shown){ if(r.d!==day){ if(day)h+=`</ul>`; day=r.d; const dt=dayTot[r.d]||0; h+=`<div class="day"><span>${fromISO(r.d).toLocaleDateString("it-IT",{weekday:"short",day:"numeric",month:"long"})}</span><small class="${dt>=0?"in":"out"}">${dt>=0?"+":"−"}${fmt0(Math.abs(dt))} €</small></div><ul class="list">`; }
       const ci=(C.cats.find(c=>c.name===r.cat)||{}); const col=PALETTE[[...r.cat].reduce((a,ch)=>a+ch.charCodeAt(0),0)%PALETTE.length];
       h+=`<li><span class="cico" style="background:${col}">${ci.emoji||"•"}</span><span class="txt"><b>${esc(r.desc)}</b><small>${esc(r.cat)} · ${esc(lbl(r.conto))}</small></span><span class="v ${r.imp>0?"in":""}">${fmtIT(r.imp)} €</span></li>`; }
     h+=`</ul>`;
     if(rows.length>MV.limit) h+=`<button class="more2" id="mvMore">Mostra altri ${Math.min(60,rows.length-MV.limit)} (di ${rows.length-MV.limit})</button>`;
   }
-  $("mvBody").innerHTML=h;
-  const mm=$("mvMore"); if(mm) mm.onclick=()=>{ MV.limit+=60; renderMv(); };
+  $("mvBody").innerHTML=h; stagger($("mvBody"),"ul.list"); animateCounts($("mvBody"));
+  const mm=$("mvMore"); if(mm) mm.onclick=()=>{ haptic(); MV.limit+=60; renderMv(); };
   const mc=$("mvCopy"); if(mc) mc.onclick=()=>copyText(mvText(rows),`${rows.length} movimenti copiati`);
   const ms=$("mvShare"); if(ms) ms.onclick=()=>shareText(mvText(rows),"Movimenti_"+(MV.month||"tutti")+(MV.conto?"_"+MV.conto:"")+".txt");
 }
 $("mvQ").oninput=e=>{ MV.q=e.target.value; MV.limit=60; renderMv(); };
-$("mvTipo").onclick=e=>{ const b=e.target.closest("button"); if(!b) return; MV.tipo=b.dataset.t; $("mvTipo").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); MV.limit=60; renderMv(); };
+$("mvTipo").onclick=e=>{ const b=e.target.closest("button"); if(!b) return; haptic(); MV.tipo=b.dataset.t; $("mvTipo").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); MV.limit=60; renderMv(); };
 $("mvQ").onkeydown=e=>{ if(e.key==="Enter") e.target.blur(); };
 
 function mvText(rows){
@@ -3134,6 +3234,8 @@ function applyTheme(t){
   const on=$("hdr")&&$("hdr").querySelector(".navmini button.on"); if(on) setActiveNav(on.dataset.go);
 }
 $("themeSel").onclick=e=>{ const b=e.target.closest("button"); if(!b) return; haptic(); S.theme=b.dataset.t; save(); applyTheme(S.theme); };
+function paintFx(){ $("fxSel").querySelectorAll("button").forEach(b=>b.classList.toggle("on",S[b.dataset.k]!==false)); }
+$("fxSel").onclick=e=>{ const b=e.target.closest("button"); if(!b) return; const k=b.dataset.k; S[k]=S[k]===false?true:false; save(); paintFx(); haptic(S[k]?"ok":"light"); toast(k==="sound"?(S.sound?"Suoni attivi":"Suoni disattivati"):(S.hapt?"Vibrazione attiva":"Vibrazione disattivata")); };
 load().then(()=>{ applyTheme(S.theme||"auto"); { const fd=$("famDate"); if(fd) fd.textContent=today().toLocaleDateString("it-IT",{weekday:"long",day:"numeric",month:"long"}); } render(); if(S.share&&S.cache&&Date.now()-S.cache.ts>4*3600e3) refreshExcel(false).catch(()=>{}); });
 </script>
 </body>
