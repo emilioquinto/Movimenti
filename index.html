@@ -438,6 +438,9 @@
   .quick button span{display:flex;flex-direction:column;min-width:0;line-height:1.15}
   .quick button b{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .quick button small{font-size:11px;color:var(--ink-2);font-family:ui-rounded,-apple-system,system-ui,sans-serif}
+  img.lg{width:18px;height:18px;border-radius:5px;vertical-align:-4px;margin-right:6px;display:inline-block!important;object-fit:cover}
+  .chips button img.lg{width:20px;height:20px;margin-right:7px;vertical-align:-5px}
+  .mv ul.list li small img.lg{width:14px;height:14px;border-radius:4px;vertical-align:-3px;margin-right:4px}
   .rp .legend li.xtra{color:var(--ink-2)} .rp .legend li.xtra i{background:transparent;border:1.5px dashed var(--ink-2);box-sizing:border-box;border-radius:3px}
   .rp .hero .now{font-size:13px;color:#fff;opacity:.9;margin:-2px 0 4px} .rp .hero .now b{font-weight:700}
   .rp .amt{font-family:ui-rounded,"SF Pro Rounded",-apple-system,system-ui,sans-serif;font-variant-numeric:tabular-nums;white-space:nowrap}
@@ -1244,6 +1247,9 @@ const IN_CATS=new Set(["Stipendio Emi","Stipendio Ele","Regali +","Interessi con
 const CONTI=["Trade","BNL","Allianz","Contanti","Amex","Visa","Amex Siemens"];
 const ETICHETTE={};
 const lbl=n=>ETICHETTE[n]||n;
+// loghi di conti e asset, mostrati accanto al nome dove compaiono
+const LOGHI=[[/^trade/i,"trade"],[/allianz/i,"allianz"],[/^visa/i,"visa"],[/bitcoin|\bbtc\b/i,"bitcoin"],[/cronos|\bcro\b|crypto\.com/i,"cronos"]];
+function logo(n){ const m=LOGHI.find(([re])=>re.test(String(n||""))); return m?`<img class="lg" src="logo-${m[1]}.png" alt="" onerror="this.remove()">`:""; }
 const CONTI_NASCOSTI=new Set(["BPER"]);
 const CONTO_TRASFERTE="Amex Siemens", CAT_TRASFERTE="Trasferte";
 const SIGN_CATS=new Set(["Prestito","Regali +"]); // positivo = entrata, negativo = uscita
@@ -1441,7 +1447,7 @@ function renderCats(){
 }
 function renderConti(){
   const box=$("conto");
-  box.innerHTML=CONTI.map(c=>`<button class="${c===F.conto?"on":""}" data-c="${c}">${lbl(c)}</button>`).join("");
+  box.innerHTML=CONTI.map(c=>`<button class="${c===F.conto?"on":""}" data-c="${c}">${logo(c)}${lbl(c)}</button>`).join("");
   box.querySelectorAll("button").forEach(b=>b.onclick=()=>{ F.conto=b.dataset.c; haptic(); render(); });
 }
 
@@ -1594,7 +1600,7 @@ $("btnClearLog").onclick=()=>{ if(confirm("Svuotare l'elenco degli inviati?")){ 
 function renderSettings(){
   $("hook").value=S.hook; $("share").value=S.share||""; $("pac").value=S.pac||""; $("wa").value=S.wa||"";
   $("dateFmt").querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.f===S.dateFmt)); paintFx(); fxDiag();
-  $("defConto").innerHTML=CONTI.map(c=>`<button class="${c===S.defConto?"on":""}" data-c="${c}">${lbl(c)}</button>`).join("");
+  $("defConto").innerHTML=CONTI.map(c=>`<button class="${c===S.defConto?"on":""}" data-c="${c}">${logo(c)}${lbl(c)}</button>`).join("");
   $("defConto").querySelectorAll("button").forEach(b=>b.onclick=()=>{ S.defConto=b.dataset.c; save(); renderSettings(); });
   const nx=S.cache?S.cache.rows.length:0;
   $("memInfo").textContent=`${Object.keys(allDict()).length} descrizioni · ${nx} movimenti letti da Excel · ${S.hist.length} registrati da qui · ${S.log.length} righe in elenco`; renderLock();
@@ -2121,9 +2127,9 @@ function renderRp(){
   const compItems=[{name:"Liquidità",emoji:"🏦",v:D.liquidita},{name:"ETF",emoji:"📈",v:D.etf},{name:"Piano pensionistico",emoji:"🛡️",v:D.pensione},{name:"Cripto",emoji:"🪙",v:D.crypto},{name:"Altri asset",emoji:"📦",v:altroAsset}].filter(x=>x.v>0.005);
   const compTot=compItems.reduce((a,x)=>a+x.v,0);
   const g=(key,label,tot,note,rows)=>`<li class="exp exp2 grp${R.openCats.has("sum|"+key)?" open":""}" data-k="${key}"><span>${label}<small>${note}</small></span><b>${fmtIT(tot)} €</b><em class="chev">›</em></li><li class="sub" style="display:${R.openCats.has("sum|"+key)?"":"none"}"><ul>${rows}</ul></li>`;
-  const liqRows=D.saldi.map(a=>`<li><span>${esc(lbl(a.name))}</span><b>${fmtIT(a.saldo)} €</b></li>`).join("");
-  const carteRows=D.carte.map(c=>c.pend.length?c.pend.map(p=>`<li><span>${esc(lbl(c.name))} · spese di ${p.mese.toLowerCase()}<small>addebito su ${esc(lbl(c.addebita))} il ${dateIT(p.due)}</small></span><b>${fmtIT(p.amount)} €</b></li>`).join(""):`<li><span>${esc(lbl(c.name))}<small>nessuna spesa da addebitare</small></span><b>0,00 €</b></li>`).join("");
-  const assRows=D.assets.map(a=>`<li><span>${esc(a.name)}${a.qty!=null?`<small>${a.qty.toLocaleString("it-IT",{maximumFractionDigits:4})} × ${fmtIT(a.price)} €${a.live?" · live":""}</small>`:""}</span><b>${fmtIT(a.value)} €</b></li>`).join("");
+  const liqRows=D.saldi.map(a=>`<li><span>${logo(a.name)}${esc(lbl(a.name))}</span><b>${fmtIT(a.saldo)} €</b></li>`).join("");
+  const carteRows=D.carte.map(c=>c.pend.length?c.pend.map(p=>`<li><span>${logo(c.name)}${esc(lbl(c.name))} · spese di ${p.mese.toLowerCase()}<small>addebito su ${esc(lbl(c.addebita))} il ${dateIT(p.due)}</small></span><b>${fmtIT(p.amount)} €</b></li>`).join(""):`<li><span>${esc(lbl(c.name))}<small>nessuna spesa da addebitare</small></span><b>0,00 €</b></li>`).join("");
+  const assRows=D.assets.map(a=>`<li><span>${logo(a.name)}${esc(a.name)}${a.qty!=null?`<small>${a.qty.toLocaleString("it-IT",{maximumFractionDigits:4})} × ${fmtIT(a.price)} €${a.live?" · live":""}</small>`:""}</span><b>${fmtIT(a.value)} €</b></li>`).join("");
   const compoExtra=(Math.abs(D.carteTot)>0.005?`<li class="xtra"><i></i><span>Carte da addebitare</span><b>${D.carteTot<0?"−":"+"}${fmt0(Math.abs(D.carteTot))} €</b></li>`:"")+(D.trasferte.credito>0.005?`<li class="xtra"><i></i><span>Crediti trasferte</span><b>+${fmt0(D.trasferte.credito)} €</b></li>`:"");
   let compo=(compTot>0?donutHTML(compItems,compTot,"Patrimonio",{center:D.patrimonio,extra:compoExtra}):"")+`<ul class="rows tree" style="margin-top:10px">
     ${g("liq","Liquidità",D.liquidita,`somma di ${D.saldi.length} conti · tocca per vederli`,liqRows)}
@@ -2190,7 +2196,7 @@ function renderRp(){
   if(D.trasferte.righe) h+=`<div class="card"><h3 class="trh"><img src="siemens-logo.png" alt="Siemens" onerror="this.replaceWith('Siemens')"><span>Trasferte</span></h3><ul class="rows">
     <li><span>Da farsi rimborsare<small>spese fatte e non ancora accreditate da Siemens</small></span><b>${fmtIT(D.trasferte.credito)} €</b></li>
     <li><span>Speso su Amex Siemens<small>non ancora addebitato sul conto</small></span><b>${fmtIT(D.trasferte.daAddebitare)} €</b></li>
-    ${Object.entries(D.trasferte.perConto).filter(([c,v])=>v<-0.005&&c!==CONTO_TRASFERTE).map(([c,v])=>`<li><span>Anticipato con ${esc(lbl(c))}<small>rientrerà con la nota spese</small></span><b>${fmtIT(-v)} €</b></li>`).join("")}</ul>
+    ${Object.entries(D.trasferte.perConto).filter(([c,v])=>v<-0.005&&c!==CONTO_TRASFERTE).map(([c,v])=>`<li><span>Anticipato con ${logo(c)}${esc(lbl(c))}<small>rientrerà con la nota spese</small></span><b>${fmtIT(-v)} €</b></li>`).join("")}</ul>
     ${D.trasferte.credito>0.005?`<button class="btn" id="btnRimborso" style="width:100%;margin-top:10px">Registra rimborso di ${fmtIT(D.trasferte.credito)} €</button>`:""}
     <p style="font-size:12.5px;color:var(--ink-2);margin:8px 0 0">Non entra nelle spese del mese né nel patrimonio: l'uscita è compensata dal rimborso. L'indennità di trasferta va registrata a parte come Stipendio Emi, perché è reddito e non un rimborso.</p></div>`;
 
@@ -3094,7 +3100,7 @@ function renderMv(){
   $("mvCat").innerHTML=`<button class="${MV.cat?"":"on"}" data-c="">Tutte</button>`+cats.map(c=>`<button class="${MV.cat===c?"on":""}" data-c="${esc(c)}">${esc(c)}</button>`).join("");
   $("mvCat").querySelectorAll("button").forEach(b=>b.onclick=()=>{ haptic(); MV.cat=b.dataset.c; MV.limit=60; renderMv(); });
   const conti=[...new Set(C.rows.map(r=>r.conto))].sort();
-  $("mvConto").innerHTML=`<button class="${MV.conto?"":"on"}" data-c="">Tutti</button>`+conti.map(c=>`<button class="${MV.conto===c?"on":""}" data-c="${esc(c)}">${esc(lbl(c))}</button>`).join("");
+  $("mvConto").innerHTML=`<button class="${MV.conto?"":"on"}" data-c="">Tutti</button>`+conti.map(c=>`<button class="${MV.conto===c?"on":""}" data-c="${esc(c)}">${logo(c)}${esc(lbl(c))}</button>`).join("");
   $("mvConto").querySelectorAll("button").forEach(b=>b.onclick=()=>{ haptic(); MV.conto=b.dataset.c; MV.limit=60; renderMv(); });
   const rows=mvRows(); const inTot=rows.filter(r=>r.imp>0).reduce((a,r)=>a+r.imp,0), outTot=-rows.filter(r=>r.imp<0).reduce((a,r)=>a+r.imp,0);
   const expBar=rows.length?`<div class="expbar"><button class="btn" id="mvCopy">⧉ Copia testo</button><button class="btn" id="mvShare">⇪ Esporta .txt</button></div>`:"";
@@ -3108,7 +3114,7 @@ function renderMv(){
     const shown=rows.slice(0,MV.limit);
     for(const r of shown){ if(r.d!==day){ if(day)h+=`</ul>`; day=r.d; const dt=dayTot[r.d]||0; h+=`<div class="day"><span>${fromISO(r.d).toLocaleDateString("it-IT",{weekday:"short",day:"numeric",month:"long"})}</span><small class="${dt>=0?"in":"out"}">${dt>=0?"+":"−"}${fmt0(Math.abs(dt))} €</small></div><ul class="list">`; }
       const ci=(C.cats.find(c=>c.name===r.cat)||{}); const col=PALETTE[[...r.cat].reduce((a,ch)=>a+ch.charCodeAt(0),0)%PALETTE.length];
-      h+=`<li><span class="cico" style="background:${col}">${ci.emoji||"•"}</span><span class="txt"><b>${esc(r.desc)}</b><small>${esc(r.cat)} · ${esc(lbl(r.conto))}</small></span><span class="v ${r.imp>0?"in":""}">${fmtIT(r.imp)} €</span></li>`; }
+      h+=`<li><span class="cico" style="background:${col}">${ci.emoji||"•"}</span><span class="txt"><b>${esc(r.desc)}</b><small>${esc(r.cat)} · ${logo(r.conto)}${esc(lbl(r.conto))}</small></span><span class="v ${r.imp>0?"in":""}">${fmtIT(r.imp)} €</span></li>`; }
     h+=`</ul>`;
     if(rows.length>MV.limit) h+=`<button class="more2" id="mvMore">Mostra altri ${Math.min(60,rows.length-MV.limit)} (di ${rows.length-MV.limit})</button>`;
   }
