@@ -1115,7 +1115,7 @@
   </div>
   <div class="field">
     <label>Versione app</label>
-    <p><b>v80</b> · Torte: tocca una fetta o una voce della legenda per ingrandirla ed evidenziare la categoria nell'elenco; nuovo tocco per deselezionare.  Se non leggi "v80" qui, versione vecchia.</p>
+    <p><b>v81</b> · Riepilogo: il patrimonio in alto è sempre quello di oggi, come in Excel; il mese mostrato è quello in corso. Sfogliando i mesi passati, "fine mese" usa il valore corretto di fine mese.  Se non leggi "v81" qui, versione vecchia.</p>
   </div>
   <div class="field">
     <label>Dettatura</label>
@@ -1665,6 +1665,14 @@ function serieComposizione(){
 
 // ---------- Riepilogo UI ----------
 function monthLabel(m){ const [y,mm]=m.split("-"); return `${MESI[+mm-1]} ${y}`; }
+// Patrimonio a fine mese m: lo storico ha una fotografia al giorno 1 di ogni mese, quindi la fine di m
+// è la fotografia del mese dopo. Se non c'è ancora (mese appena chiuso) vale il patrimonio di oggi.
+function patFineMese(D,m){
+  const nx=shiftMonth(m,1)+"-01", cur=dateISO(today()).slice(0,7);
+  const dentro=D.storico.filter(p=>p.d>m+"-01"&&p.d<=nx); if(dentro.length) return dentro[dentro.length-1].v;
+  if(nx.slice(0,7)>=cur) return D.patrimonio;
+  const prima=D.storico.filter(p=>p.d<=nx); return prima.length?prima[prima.length-1].v:D.patrimonio;
+}
 function shiftMonth(m,k){ const [y,mm]=m.split("-").map(Number); const d=new Date(y,mm-1+k,1); return `${d.getFullYear()}-${pad2(d.getMonth()+1)}`; }
 function arcD(a0,a1,R,r,cx,cy){ if(a1-a0>=2*Math.PI-1e-4) a1=a0+2*Math.PI-1e-4; const large=(a1-a0)>Math.PI?1:0;
   const p=(ang,rad)=>[cx+rad*Math.cos(ang),cy+rad*Math.sin(ang)];
@@ -1951,14 +1959,15 @@ function bindExp(root){
 function renderRp(){
   const body=$("rpBody"); const D=calc(); if(!R.openCats) R.openCats=new Set();
   if(!D){ body.innerHTML=R.loading?skeletonHTML():`<div class="card"><div class="empty">${EMPTY_ART.chart}<b>Nessun dato ancora</b>${S.share?"Trascina in giù o tocca Aggiorna per leggere il file.":"In ⚙︎ incolla l'indirizzo del relay, poi torna qui."}</div></div>`; return; }
-  if(!R.month) R.month=D.months.length?D.months[D.months.length-1]:dateISO(today()).slice(0,7);
+  // il mese mostrato è quello in corso, finché non lo cambi con le frecce
+  if(!R.month||!R.monthPicked) R.month=dateISO(today()).slice(0,7);
   const M=D.month(R.month); const ytd=D.inizioAnno!=null?D.patrimonio-D.inizioAnno:null;
   const when=new Date(D.ts); const ago=Math.round((Date.now()-D.ts)/60000);
   const msPrev=D.months.filter(x=>x<R.month).slice(-12); const avgSp=msPrev.length?msPrev.reduce((a,x)=>a+D.month(x).spese,0)/msPrev.length:0;
   const avgIn=msPrev.length?msPrev.reduce((a,x)=>a+D.month(x).entrate,0)/msPrev.length:0;
   const ratio=avgSp?M.spese/avgSp:0; const stato=!avgSp?"":(ratio<=0.85?"ok":(ratio<=1.05?"warn":"over"));
   const curM=dateISO(today()).slice(0,7); const isCur=R.month>=curM;
-  const stM=D.storico.filter(p=>p.d<=R.month+"-31"); const patM=isCur?D.patrimonio:(stM.length?stM[stM.length-1].v:D.patrimonio);
+  const patM=isCur?D.patrimonio:patFineMese(D,R.month);
   const SCx=serieComposizione(); const prevPt=SCx?[...SCx.pts].reverse().find(p=>p.kind==="hist"&&p.d<dateISO(today()).slice(0,7)+"-02"&&p.liq!=null):null;
   const dLiq=prevPt?D.liquidita-prevPt.liq:null, dAss=prevPt?D.assetTot-prevPt.asset:null;
   const delta=v=>v==null?"":`<em class="dv ${v>=0?"up":"down"}">${v>=0?"+":"−"}${fmt0(Math.abs(v))} € sul mese scorso</em>`;
@@ -2062,8 +2071,8 @@ function renderRp(){
   const bz=$("btnPrezziOpen"); if(bz) bz.onclick=openPrezzi;
   const bb=$("btnBudget"); if(bb) bb.onclick=openBudget;
   bindPiano(body,D,curM);
-  $("mPrev").onclick=()=>{ R.month=shiftMonth(R.month,-1); renderRp(); };
-  $("mNext").onclick=()=>{ R.month=shiftMonth(R.month,1); renderRp(); };
+  $("mPrev").onclick=()=>{ R.monthPicked=true; R.month=shiftMonth(R.month,-1); renderRp(); };
+  $("mNext").onclick=()=>{ R.monthPicked=true; R.month=shiftMonth(R.month,1); renderRp(); };
 }
 async function doRefresh(force){
   if(R.loading) return; R.loading=true; renderRp();
@@ -2516,8 +2525,8 @@ function buildPDF(){
   doc.setFillColor(...RP_BLUE); doc.rect(0,54,W,1.6,"F");
   doc.setTextColor(169,195,230); doc.setFontSize(9); doc.text("REPORT FINANZIARIO · FAMIGLIA QUINTO",L,15);
   doc.setTextColor(255,255,255); doc.setFontSize(25); doc.setFont(undefined,"bold"); doc.text(monthLabel(m),L,28); doc.setFont(undefined,"normal");
-  const st=D.storico.filter(p=>p.d<=m+"-31"); const patMese=st.length?st[st.length-1].v:D.patrimonio;
-  const prevPt=st.length>1?st[st.length-2].v:null;
+  const patMese=patFineMese(D,m);
+  const prevPt=D.storico.some(p=>p.d<=m+"-01")?patFineMese(D,shiftMonth(m,-1)):null;
   doc.setFontSize(8.5); doc.setTextColor(169,195,230); doc.text("PATRIMONIO A FINE PERIODO",L,39);
   doc.setFontSize(20); doc.setTextColor(255,255,255); doc.setFont(undefined,"bold"); doc.text(eur(patMese),L,47.5); doc.setFont(undefined,"normal");
   if(prevPt!=null){ const dv=patMese-prevPt, up=dv>=0, col=up?[139,224,181]:[246,162,140];
