@@ -1248,7 +1248,7 @@ const CONTI=["Trade","BNL","Allianz","Contanti","Amex","Visa","Amex Siemens"];
 const ETICHETTE={};
 const lbl=n=>ETICHETTE[n]||n;
 // loghi di conti e asset, mostrati accanto al nome dove compaiono
-const LOGHI=[[/^trade/i,"trade"],[/allianz/i,"allianz"],[/^visa/i,"visa"],[/bitcoin|\bbtc\b/i,"bitcoin"],[/cronos|\bcro\b|crypto\.com/i,"cronos"]];
+const LOGHI=[[/^trade/i,"trade"],[/allianz/i,"allianz"],[/^visa/i,"visa"],[/^bnl/i,"bnl"],[/amex|american express/i,"amex"],[/bitcoin|\bbtc\b/i,"bitcoin"],[/cronos|\bcro\b|crypto\.com/i,"cronos"]];
 function logo(n){ const m=LOGHI.find(([re])=>re.test(String(n||""))); return m?`<img class="lg" src="logo-${m[1]}.png" alt="" onerror="this.remove()">`:""; }
 const CONTI_NASCOSTI=new Set(["BPER"]);
 const CONTO_TRASFERTE="Amex Siemens", CAT_TRASFERTE="Trasferte";
@@ -2128,7 +2128,7 @@ function renderRp(){
   const compTot=compItems.reduce((a,x)=>a+x.v,0);
   const g=(key,label,tot,note,rows)=>`<li class="exp exp2 grp${R.openCats.has("sum|"+key)?" open":""}" data-k="${key}"><span>${label}<small>${note}</small></span><b>${fmtIT(tot)} €</b><em class="chev">›</em></li><li class="sub" style="display:${R.openCats.has("sum|"+key)?"":"none"}"><ul>${rows}</ul></li>`;
   const liqRows=D.saldi.map(a=>`<li><span>${logo(a.name)}${esc(lbl(a.name))}</span><b>${fmtIT(a.saldo)} €</b></li>`).join("");
-  const carteRows=D.carte.map(c=>c.pend.length?c.pend.map(p=>`<li><span>${logo(c.name)}${esc(lbl(c.name))} · spese di ${p.mese.toLowerCase()}<small>addebito su ${esc(lbl(c.addebita))} il ${dateIT(p.due)}</small></span><b>${fmtIT(p.amount)} €</b></li>`).join(""):`<li><span>${esc(lbl(c.name))}<small>nessuna spesa da addebitare</small></span><b>0,00 €</b></li>`).join("");
+  const carteRows=D.carte.map(c=>c.pend.length?c.pend.map(p=>`<li><span>${logo(c.name)}${esc(lbl(c.name))} · spese di ${p.mese.toLowerCase()}<small>addebito su ${esc(lbl(c.addebita))} il ${dateIT(p.due)}</small></span><b>${fmtIT(p.amount)} €</b></li>`).join(""):`<li><span>${logo(c.name)}${esc(lbl(c.name))}<small>nessuna spesa da addebitare</small></span><b>0,00 €</b></li>`).join("");
   const assRows=D.assets.map(a=>`<li><span>${logo(a.name)}${esc(a.name)}${a.qty!=null?`<small>${a.qty.toLocaleString("it-IT",{maximumFractionDigits:4})} × ${fmtIT(a.price)} €${a.live?" · live":""}</small>`:""}</span><b>${fmtIT(a.value)} €</b></li>`).join("");
   const compoExtra=(Math.abs(D.carteTot)>0.005?`<li class="xtra"><i></i><span>Carte da addebitare</span><b>${D.carteTot<0?"−":"+"}${fmt0(Math.abs(D.carteTot))} €</b></li>`:"")+(D.trasferte.credito>0.005?`<li class="xtra"><i></i><span>Crediti trasferte</span><b>+${fmt0(D.trasferte.credito)} €</b></li>`:"");
   let compo=(compTot>0?donutHTML(compItems,compTot,"Patrimonio",{center:D.patrimonio,extra:compoExtra}):"")+`<ul class="rows tree" style="margin-top:10px">
