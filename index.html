@@ -3221,7 +3221,8 @@ $("edDel").onclick=async()=>{
   if(!ED) return; if(!S.hook){ toast("Manca l'indirizzo webhook: aggiungilo in ⚙︎",true); return; }
   haptic("warn");
   if(!confirm(`Sei sicuro di eliminare da Excel la riga ${ED.riga}?\n\n${ED.desc} · ${fmtIT(ED.imp)} €\n\nL'operazione non si può annullare.`)) return;
-  const p=new URLSearchParams({Azione:"elimina",Riga:String(ED.riga),Descrizione:ED.desc,Importo:String(ED.imp),Data:ED.d});
+  // Indice = posizione nella tabella Excel (0 = prima riga sotto i titoli, che stanno in riga 4): serve per cancellare la riga della tabella
+  const p=new URLSearchParams({Azione:"elimina",Riga:String(ED.riga),Indice:String(ED.riga-5),Descrizione:ED.desc,Importo:String(ED.imp),Data:ED.d});
   $("edDel").disabled=true; let ok=true; try{ await hookPost(p); }catch(e){ ok=false; } $("edDel").disabled=false;
   if(ok){ if(S.cache) S.cache.rows=S.cache.rows.filter(x=>x.riga!==ED.riga); if(ED.logIdx!=null) S.log.splice(ED.logIdx,1); save(); haptic("ok"); }
   toast(ok?`Eliminato: ${ED.desc}`:"Invio non riuscito: Excel non è cambiato",!ok);
