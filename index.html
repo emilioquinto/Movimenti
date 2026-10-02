@@ -88,7 +88,8 @@
   .amount .seg,.amount .micbtn{flex:0 0 auto}
   .app .amount{gap:8px!important} .app .micbtn{width:44px!important;height:44px!important}
   .amount .num{white-space:nowrap}
-  .amount .num.tight .eur{display:none}
+  .amount .num .eur{max-width:40px;overflow:hidden;transition:max-width .45s cubic-bezier(.22,1,.36,1),opacity .3s}
+  .amount .num.tight .eur{max-width:0;opacity:0}
   /* tastierino aperto: tutto il resto sfuma in profondità, la finestra dell'importo si allarga a tutto schermo */
   #hdr,.app>*{transition:filter .45s cubic-bezier(.22,1,.36,1),opacity .45s}
   body.padopen #hdr,body.padopen .app>*:not(.amount){filter:blur(7px);opacity:.5;pointer-events:none}
@@ -96,7 +97,7 @@
   .app .amount.open{gap:0!important}
   .app .amount.open .micbtn,.app .amount.open .seg{max-width:0;opacity:0;padding:0;border-width:0}
   .app .amount.open .tap{flex:1 1 100%}
-  .app .amount .num{transition:font-size .45s cubic-bezier(.22,1,.36,1)}
+  .app .amount .tap .num,body.mode-out .app .amount .num,body.mode-in .app .amount .num{transition:font-size .45s cubic-bezier(.22,1,.36,1),color .35s}
   .amount .hint{font-size:13px;color:var(--ink-2);display:block;margin-bottom:2px}
   .amount .num{font-family:ui-rounded,"SF Pro Rounded",-apple-system,system-ui,sans-serif;font-size:39px;font-weight:700;letter-spacing:-.02em;line-height:1;display:flex;align-items:baseline;gap:6px;color:var(--out)}
   .amount .num.in{color:var(--in)}
@@ -1483,13 +1484,27 @@ function renderConti(){
 }
 
 // ---------- tastierino ----------
-function openPad(){ $("padwrap").classList.add("open"); $("scrim").classList.add("open"); $("amountBox").classList.add("open"); document.body.classList.add("padopen"); $("desc").blur(); clearTimeout(F._fit); F._fit=setTimeout(fitAmount,480); }
-function closePad(){ $("padwrap").classList.remove("open"); $("scrim").classList.remove("open"); $("amountBox").classList.remove("open"); document.body.classList.remove("padopen"); clearTimeout(F._fit); F._fit=setTimeout(fitAmount,480); }
-// il numero cresce fino a riempire la finestra (più grande quando il tastierino è aperto)
-function fitAmount(){ const num=$("num"), tap=num&&num.closest(".tap"); if(!tap) return; let fs=document.body.classList.contains("padopen")?54:39; num.style.fontSize=fs+"px"; num.classList.remove("tight");
-  const cs=getComputedStyle(tap), avail=tap.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight)-2; while(fs>12&&num.scrollWidth>avail){ fs-=1; num.style.fontSize=fs+"px"; if(fs===23) num.classList.add("tight"); } }
+function openPad(){ if(!$("padwrap").classList.contains("open")){ const tap=$("num").closest(".tap"); if(tap) F._closedW=tap.clientWidth; }
+  $("padwrap").classList.add("open"); $("scrim").classList.add("open"); $("amountBox").classList.add("open"); document.body.classList.add("padopen"); $("desc").blur(); fitAmount(); }
+function closePad(){ const was=$("padwrap").classList.contains("open"); $("padwrap").classList.remove("open"); $("scrim").classList.remove("open"); $("amountBox").classList.remove("open"); document.body.classList.remove("padopen"); if(was){ haptic("close"); fitAmount(); } }
+// Il numero riempie la finestra dell'importo: più grande con il tastierino aperto. La misura viene calcolata sulla
+// larghezza che la finestra AVRÀ a fine transizione (misurando il testo fuori schermo), così cambia insieme a lei senza scatti.
+let FIT_PROBE=null;
+function fitAmount(){ const num=$("num"), tap=num&&num.closest(".tap"); if(!tap) return;
+  const open=document.body.classList.contains("padopen"), box=$("amountBox"), cs=getComputedStyle(tap);
+  let tapW=tap.clientWidth;
+  if(open){ const bs=getComputedStyle(box); tapW=box.clientWidth-parseFloat(bs.paddingLeft)-parseFloat(bs.paddingRight)-(parseFloat(cs.borderLeftWidth)||0)-(parseFloat(cs.borderRightWidth)||0); }
+  else if(F._closedW) tapW=F._closedW;
+  const avail=tapW-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight)-2;
+  if(!FIT_PROBE){ FIT_PROBE=document.createElement("span"); FIT_PROBE.style.cssText="position:absolute;left:-9999px;top:0;visibility:hidden;white-space:nowrap;font-weight:700;letter-spacing:-.02em;font-family:ui-rounded,'SF Pro Rounded',-apple-system,system-ui,sans-serif"; document.body.appendChild(FIT_PROBE); }
+  FIT_PROBE.style.fontSize="100px"; FIT_PROBE.textContent=F.amt?(F.sign<0?"−":"+")+F.amt:"0,00"; const per=FIT_PROBE.offsetWidth/100||.6;
+  FIT_PROBE.style.fontSize="20px"; FIT_PROBE.style.fontWeight="600"; FIT_PROBE.textContent="€"; const eurW=FIT_PROBE.offsetWidth+6; FIT_PROBE.style.fontWeight="700";
+  const max=open?54:39; let fs=Math.floor((avail-eurW)/per), tight=false;
+  if(fs<23){ tight=true; fs=Math.floor(avail/per); }
+  fs=Math.max(12,Math.min(max,fs)); num.style.fontSize=fs+"px"; num.classList.toggle("tight",tight); }
 $("amountTap").onclick=()=>{ $("padwrap").classList.contains("open")?closePad():openPad(); };
 $("scrim").onclick=closePad;
+$("scrim").addEventListener("touchend",e=>{ e.preventDefault(); closePad(); },{passive:false});
 $("pad").onclick=e=>{
   const b=e.target.closest("button"); if(!b) return; haptic(b.dataset.k==="ok"?"ok":b.dataset.k==="del"?"tick":"key",b.textContent);
   if(b.dataset.k==="ok"){ closePad(); return; }
@@ -2584,9 +2599,14 @@ window.addEventListener("resize",()=>{ const on=$("hdr")&&$("hdr").querySelector
 window.addEventListener("load",()=>{ setTimeout(()=>{ const sp=$("splash"); if(sp) sp.classList.add("hide"); },650); });
 // ---------- suoni di interfaccia: sintetizzati al volo, nessun file ----------
 let AC=null;
+let AC_FAIL=0;
 function audioCtx(){ if(S.sound===false) return null;
-  try{ if(!AC){ AC=new (window.AudioContext||window.webkitAudioContext)(); try{ if(navigator.audioSession) navigator.audioSession.type="playback"; }catch(e){} }
-    if(AC.state==="suspended") AC.resume(); return AC; }catch(e){ return null; } }
+  try{ if(!AC||AC.state==="closed"){ AC=new (window.AudioContext||window.webkitAudioContext)(); AC_FAIL=0; try{ if(navigator.audioSession) navigator.audioSession.type="playback"; }catch(e){} }
+    // iOS mette il contesto in "interrupted" dopo una telefonata, Siri, la musica o un po' di tempo in background: va riattivato, e se non riparte si ricrea
+    if(AC.state!=="running"){ AC.resume().catch(()=>{}); if(++AC_FAIL>3){ try{ AC.close(); }catch(e){} AC=null; AC_FAIL=0; return audioCtx(); } } else AC_FAIL=0;
+    return AC; }catch(e){ return null; } }
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden&&AC&&AC.state!=="running") AC.resume().catch(()=>{}); });
+window.addEventListener("pageshow",()=>{ if(AC&&AC.state!=="running") AC.resume().catch(()=>{}); });
 function tone(ac,o){ const f=o.f||880, t0=ac.currentTime+(o.t||0), dur=o.dur||.06, g=o.g||.1;
   const osc=ac.createOscillator(), v=ac.createGain(); osc.type=o.type||"sine";
   osc.frequency.setValueAtTime(f,t0); if(o.f2) osc.frequency.exponentialRampToValueAtTime(o.f2,t0+dur);
@@ -3347,7 +3367,7 @@ $("themeSel").onclick=e=>{ const b=e.target.closest("button"); if(!b) return; ha
 function paintFx(){ $("fxSel").querySelectorAll("button").forEach(b=>b.classList.toggle("on",S[b.dataset.k]!==false)); }
 function fxDiag(){ const el=$("fxInfo"); if(!el) return; const ua=navigator.userAgent, m=ua.match(/OS (\d+)_(\d+)/); const ios=m?`iOS ${m[1]}.${m[2]}`:(/Android/.test(ua)?"Android":"desktop");
   const sw=document.querySelector("#hapt input"); const canSw=!!(sw&&"switch" in sw); const vib=!!navigator.vibrate;
-  el.textContent=`${ios} · audio: ${AC?AC.state==="running"?"attivo":"in attesa di un tocco":"non avviato"} · vibrazione: ${vib?"API vibrate":canSw?"motore aptico Safari":"non disponibile su questo iOS"}`; }
+  el.textContent=`${ios} · audio: ${AC?AC.state==="running"?"attivo":AC.state==="interrupted"?"interrotto da iOS, riparte al prossimo tocco":"in attesa di un tocco":"non avviato"} · vibrazione: ${vib?"API vibrate":canSw?"motore aptico Safari":"non disponibile su questo iOS"}`; }
 $("fxTest").onclick=()=>{ haptic("win"); setTimeout(()=>{ haptic("warn"); fxDiag(); },500); };
 $("fxSel").onclick=e=>{ const b=e.target.closest("button"); if(!b||!b.dataset.k) return; const k=b.dataset.k; S[k]=S[k]===false?true:false; save(); paintFx(); haptic(S[k]?"ok":"light"); toast(k==="sound"?(S.sound?"Suoni attivi":"Suoni disattivati"):(S.hapt?"Vibrazione attiva":"Vibrazione disattivata")); };
 load().then(()=>{ applyTheme(S.theme||"auto"); { const fd=$("famDate"); if(fd) fd.textContent=today().toLocaleDateString("it-IT",{weekday:"long",day:"numeric",month:"long"}); } render(); if(S.share&&S.cache&&Date.now()-S.cache.ts>4*3600e3) refreshExcel(false).catch(()=>{}); });
