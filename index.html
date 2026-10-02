@@ -97,7 +97,14 @@
   body.padopen .app::after{opacity:1}
   body.padopen .app{z-index:31}
   .app .amount{position:relative;z-index:6}
-  .padwrap{will-change:transform}
+  .padwrap{will-change:transform;z-index:40}
+  /* con le View Transitions (iOS 18+) l'ingrandimento lo anima il browser sul compositor: niente transizioni CSS di layout */
+  .amount .tap{view-transition-name:amt-tap} .amount .micbtn{view-transition-name:amt-mic} .amount .seg{view-transition-name:amt-seg} .padwrap{view-transition-name:pad}
+  ::view-transition-group(amt-tap),::view-transition-group(amt-mic),::view-transition-group(amt-seg),::view-transition-group(pad){animation-duration:.42s;animation-timing-function:cubic-bezier(.22,1,.36,1)}
+  ::view-transition-old(amt-tap),::view-transition-new(amt-tap){animation-duration:.42s;animation-timing-function:cubic-bezier(.22,1,.36,1);mix-blend-mode:normal}
+  ::view-transition-old(root),::view-transition-new(root){animation-duration:.25s}
+  body.hasvt .app .amount .micbtn,body.hasvt .app .amount .seg,body.hasvt .app .amount .tap .num,body.hasvt .amount .num .eur,body.hasvt .padwrap,body.hasvt .app::after{transition:none!important}
+  body.hasvt .app .amount.open .micbtn,body.hasvt .app .amount.open .seg{display:none}
   .app .amount .micbtn,.app .amount .seg{max-width:240px;transition:max-width .45s cubic-bezier(.22,1,.36,1),opacity .25s,padding .45s;overflow:hidden;white-space:nowrap}
   .app .amount.open{gap:0!important}
   .app .amount.open .micbtn,.app .amount.open .seg{max-width:0;opacity:0;padding:0;border-width:0}
@@ -179,7 +186,7 @@
   .copy.wa{color:#fff;background:#1FA855;font-size:15px;font-weight:700;white-space:nowrap}
   .copy.wa.off{background:#B9D9C6}
 
-  .padwrap{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--bg);box-shadow:0 -6px 24px rgba(0,0,0,.12);padding:10px 14px calc(env(safe-area-inset-bottom) + 12px);transform:translateY(105%);transition:transform .22s}
+  .padwrap{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--bg);box-shadow:0 -6px 24px rgba(0,0,0,.12);padding:10px 14px calc(env(safe-area-inset-bottom) + 12px);transform:translateY(105%);transition:transform .22s}
   .padwrap.open{transform:none}
   .padwrap .inner{max-width:480px;margin:0 auto}
   .pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
@@ -1496,9 +1503,10 @@ function renderConti(){
 }
 
 // ---------- tastierino ----------
-function openPad(){ if(!$("padwrap").classList.contains("open")){ const tap=$("num").closest(".tap"); if(tap) F._closedW=tap.clientWidth; }
-  $("padwrap").classList.add("open"); $("scrim").classList.add("open"); $("amountBox").classList.add("open"); document.body.classList.add("padopen"); $("desc").blur(); fitAmount(); }
-function closePad(){ const was=$("padwrap").classList.contains("open"); $("padwrap").classList.remove("open"); $("scrim").classList.remove("open"); $("amountBox").classList.remove("open"); document.body.classList.remove("padopen"); if(was){ haptic("close"); fitAmount(); } }
+function openPad(){ if($("padwrap").classList.contains("open")) return; const tap=$("num").closest(".tap"); if(tap) F._closedW=tap.clientWidth; $("desc").blur();
+  vt(()=>{ $("padwrap").classList.add("open"); $("scrim").classList.add("open"); $("amountBox").classList.add("open"); document.body.classList.add("padopen"); fitAmount(); }); }
+function closePad(){ if(!$("padwrap").classList.contains("open")) return; haptic("close");
+  vt(()=>{ $("padwrap").classList.remove("open"); $("scrim").classList.remove("open"); $("amountBox").classList.remove("open"); document.body.classList.remove("padopen"); fitAmount(); }); }
 // Il numero riempie la finestra dell'importo: più grande con il tastierino aperto. La misura viene calcolata sulla
 // larghezza che la finestra AVRÀ a fine transizione (misurando il testo fuori schermo), così cambia insieme a lei senza scatti.
 let FIT_PROBE=null;
@@ -2662,6 +2670,7 @@ function haptic(kind,x){
   try{ const sw=document.querySelector("#hapt input"); if(!sw) return; sw.click(); const n=(kind==="ok"||kind==="win")?2:kind==="warn"?3:1; for(let i=1;i<n;i++) setTimeout(()=>sw.click(),i*(kind==="warn"?70:95)); }catch(e){}
 }
 document.addEventListener("touchstart",()=>audioCtx(),{once:true,passive:true});
+if(document.startViewTransition&&!(window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches)) document.body.classList.add("hasvt");
 document.addEventListener("pointerdown",e=>{ const el=e.target.closest&&e.target.closest(".tile.act,.rp .card.sec.closed"); if(!el) return; const r=el.getBoundingClientRect(); el.style.setProperty("--px",(e.clientX-r.left)+"px"); el.style.setProperty("--py",(e.clientY-r.top)+"px"); },{passive:true});
 document.addEventListener("pointerdown",()=>audioCtx(),{once:true,passive:true});
 // cambio di layout animato dal browser (View Transitions), se disponibile
