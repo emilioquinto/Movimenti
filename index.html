@@ -89,6 +89,14 @@
   .app .amount{gap:8px!important} .app .micbtn{width:44px!important;height:44px!important}
   .amount .num{white-space:nowrap}
   .amount .num.tight .eur{display:none}
+  /* tastierino aperto: tutto il resto sfuma in profondità, la finestra dell'importo si allarga a tutto schermo */
+  #hdr,.app>*{transition:filter .45s cubic-bezier(.22,1,.36,1),opacity .45s}
+  body.padopen #hdr,body.padopen .app>*:not(.amount){filter:blur(7px);opacity:.5;pointer-events:none}
+  .app .amount .micbtn,.app .amount .seg{max-width:240px;transition:max-width .45s cubic-bezier(.22,1,.36,1),opacity .25s,padding .45s;overflow:hidden;white-space:nowrap}
+  .app .amount.open{gap:0!important}
+  .app .amount.open .micbtn,.app .amount.open .seg{max-width:0;opacity:0;padding:0;border-width:0}
+  .app .amount.open .tap{flex:1 1 100%}
+  .app .amount .num{transition:font-size .45s cubic-bezier(.22,1,.36,1)}
   .amount .hint{font-size:13px;color:var(--ink-2);display:block;margin-bottom:2px}
   .amount .num{font-family:ui-rounded,"SF Pro Rounded",-apple-system,system-ui,sans-serif;font-size:39px;font-weight:700;letter-spacing:-.02em;line-height:1;display:flex;align-items:baseline;gap:6px;color:var(--out)}
   .amount .num.in{color:var(--in)}
@@ -429,8 +437,12 @@
   .mv .day{display:flex;justify-content:space-between;align-items:baseline;gap:8px} .mv .day small{font-family:ui-rounded,-apple-system,system-ui,sans-serif;font-variant-numeric:tabular-nums;font-size:12.5px;font-weight:600}
   .mv .day small.in{color:#2FB27A} .mv .day small.out{color:#E4572E}
   /* Ripeti: ultimi movimenti a un tocco */
-  .quick{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 10px;margin:0 -2px;scrollbar-width:none;-webkit-overflow-scrolling:touch;flex:0 0 auto;align-items:center}
-  .quick::-webkit-scrollbar{display:none}
+  .quick{display:flex;gap:8px;overflow:hidden;padding:2px 2px 10px;margin:0 -2px;flex:0 0 auto;align-items:center}
+  .quick .qtrack{display:flex;gap:8px;flex:1;min-width:0;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent)}
+  .quick .qrun{display:flex;gap:8px;flex:0 0 auto;padding-right:8px;animation:qmarquee var(--qd,24s) linear infinite}
+  .quick.paused .qrun,.quick:active .qrun{animation-play-state:paused}
+  @keyframes qmarquee{from{transform:translateX(-100%)}to{transform:translateX(0)}}
+  @media (prefers-reduced-motion:reduce){ .quick .qrun{animation:none} .quick .qtrack{overflow-x:auto} }
   .quick .ql{flex:0 0 auto;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2);font-weight:600;padding-right:2px}
   .quick button{flex:0 0 auto;display:flex;align-items:center;gap:8px;border-radius:14px;padding:6px 12px 6px 7px;text-align:left;color:var(--ink);transition:transform .14s;max-width:200px}
   .quick button:active{transform:scale(.95)}
@@ -1250,7 +1262,7 @@ const lbl=n=>ETICHETTE[n]||n;
 // loghi di conti e asset, mostrati accanto al nome dove compaiono
 const LOGHI=[[/^trade/i,"trade"],[/allianz/i,"allianz"],[/^visa/i,"visa"],[/^bnl/i,"bnl"],[/amex.*siemens/i,"amex-siemens"],[/amex|american express/i,"amex"],[/^contanti/i,"contanti"],[/bitcoin|\bbtc\b/i,"bitcoin"],[/cronos|\bcro\b|crypto\.com/i,"cronos"]];
 function logo(n){ const m=LOGHI.find(([re])=>re.test(String(n||""))); return m?`<img class="lg" src="logo-${m[1]}.png" alt="" onerror="this.remove()">`:""; }
-const CONTI_NASCOSTI=new Set(["BPER"]);
+const CONTI_NASCOSTI=new Set(["BPER","PayPal"]);
 const CONTO_TRASFERTE="Amex Siemens", CAT_TRASFERTE="Trasferte";
 const SIGN_CATS=new Set(["Prestito","Regali +"]); // positivo = entrata, negativo = uscita
 const GIORNO_ADDEBITO={"Amex Siemens":8};
@@ -1383,9 +1395,7 @@ function render(){
   const num=$("num");
   num.className="num"+(F.sign>0?" in":"");
   num.innerHTML=(F.amt?`<span>${F.sign<0?"−":"+"}${F.amt}</span>`:`<span class="ph">0,00</span>`)+`<span class="eur">€</span>`;
-  // importo lungo: il numero si restringe fino a stare nello spazio, i bottoni accanto non si muovono
-  { const tap=num.closest(".tap"); let fs=39; num.style.fontSize=fs+"px";
-    if(tap){ const cs=getComputedStyle(tap), avail=tap.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight)-2; while(fs>12&&num.scrollWidth>avail){ fs-=1; num.style.fontSize=fs+"px"; if(fs===23) num.classList.add("tight"); } } }
+  fitAmount();
   $("segOut").className=F.sign<0?"on":""; $("segIn").className=F.sign>0?"on in":"";
   document.body.classList.toggle("mode-out",!!F.amt&&amtNum()>0&&F.sign<0); document.body.classList.toggle("mode-in",!!F.amt&&amtNum()>0&&F.sign>0);
   renderSugg(); renderCats(); renderConti(); renderQuick();
@@ -1422,8 +1432,14 @@ function renderQuick(){
   if(!items.length){ box.hidden=true; return; }
   const cats=(S.cache&&S.cache.cats)||[]; const em=c=>{ const x=cats.find(y=>y.name===c); return x&&x.emoji?x.emoji:"•"; };
   box.hidden=false;
-  box.innerHTML=`<span class="ql">Ripeti</span>`+items.map((e,i)=>`<button data-i="${i}"><i>${em(e.cat)}</i><span><b>${esc(e.desc)}</b>${e.imp?`<small>${fmtIT(e.imp)} €</small>`:""}</span></button>`).join("");
+  const run=items.map((e,i)=>`<button data-i="${i}"><i>${em(e.cat)}</i><span><b>${esc(e.desc)}</b>${e.imp?`<small>${fmtIT(e.imp)} €</small>`:""}</span></button>`).join("");
+  // carosello continuo verso destra: le voci sono ripetute finché coprono due volte la pista, poi scorrono in loop
+  box.innerHTML=`<span class="ql">Ripeti</span><div class="qtrack"><div class="qrun">${run}</div></div>`;
+  const track=box.querySelector(".qtrack"), first=box.querySelector(".qrun"); const w=first.scrollWidth||1, n=Math.max(2,Math.ceil(track.clientWidth*2/w)+1);
+  for(let i=1;i<n;i++){ const c=first.cloneNode(true); c.setAttribute("aria-hidden","true"); track.appendChild(c); }
+  track.style.setProperty("--qd",Math.max(12,w/18)+"s");
   box.querySelectorAll("button").forEach(b=>b.onclick=()=>{ const e=items[+b.dataset.i]; applyEntry({desc:e.desc,cat:e.cat,conto:e.conto||S.defConto,imp:e.imp},true); if(!e.imp) openPad(); });
+  box.ontouchstart=()=>{ box.classList.add("paused"); clearTimeout(box._t); }; box.ontouchend=()=>{ box._t=setTimeout(()=>box.classList.remove("paused"),1500); };
 }
 function renderSugg(){
   const q=norm(F.desc); const box=$("sugg");
@@ -1452,8 +1468,11 @@ function renderConti(){
 }
 
 // ---------- tastierino ----------
-function openPad(){ $("padwrap").classList.add("open"); $("scrim").classList.add("open"); $("amountBox").classList.add("open"); $("desc").blur(); }
-function closePad(){ $("padwrap").classList.remove("open"); $("scrim").classList.remove("open"); $("amountBox").classList.remove("open"); }
+function openPad(){ $("padwrap").classList.add("open"); $("scrim").classList.add("open"); $("amountBox").classList.add("open"); document.body.classList.add("padopen"); $("desc").blur(); clearTimeout(F._fit); F._fit=setTimeout(fitAmount,480); }
+function closePad(){ $("padwrap").classList.remove("open"); $("scrim").classList.remove("open"); $("amountBox").classList.remove("open"); document.body.classList.remove("padopen"); clearTimeout(F._fit); F._fit=setTimeout(fitAmount,480); }
+// il numero cresce fino a riempire la finestra (più grande quando il tastierino è aperto)
+function fitAmount(){ const num=$("num"), tap=num&&num.closest(".tap"); if(!tap) return; let fs=document.body.classList.contains("padopen")?54:39; num.style.fontSize=fs+"px"; num.classList.remove("tight");
+  const cs=getComputedStyle(tap), avail=tap.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight)-2; while(fs>12&&num.scrollWidth>avail){ fs-=1; num.style.fontSize=fs+"px"; if(fs===23) num.classList.add("tight"); } }
 $("amountTap").onclick=()=>{ $("padwrap").classList.contains("open")?closePad():openPad(); };
 $("scrim").onclick=closePad;
 $("pad").onclick=e=>{
