@@ -563,7 +563,8 @@
   .mv .sum span small{color:var(--navy-2)}
   .mv .day{font-size:13px;color:var(--ink-2);font-weight:600;margin:12px 0 6px}
   .mv ul.list{list-style:none;margin:0;padding:0;background:var(--paper);border-radius:var(--r);overflow:hidden}
-  .mv ul.list li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line)}
+  .mv ul.list li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line);cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background .15s}
+  .mv ul.list li:active{background:var(--key)}
   .mv ul.list li:last-child{border-bottom:0}
   .mv ul.list li b{font-weight:600;font-size:15px;display:block}
   .mv ul.list li small{color:var(--ink-2);font-size:12.5px}
@@ -1100,6 +1101,19 @@
   <p id="prezziNote" style="margin-top:10px"></p>
 </div>
 
+<div class="sheet" id="sheetEdit">
+  <div class="top"><h2>Modifica movimento</h2><button class="close" data-close="sheetEdit">Chiudi</button></div>
+  <p id="edInfo" style="margin:0 0 10px"></p>
+  <div class="field"><label for="edDesc">Descrizione</label><input type="text" id="edDesc" autocomplete="off" autocorrect="off" enterkeyhint="done"></div>
+  <div class="field inline"><label for="edImp">Importo</label><input type="text" id="edImp" inputmode="decimal" style="flex:1;min-width:0;max-width:140px"><div class="seg" id="edSign" style="margin-left:8px"><button data-s="-1">Uscita</button><button data-s="1">Entrata</button></div></div>
+  <div class="field"><label>Categoria</label><div class="chips" id="edCat"></div></div>
+  <div class="field inline"><label>Conto</label><div class="chips" id="edConto"></div></div>
+  <div class="field inline"><label for="edData">Data</label><input type="date" id="edData" style="flex:1"></div>
+  <button class="go" id="edSave" style="width:100%">Sovrascrivi in Excel</button>
+  <button class="btn" id="edDel" style="width:100%;margin:10px 0 0;color:var(--warn);border-color:var(--warn)">Elimina movimento</button>
+  <p style="margin-top:12px">Le modifiche vengono inviate allo stesso webhook Make dei nuovi movimenti con i campi <b>Azione</b> (modifica o elimina) e <b>Riga</b> (numero della riga nel foglio Movimenti): lo scenario deve gestirli con un router.</p>
+</div>
+
 <div class="sheet" id="sheetBudget">
   <div class="top"><h2>Budget e obiettivi</h2><button class="close" data-close="sheetBudget">Chiudi</button></div>
   <p>Obiettivo mensile di entrata, piano di investimento e soglia di spesa per categoria. I valori modificati qui vivono nell'app (e nel backup) e hanno la precedenza sul foglio Impostazioni di Excel, che resta invariato. Il piano del mese nel Riepilogo si calcola da questi numeri.</p>
@@ -1134,6 +1148,7 @@
   <div class="field">
     <label for="hook">Indirizzo webhook (Make) per scrivere in Excel</label>
     <input type="text" id="hook" placeholder="https://hook.eu1.make.com/…" autocapitalize="off" autocorrect="off">
+    <p style="margin-top:8px">Per modificare ed eliminare dai Movimenti lo scenario riceve anche <b>Azione</b> = modifica | elimina e <b>Riga</b> = numero di riga del foglio: aggiungi un router che aggiorna o cancella quella riga.</p>
   </div>
   <div class="field">
     <label for="share">Indirizzo del relay per leggere Excel (Riepilogo)</label>
@@ -1679,8 +1694,8 @@ function cellDate(v){
 function parseWorkbook(buf){
   const wb=XLSX.read(buf,{type:"array",cellDates:false});
   const need=["Movimenti","Impostazioni","Patrimonio"]; for(const n of need) if(!wb.Sheets[n]) throw new Error(`Manca il foglio ${n} nel file`);
-  const mv=XLSX.utils.sheet_to_json(wb.Sheets["Movimenti"],{header:1,range:"A5:J5024",raw:true,defval:null});
-  const rows=[]; for(const r of mv){ const d=cellDate(r[0]); const imp=typeof r[4]==="number"?r[4]:parseFloat(String(r[4]||"").replace(",",".")); if(!d||isNaN(imp)||!r[1]) continue; rows.push({d,desc:String(r[1]).trim(),cat:String(r[2]||"").trim(),conto:String(r[3]||"").trim(),imp:Math.round(imp*100)/100}); }
+  const mv=XLSX.utils.sheet_to_json(wb.Sheets["Movimenti"],{header:1,range:"A5:J5024",raw:true,defval:null,blankrows:true});
+  const rows=[]; mv.forEach((r,i)=>{ const d=cellDate(r[0]); const imp=typeof r[4]==="number"?r[4]:parseFloat(String(r[4]||"").replace(",",".")); if(!d||isNaN(imp)||!r[1]) return; rows.push({d,desc:String(r[1]).trim(),cat:String(r[2]||"").trim(),conto:String(r[3]||"").trim(),imp:Math.round(imp*100)/100,riga:5+i}); });
   const im=XLSX.utils.sheet_to_json(wb.Sheets["Impostazioni"],{header:1,range:"A5:K31",raw:true,defval:null});
   const cats=[], accounts=[];
   for(const r of im.slice(0,27)){ if(r[1]) cats.push({name:String(r[1]).trim(),emoji:r[2]||"",tipo:String(r[3]||"").trim(),budget:Math.abs(+r[4]||0)}); }
@@ -2557,7 +2572,7 @@ function setActiveNav(active){
     else { ind.style.height=""; ind.style.width=b.offsetWidth+"px"; ind.style.transform=`translateX(${b.offsetLeft}px)`; } };
   place(); requestAnimationFrame(place);
 }
-const SHEETS=["sheetRp","sheetMv","sheetFire","sheetLog","sheetSettings","sheetPac","sheetRep","sheetPrezzi","sheetBudget"];
+const SHEETS=["sheetRp","sheetMv","sheetFire","sheetLog","sheetSettings","sheetPac","sheetRep","sheetPrezzi","sheetBudget","sheetEdit"];
 function openSheet(id){
   const target=$(id); if(!target) return;
   SHEETS.forEach(sid=>{ const el=$(sid); if(!el||sid===id) return; if(el.classList.contains("open")){ el.classList.remove("open"); el.classList.add("leaving"); setTimeout(()=>el.classList.remove("leaving"),340); } });
@@ -3110,6 +3125,51 @@ function renderFire(){
 
 $("fireModes").onclick=e=>{ const b=e.target.closest("button"); if(!b) return; haptic(); fireCfg().mode=b.dataset.m; save(); vt(renderFire); };
 
+// ---------- modifica / eliminazione di un movimento già in Excel ----------
+let ED=null;
+function openEdit(r){
+  if(!r||!r.riga){ toast("Riga non trovata nel file: aggiorna il Riepilogo e riprova",true); return; }
+  ED={...r,sign:r.imp<0?-1:1,abs:Math.abs(r.imp)};
+  $("edInfo").innerHTML=`Riga <b>${r.riga}</b> del foglio Movimenti · ${dateIT(fromISO(r.d))} · <b>${fmtIT(r.imp)} €</b>`;
+  $("edDesc").value=r.desc; $("edImp").value=fmtIT(ED.abs); $("edData").value=r.d; paintEdit();
+  $("sheetEdit").scrollTop=0; $("sheetEdit").classList.add("open"); haptic("nav");
+}
+function paintEdit(){
+  $("edSign").querySelectorAll("button").forEach(b=>{ b.className=(+b.dataset.s===ED.sign?"on":"")+(ED.sign>0&&+b.dataset.s===1?" in":""); });
+  $("edCat").innerHTML=CATS.map(c=>`<button class="${c===ED.cat?"on":""}" data-c="${c}">${c}</button>`).join("");
+  $("edCat").querySelectorAll("button").forEach(b=>b.onclick=()=>{ haptic(); ED.cat=b.dataset.c; ED.sign=IN_CATS.has(ED.cat)?1:-1; paintEdit(); });
+  $("edConto").innerHTML=CONTI.map(c=>`<button class="${c===ED.conto?"on":""}" data-c="${c}">${logo(c)}${lbl(c)}</button>`).join("");
+  $("edConto").querySelectorAll("button").forEach(b=>b.onclick=()=>{ haptic(); ED.conto=b.dataset.c; paintEdit(); });
+  const on=$("edCat").querySelector("button.on"); if(on&&on.scrollIntoView) on.scrollIntoView({block:"nearest"});
+}
+$("edSign").onclick=e=>{ const b=e.target.closest("button"); if(!b) return; haptic(); ED.sign=+b.dataset.s; paintEdit(); };
+function closeEdit(){ $("sheetEdit").classList.remove("open"); ED=null; }
+function hookPost(p){ return fetch(S.hook+(S.hook.includes("?")?"&":"?")+p.toString(),{method:"POST",mode:"no-cors"}); }
+$("edSave").onclick=async()=>{
+  if(!ED) return; if(!S.hook){ toast("Manca l'indirizzo webhook: aggiungilo in ⚙︎",true); return; }
+  const imp=parseFloat(($("edImp").value||"").replace(/\./g,"").replace(",",".")); if(isNaN(imp)||imp<=0){ toast("Importo non valido",true); return; }
+  const desc=cleanTxt($("edDesc").value); if(!desc){ toast("Manca la descrizione",true); return; }
+  if(!$("edData").value){ toast("Manca la data",true); return; }
+  const d=new Date($("edData").value+"T12:00:00"), val=Math.round(ED.sign*imp*100)/100;
+  haptic("warn");
+  if(!confirm(`Sei sicuro di sovrascrivere la riga ${ED.riga} di Excel?\n\nPrima: ${ED.desc} · ${fmtIT(ED.imp)} €\nDopo: ${desc} · ${fmtIT(val)} €`)) return;
+  const p=new URLSearchParams({Azione:"modifica",Riga:String(ED.riga),Data:S.dateFmt==="iso"?dateISO(d):S.dateFmt==="serial"?String(dateSerial(d)):dateIT(d),Descrizione:desc,Categoria:ED.cat,Conto:ED.conto,Importo:String(val),ImportoIT:fmtIT(val)});
+  $("edSave").disabled=true; let ok=true; try{ await hookPost(p); }catch(e){ ok=false; } $("edSave").disabled=false;
+  if(ok){ const row=(S.cache&&S.cache.rows||[]).find(x=>x.riga===ED.riga); if(row){ row.d=dateISO(d); row.desc=desc; row.cat=ED.cat; row.conto=ED.conto; row.imp=val; } save(); haptic("ok"); }
+  toast(ok?`Sovrascritto: ${desc} ${fmtIT(val)} €`:"Invio non riuscito: Excel non è cambiato",!ok);
+  closeEdit(); renderMv(); if(ok&&S.share) setTimeout(()=>doRefresh(true),1500);
+};
+$("edDel").onclick=async()=>{
+  if(!ED) return; if(!S.hook){ toast("Manca l'indirizzo webhook: aggiungilo in ⚙︎",true); return; }
+  haptic("warn");
+  if(!confirm(`Sei sicuro di eliminare da Excel la riga ${ED.riga}?\n\n${ED.desc} · ${fmtIT(ED.imp)} €\n\nL'operazione non si può annullare.`)) return;
+  const p=new URLSearchParams({Azione:"elimina",Riga:String(ED.riga),Descrizione:ED.desc,Importo:String(ED.imp),Data:ED.d});
+  $("edDel").disabled=true; let ok=true; try{ await hookPost(p); }catch(e){ ok=false; } $("edDel").disabled=false;
+  if(ok&&S.cache){ S.cache.rows=S.cache.rows.filter(x=>x.riga!==ED.riga); save(); haptic("ok"); }
+  toast(ok?`Eliminato: ${ED.desc}`:"Invio non riuscito: Excel non è cambiato",!ok);
+  closeEdit(); renderMv(); if(ok&&S.share) setTimeout(()=>doRefresh(true),1500);
+};
+
 // ---------- elenco movimenti ----------
 let MV={q:"",month:null,cat:"",conto:"",tipo:"",limit:60};
 function openMv(){ if(!S.cache){ toast(S.share?"Apri prima il Riepilogo per scaricare i dati":"Manca l'indirizzo del relay in ⚙︎",true); return; }
@@ -3148,6 +3208,7 @@ function renderMv(){
     if(rows.length>MV.limit) h+=`<button class="more2" id="mvMore">Mostra altri ${Math.min(60,rows.length-MV.limit)} (di ${rows.length-MV.limit})</button>`;
   }
   $("mvBody").innerHTML=h; stagger($("mvBody"),"ul.list"); animateCounts($("mvBody"));
+  $("mvBody").querySelectorAll("ul.list li").forEach((li,i)=>li.onclick=()=>openEdit(rows[i]));
   const mm=$("mvMore"); if(mm) mm.onclick=()=>{ haptic(); MV.limit+=60; renderMv(); };
   const mc=$("mvCopy"); if(mc) mc.onclick=()=>copyText(mvText(rows),`${rows.length} movimenti copiati`);
   const ms=$("mvShare"); if(ms) ms.onclick=()=>shareText(mvText(rows),"Movimenti_"+(MV.month||"tutti")+(MV.conto?"_"+MV.conto:"")+".txt");
