@@ -1249,7 +1249,7 @@
   </div>
   <div class="field">
     <label>Versione app</label>
-    <p><b>v82</b> · Riepilogo: mese scelto dalla barra fissa in alto (vale per tutte le sezioni); entrate in verde, uscite in rosso, investimenti in blu, con entrate e uscite affiancate sulla stessa scala; grafico del patrimonio con il valore di oggi; Trasferte con logo Siemens in fondo.  Se non leggi "v82" qui, versione vecchia.</p>
+    <p><b id="appVer">v—</b> · si aggiorna da sola quando ne esce una nuova. Le correzioni ai movimenti si fanno direttamente nel file Excel.</p>
   </div>
   <div class="field">
     <label>Dettatura</label>
@@ -1660,7 +1660,7 @@ $("btnClearLog").onclick=()=>{ if(confirm("Svuotare l'elenco degli inviati?")){ 
 
 function renderSettings(){
   $("hook").value=S.hook; $("share").value=S.share||""; $("pac").value=S.pac||""; $("wa").value=S.wa||"";
-  $("dateFmt").querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.f===S.dateFmt)); paintFx(); fxDiag();
+  $("dateFmt").querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.f===S.dateFmt)); paintFx(); fxDiag(); { const av=$("appVer"); if(av) av.textContent="v"+APP_VER; }
   $("defConto").innerHTML=CONTI.map(c=>`<button class="${c===S.defConto?"on":""}" data-c="${c}">${logo(c)}${lbl(c)}</button>`).join("");
   $("defConto").querySelectorAll("button").forEach(b=>b.onclick=()=>{ S.defConto=b.dataset.c; save(); renderSettings(); });
   const nx=S.cache?S.cache.rows.length:0;
@@ -1739,7 +1739,7 @@ async function fetchPrices(){
 }
 let lastRefresh=0;
 // ---------- aggiornamento automatico: se è pubblicata una versione più nuova la carica subito ----------
-const APP_VER="97";
+const APP_VER="98";
 async function checkUpdate(){
   try{ const u=location.href.split("#")[0].split("?")[0]; if(!/^https?:/.test(u)) return;
     const t=await (await fetch(u+"?v="+Date.now(),{cache:"no-store"})).text(); const m=t.match(/const APP_VER="(\d+)"/);
