@@ -88,6 +88,8 @@
   .amount .seg,.amount .micbtn{flex:0 0 auto}
   .app .amount{gap:8px!important} .app .micbtn{width:44px!important;height:44px!important}
   .amount .num{white-space:nowrap}
+  @keyframes updFlash{0%{opacity:.35;transform:translateY(4px)}100%{opacity:1;transform:none}}
+  .flash .upd{animation:updFlash .45s cubic-bezier(.22,1,.36,1)}
   .amount .num .eur{max-width:40px;overflow:hidden;transition:max-width .45s cubic-bezier(.22,1,.36,1),opacity .3s}
   .amount .num.tight .eur{max-width:0;opacity:0}
   /* tastierino aperto: tutto il resto sfuma in profondità, la finestra dell'importo si allarga a tutto schermo */
@@ -1489,7 +1491,8 @@ function renderConti(){
 }
 
 // ---------- tastierino ----------
-function openPad(){ if($("padwrap").classList.contains("open")) return; const tap=$("num").closest(".tap"); if(tap) F._closedW=tap.clientWidth; $("desc").blur();
+function prefetchExcel(){ if(S.share&&!R.loading) refreshExcel(false).catch(()=>{}); }
+function openPad(){ prefetchExcel(); if($("padwrap").classList.contains("open")) return; const tap=$("num").closest(".tap"); if(tap) F._closedW=tap.clientWidth; $("desc").blur();
   vt(()=>{ $("padwrap").classList.add("open"); $("scrim").classList.add("open"); $("amountBox").classList.add("open"); document.body.classList.add("padopen"); fitAmount(); }); }
 function closePad(){ if(!$("padwrap").classList.contains("open")) return; haptic("close");
   vt(()=>{ $("padwrap").classList.remove("open"); $("scrim").classList.remove("open"); $("amountBox").classList.remove("open"); document.body.classList.remove("padopen"); fitAmount(); }); }
@@ -1613,9 +1616,9 @@ async function send(){
   learn(r); save();
   toast(ok?`Inviato: ${r.Descrizione} ${r.ImportoIT} €`:"Invio non riuscito: riga salvata in elenco",!ok);
   if(r.Importo>0) moneyRain(); else moneyAway(Math.abs(r.Importo));
-  resetForm();
-  if(ok&&S.share){ await new Promise(res=>setTimeout(res,1200)); await Promise.race([refreshExcel(true).catch(()=>{}),new Promise(res=>setTimeout(res,3000))]); }
-  flashMovimento(r);
+  resetForm(); flashMovimento(r);
+  // la notifica compare subito con i dati già letti; poi si rilegge Excel e, se il totale cambia, i numeri si aggiornano sul posto
+  if(ok&&S.share) setTimeout(()=>refreshExcel(true).then(()=>refreshFlash(r)).catch(()=>{}),1500);
 }
 async function copyText(t,msg){
   try{ await navigator.clipboard.writeText(t); toast(msg); }
@@ -1739,14 +1742,14 @@ async function fetchPrices(){
 }
 let lastRefresh=0;
 // ---------- aggiornamento automatico: se è pubblicata una versione più nuova la carica subito ----------
-const APP_VER="98";
+const APP_VER="99";
 async function checkUpdate(){
   try{ const u=location.href.split("#")[0].split("?")[0]; if(!/^https?:/.test(u)) return;
     const t=await (await fetch(u+"?v="+Date.now(),{cache:"no-store"})).text(); const m=t.match(/const APP_VER="(\d+)"/);
     if(m&&+m[1]>+APP_VER){ const k="movimenti:upd"; let done=null; try{ done=sessionStorage.getItem(k); sessionStorage.setItem(k,m[1]); }catch(e){} if(done!==m[1]) location.replace(u+"?v="+m[1]); } }catch(e){}
 }
 window.addEventListener("load",()=>setTimeout(checkUpdate,1500));
-document.addEventListener("visibilitychange",()=>{ if(!document.hidden) checkUpdate(); });
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden){ checkUpdate(); prefetchExcel(); } });
 async function refreshExcel(force){
   if(!S.share) throw new Error("Manca l'indirizzo del relay: aggiungilo in ⚙︎");
   if(!force&&Date.now()-lastRefresh<60000) return;
@@ -2559,6 +2562,12 @@ function flashMovimento(r){
   f.onpointerup=e=>{ f.classList.remove("hold"); const dt=Date.now()-flashHold;
     if(dt<300) closeFlash(); else startFlashTimer(2500); };
   f.onpointercancel=()=>{ f.classList.remove("hold"); startFlashTimer(2500); };
+}
+function refreshFlash(r){
+  const f=$("flash"), c=$("fcard"); if(!f||!f.classList.contains("show")||!c) return;
+  const T=meseTotali(r), n=c.querySelector(".n"), tb=c.querySelector(".m b");
+  const set=(el,v)=>{ if(el&&el.textContent!==v){ el.textContent=v; el.classList.remove("upd"); void el.offsetWidth; el.classList.add("upd"); } };
+  set(n,fmtIT(Math.abs(T.cat))+" €"); set(tb,fmtIT(Math.abs(T.tot))+" €");
 }
 function moneyAway(amt){
   if(window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
