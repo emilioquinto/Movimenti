@@ -307,7 +307,7 @@
   .sheet .btn{background:var(--paper);border:1.5px solid var(--line);border-radius:12px;padding:12px 16px;font-weight:600;font-size:15px;min-height:46px;margin-right:8px;margin-top:8px;overflow:visible}
   .sheet .btn.danger{color:var(--warn)}
   .log{list-style:none;margin:0;padding:0}
-  .log li{background:var(--paper);border-radius:14px;padding:10px 10px 10px 12px;margin-bottom:8px;display:grid;grid-template-columns:38px minmax(0,1fr) auto 30px;align-items:center;gap:0 10px;font-size:15px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .log li{background:var(--paper);border-radius:14px;padding:10px 10px 10px 12px;margin-bottom:8px;display:grid;grid-template-columns:38px minmax(0,1fr) auto 30px;align-items:center;gap:0 10px;font-size:15px}
   .log li .cico{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-size:18px;color:#fff}
   .log li .txt{min-width:0;display:flex;flex-direction:column;gap:2px} .log li .txt b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .log li .txt small{color:var(--ink-2);font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1143,7 +1143,7 @@
 <!-- ============ INVIATI ============ -->
 <div class="sheet" id="sheetLog">
   <div class="top"><h2>Inviati</h2><button class="close" data-close="sheetLog">Chiudi</button></div>
-  <p>Ultimi movimenti registrati da qui: tocca una riga per modificarla o eliminarla anche in Excel. Se il collegamento a Excel non funziona: "Copia tutto" per incollarle in Movimenti, oppure "Tutto su WhatsApp" per mandarle in chat.</p>
+  <p>Ultimi movimenti registrati da qui. Per correggerli o cancellarli modifica direttamente il file Excel. Se il collegamento a Excel non funziona: "Copia tutto" per incollarle in Movimenti, oppure "Tutto su WhatsApp" per mandarle in chat.</p>
   <div><button class="btn" id="btnCopyAll">Copia tutto</button><button class="btn" id="btnWaAll">Tutto su WhatsApp</button><button class="btn danger" id="btnClearLog">Svuota elenco</button></div>
   <ul class="log" id="logList" style="margin-top:12px"></ul>
 </div>
@@ -1155,7 +1155,6 @@
   <div class="field">
     <label for="hook">Indirizzo webhook (Make) per scrivere in Excel</label>
     <input type="text" id="hook" placeholder="https://hook.eu1.make.com/…" autocapitalize="off" autocorrect="off">
-    <p style="margin-top:8px">Per modificare ed eliminare dai Movimenti lo scenario riceve anche <b>Azione</b> = modifica | elimina e <b>Riga</b> = numero di riga del foglio: aggiungi un router che aggiorna o cancella quella riga.</p>
   </div>
   <div class="field">
     <label for="share">Indirizzo del relay per leggere Excel (Riepilogo)</label>
@@ -1260,19 +1259,6 @@
 
 <div class="rotate" id="rotate">
   <div class="rotmsg"><div class="roticon">⟳</div><b>Ruota il telefono</b><span>Movimenti si usa in verticale</span></div>
-</div>
-
-<div class="sheet" id="sheetEdit">
-  <div class="top"><h2>Modifica movimento</h2><button class="close" data-close="sheetEdit">Chiudi</button></div>
-  <p id="edInfo" style="margin:0 0 10px"></p>
-  <div class="field"><label for="edDesc">Descrizione</label><input type="text" id="edDesc" autocomplete="off" autocorrect="off" enterkeyhint="done"></div>
-  <div class="field inline"><label for="edImp">Importo</label><input type="text" id="edImp" inputmode="decimal" style="flex:1;min-width:0;max-width:140px"><div class="seg" id="edSign" style="margin-left:8px"><button data-s="-1">Uscita</button><button data-s="1">Entrata</button></div></div>
-  <div class="field"><label>Categoria</label><div class="chips" id="edCat"></div></div>
-  <div class="field inline"><label>Conto</label><div class="chips" id="edConto"></div></div>
-  <div class="field inline"><label for="edData">Data</label><input type="date" id="edData" style="flex:1"></div>
-  <button class="go" id="edSave" style="width:100%">Sovrascrivi in Excel</button>
-  <button class="btn" id="edDel" style="width:100%;margin:10px 0 0;color:var(--warn);border-color:var(--warn)">Elimina movimento</button>
-  <p style="margin-top:12px">Le modifiche vengono inviate allo stesso webhook Make dei nuovi movimenti con i campi <b>Azione</b> (modifica o elimina) e <b>Riga</b> (numero della riga nel foglio Movimenti): lo scenario deve gestirli con un router.</p>
 </div>
 
 <div class="stories" id="stories">
@@ -1663,17 +1649,8 @@ function renderLog(){
   const ul=$("logList");
   const cats=(S.cache&&S.cache.cats)||[];
   ul.innerHTML=S.log.length?S.log.map((r,i)=>{ const ci=cats.find(c=>c.name===r.Categoria)||{}; const col=PALETTE[[...(r.Categoria||"")].reduce((a,ch)=>a+ch.charCodeAt(0),0)%PALETTE.length];
-    return `<li data-i="${i}"><span class="cico" style="background:${col}">${ci.emoji||"•"}</span><span class="txt"><b>${esc(r.Descrizione)}</b><small>${r.Data} · ${esc(r.Categoria)} · ${logo(r.Conto)}${esc(lbl(r.Conto))}</small></span><span class="r"><span class="v ${r.Importo>0?"in":""}">${r.ImportoIT} €</span><small class="st ${r.ok?"":"err"}">${r.wa?"WhatsApp":r.copied?"copiata":r.edited?"modificata":r.ok?"inviata":"non inviata"}</small></span><button class="x" data-i="${i}" aria-label="Rimuovi dall'elenco">✕</button></li>`; }).join(""):`<li><span class="m">Ancora nessun movimento.</span></li>`;
+    return `<li data-i="${i}"><span class="cico" style="background:${col}">${ci.emoji||"•"}</span><span class="txt"><b>${esc(r.Descrizione)}</b><small>${r.Data} · ${esc(r.Categoria)} · ${logo(r.Conto)}${esc(lbl(r.Conto))}</small></span><span class="r"><span class="v ${r.Importo>0?"in":""}">${r.ImportoIT} €</span><small class="st ${r.ok?"":"err"}">${r.wa?"WhatsApp":r.copied?"copiata":r.ok?"inviata":"non inviata"}</small></span><button class="x" data-i="${i}" aria-label="Rimuovi dall'elenco">✕</button></li>`; }).join(""):`<li><span class="m">Ancora nessun movimento.</span></li>`;
   ul.querySelectorAll(".x").forEach(b=>b.onclick=e=>{ e.stopPropagation(); S.log.splice(+b.dataset.i,1); save(); renderLog(); render(); toast("Rimossa dall'elenco (in Excel resta)"); });
-  ul.querySelectorAll("li[data-i]").forEach(li=>li.onclick=()=>editFromLog(+li.dataset.i));
-}
-function logMatch(e){ const rows=(S.cache&&S.cache.rows)||[]; const k=norm(e.Descrizione||"");
-  return rows.find(r=>r.riga&&r.d===e.DataISO&&norm(r.desc)===k&&Math.abs(r.imp-e.Importo)<0.005)||rows.find(r=>r.riga&&r.d===e.DataISO&&Math.abs(r.imp-e.Importo)<0.005); }
-async function editFromLog(i){
-  const e=S.log[i]; if(!e) return; let row=logMatch(e);
-  if(!row&&S.share){ toast("Cerco la riga nel file…"); try{ await doRefresh(true); }catch(x){} row=logMatch(e); }
-  if(!row){ toast(S.share?"Non è ancora nel file: Make non l'ha scritta o Excel non è aggiornato":"Serve il relay in ⚙︎ per leggere il file",true); return; }
-  openEdit(row,i);
 }
 $("btnCopyAll").onclick=()=>{ if(!S.log.length) return; copyText(S.log.slice().reverse().map(tsv).join("\n"),`${S.log.length} righe copiate`); };
 $("btnWaAll").onclick=()=>{ if(!S.log.length) return; waOpen(S.log.slice().reverse().map(tsv).join("\n")); };
@@ -1742,8 +1719,8 @@ function cellDate(v){
 function parseWorkbook(buf){
   const wb=XLSX.read(buf,{type:"array",cellDates:false});
   const need=["Movimenti","Impostazioni","Patrimonio"]; for(const n of need) if(!wb.Sheets[n]) throw new Error(`Manca il foglio ${n} nel file`);
-  const mv=XLSX.utils.sheet_to_json(wb.Sheets["Movimenti"],{header:1,range:"A5:J5024",raw:true,defval:null,blankrows:true});
-  const rows=[]; mv.forEach((r,i)=>{ const d=cellDate(r[0]); const imp=typeof r[4]==="number"?r[4]:parseFloat(String(r[4]||"").replace(",",".")); if(!d||isNaN(imp)||!r[1]) return; rows.push({d,desc:String(r[1]).trim(),cat:String(r[2]||"").trim(),conto:String(r[3]||"").trim(),imp:Math.round(imp*100)/100,riga:5+i}); });
+  const mv=XLSX.utils.sheet_to_json(wb.Sheets["Movimenti"],{header:1,range:"A5:J5024",raw:true,defval:null});
+  const rows=[]; for(const r of mv){ const d=cellDate(r[0]); const imp=typeof r[4]==="number"?r[4]:parseFloat(String(r[4]||"").replace(",",".")); if(!d||isNaN(imp)||!r[1]) continue; rows.push({d,desc:String(r[1]).trim(),cat:String(r[2]||"").trim(),conto:String(r[3]||"").trim(),imp:Math.round(imp*100)/100}); }
   const im=XLSX.utils.sheet_to_json(wb.Sheets["Impostazioni"],{header:1,range:"A5:K31",raw:true,defval:null});
   const cats=[], accounts=[];
   for(const r of im.slice(0,27)){ if(r[1]) cats.push({name:String(r[1]).trim(),emoji:r[2]||"",tipo:String(r[3]||"").trim(),budget:Math.abs(+r[4]||0)}); }
@@ -2515,7 +2492,10 @@ function meseTotali(r){
   const cats=(S.cache&&S.cache.cats)||[];
   const tipo=n=>{ const c=cats.find(c=>c.name===n); return c?c.tipo:(IN_CATS.has(n)?"Entrata":"Spesa"); };
   const base=((S.cache&&S.cache.rows)||[]).filter(h=>h.d.startsWith(mese)).map(h=>({k:norm(h.desc),desc:h.desc,cat:h.cat,conto:h.conto,imp:h.imp,d:h.d}));
-  const locali=S.hist.filter(h=>h.d.startsWith(mese)).map(h=>({...h,imp:IN_CATS.has(h.cat)?Math.abs(h.imp):-Math.abs(h.imp)}));
+  // dal telefono contano solo i movimenti registrati dopo l'ultima lettura del file (con 2 minuti di margine per la scrittura di Make):
+  // quelli più vecchi sono già in Excel, oppure sono stati corretti o cancellati lì e non vanno sommati di nuovo
+  const letto=S.cache?S.cache.ts-120000:0;
+  const locali=(S.log||[]).filter(e=>e.ts>letto&&e.DataISO&&e.DataISO.startsWith(mese)).map(e=>({k:norm(e.Descrizione),desc:e.Descrizione,cat:e.Categoria,conto:e.Conto,imp:e.Importo,d:e.DataISO}));
   const seen=new Set(base.map(h=>h.d+"|"+h.k+"|"+h.imp.toFixed(2)));
   const uniq=[...base]; locali.forEach(h=>{ const k=h.d+"|"+h.k+"|"+h.imp.toFixed(2); if(!seen.has(k)){ seen.add(k); uniq.push(h); } });
   const kNew=r.DataISO+"|"+norm(r.Descrizione)+"|"+r.Importo.toFixed(2);
@@ -2622,7 +2602,7 @@ function setActiveNav(active){
     else { ind.style.height=""; ind.style.width=b.offsetWidth+"px"; ind.style.transform=`translateX(${b.offsetLeft}px)`; } };
   place(); requestAnimationFrame(place);
 }
-const SHEETS=["sheetRp","sheetMv","sheetFire","sheetLog","sheetSettings","sheetPac","sheetRep","sheetPrezzi","sheetBudget","sheetEdit"];
+const SHEETS=["sheetRp","sheetMv","sheetFire","sheetLog","sheetSettings","sheetPac","sheetRep","sheetPrezzi","sheetBudget"];
 function openSheet(id){
   const target=$(id); if(!target) return;
   SHEETS.forEach(sid=>{ const el=$(sid); if(!el||sid===id) return; if(el.classList.contains("open")){ el.classList.remove("open"); el.classList.add("leaving"); setTimeout(()=>el.classList.remove("leaving"),340); } });
@@ -3180,54 +3160,6 @@ function renderFire(){
 }
 
 $("fireModes").onclick=e=>{ const b=e.target.closest("button"); if(!b) return; haptic(); fireCfg().mode=b.dataset.m; save(); vt(renderFire); };
-
-// ---------- modifica / eliminazione di un movimento già in Excel ----------
-let ED=null;
-function openEdit(r,logIdx){
-  if(!r||!r.riga){ toast("Riga non trovata nel file: aggiorna il Riepilogo e riprova",true); return; }
-  ED={...r,sign:r.imp<0?-1:1,abs:Math.abs(r.imp),logIdx};
-  $("edInfo").innerHTML=`Riga <b>${r.riga}</b> del foglio Movimenti · ${dateIT(fromISO(r.d))} · <b>${fmtIT(r.imp)} €</b>`;
-  $("edDesc").value=r.desc; $("edImp").value=fmtIT(ED.abs); $("edData").value=r.d; paintEdit();
-  $("sheetEdit").scrollTop=0; $("sheetEdit").classList.add("open"); haptic("nav");
-}
-function paintEdit(){
-  $("edSign").querySelectorAll("button").forEach(b=>{ b.className=(+b.dataset.s===ED.sign?"on":"")+(ED.sign>0&&+b.dataset.s===1?" in":""); });
-  $("edCat").innerHTML=CATS.map(c=>`<button class="${c===ED.cat?"on":""}" data-c="${c}">${c}</button>`).join("");
-  $("edCat").querySelectorAll("button").forEach(b=>b.onclick=()=>{ haptic(); ED.cat=b.dataset.c; ED.sign=IN_CATS.has(ED.cat)?1:-1; paintEdit(); });
-  $("edConto").innerHTML=CONTI.map(c=>`<button class="${c===ED.conto?"on":""}" data-c="${c}">${logo(c)}${lbl(c)}</button>`).join("");
-  $("edConto").querySelectorAll("button").forEach(b=>b.onclick=()=>{ haptic(); ED.conto=b.dataset.c; paintEdit(); });
-  const on=$("edCat").querySelector("button.on"); if(on&&on.scrollIntoView) on.scrollIntoView({block:"nearest"});
-}
-$("edSign").onclick=e=>{ const b=e.target.closest("button"); if(!b) return; haptic(); ED.sign=+b.dataset.s; paintEdit(); };
-function closeEdit(){ $("sheetEdit").classList.remove("open"); ED=null; }
-function hookPost(p){ return fetch(S.hook+(S.hook.includes("?")?"&":"?")+p.toString(),{method:"POST",mode:"no-cors"}); }
-$("edSave").onclick=async()=>{
-  if(!ED) return; if(!S.hook){ toast("Manca l'indirizzo webhook: aggiungilo in ⚙︎",true); return; }
-  const imp=parseFloat(($("edImp").value||"").replace(/\./g,"").replace(",",".")); if(isNaN(imp)||imp<=0){ toast("Importo non valido",true); return; }
-  const desc=cleanTxt($("edDesc").value); if(!desc){ toast("Manca la descrizione",true); return; }
-  if(!$("edData").value){ toast("Manca la data",true); return; }
-  const d=new Date($("edData").value+"T12:00:00"), val=Math.round(ED.sign*imp*100)/100;
-  haptic("warn");
-  if(!confirm(`Sei sicuro di sovrascrivere la riga ${ED.riga} di Excel?\n\nPrima: ${ED.desc} · ${fmtIT(ED.imp)} €\nDopo: ${desc} · ${fmtIT(val)} €`)) return;
-  const p=new URLSearchParams({Azione:"modifica",Riga:String(ED.riga),Data:S.dateFmt==="iso"?dateISO(d):S.dateFmt==="serial"?String(dateSerial(d)):dateIT(d),Descrizione:desc,Categoria:ED.cat,Conto:ED.conto,Importo:String(val),ImportoIT:fmtIT(val)});
-  $("edSave").disabled=true; let ok=true; try{ await hookPost(p); }catch(e){ ok=false; } $("edSave").disabled=false;
-  if(ok){ const row=(S.cache&&S.cache.rows||[]).find(x=>x.riga===ED.riga); if(row){ row.d=dateISO(d); row.desc=desc; row.cat=ED.cat; row.conto=ED.conto; row.imp=val; }
-    const e=ED.logIdx!=null&&S.log[ED.logIdx]; if(e){ Object.assign(e,{Data:dateIT(d),DataISO:dateISO(d),DataSeriale:dateSerial(d),Descrizione:desc,Categoria:ED.cat,Conto:ED.conto,Importo:val,ImportoIT:fmtIT(val),edited:true}); }
-    save(); haptic("ok"); }
-  toast(ok?`Sovrascritto: ${desc} ${fmtIT(val)} €`:"Invio non riuscito: Excel non è cambiato",!ok);
-  closeEdit(); renderMv(); renderLog(); if(ok&&S.share) setTimeout(()=>doRefresh(true),1500);
-};
-$("edDel").onclick=async()=>{
-  if(!ED) return; if(!S.hook){ toast("Manca l'indirizzo webhook: aggiungilo in ⚙︎",true); return; }
-  haptic("warn");
-  if(!confirm(`Sei sicuro di eliminare da Excel la riga ${ED.riga}?\n\n${ED.desc} · ${fmtIT(ED.imp)} €\n\nL'operazione non si può annullare.`)) return;
-  // Indice = posizione nella tabella Excel (0 = prima riga sotto i titoli, che stanno in riga 4): serve per cancellare la riga della tabella
-  const p=new URLSearchParams({Azione:"elimina",Riga:String(ED.riga),Indice:String(ED.riga-5),Descrizione:ED.desc,Importo:String(ED.imp),Data:ED.d});
-  $("edDel").disabled=true; let ok=true; try{ await hookPost(p); }catch(e){ ok=false; } $("edDel").disabled=false;
-  if(ok){ if(S.cache) S.cache.rows=S.cache.rows.filter(x=>x.riga!==ED.riga); if(ED.logIdx!=null) S.log.splice(ED.logIdx,1); save(); haptic("ok"); }
-  toast(ok?`Eliminato: ${ED.desc}`:"Invio non riuscito: Excel non è cambiato",!ok);
-  closeEdit(); renderMv(); renderLog(); render(); if(ok&&S.share) setTimeout(()=>doRefresh(true),1500);
-};
 
 // ---------- elenco movimenti ----------
 let MV={q:"",month:null,cat:"",conto:"",tipo:"",limit:60};
