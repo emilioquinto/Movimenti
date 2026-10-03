@@ -1234,7 +1234,8 @@
   details.cqhow ol{margin:6px 0 4px;padding-left:20px;font-size:13.5px;line-height:1.45;color:var(--ink)} details.cqhow ol li{margin:4px 0}
   details.cqhow p{margin-top:10px}
   /* ---------- Movimenti: barra filtri ---------- */
-  .mvbar{position:sticky;top:calc(var(--hdr) - 6px);z-index:5;margin:-6px -14px 10px;padding:8px 14px 8px;display:grid;gap:8px;
+  .sheet.mv{padding-top:0!important}
+  .mvbar{position:sticky;top:0;z-index:5;margin:0 -14px 10px;padding:var(--mvt,calc(var(--hdr) + 6px)) 14px 8px;display:grid;gap:8px;
     background:color-mix(in srgb,var(--bg) 78%,transparent);-webkit-backdrop-filter:saturate(180%) blur(22px);backdrop-filter:saturate(180%) blur(22px);border-bottom:1px solid var(--hair)}
   .mvsr{display:flex;gap:8px;align-items:center}
   .mvs{flex:1;min-width:0;display:flex;align-items:center;gap:8px;height:42px;padding:0 6px 0 12px;border-radius:14px;background:var(--surface-2);border:1px solid var(--hair);transition:box-shadow .25s,border-color .25s}
@@ -2439,7 +2440,7 @@ async function fetchPrices(){
 }
 let lastRefresh=0;
 // ---------- aggiornamento automatico: se è pubblicata una versione più nuova la carica subito ----------
-const APP_VER="104";
+const APP_VER="105";
 async function checkUpdate(){
   try{ const u=location.href.split("#")[0].split("?")[0]; if(!/^https?:/.test(u)) return;
     const t=await (await fetch(u+"?v="+Date.now(),{cache:"no-store"})).text(); const m=t.match(/const APP_VER="(\d+)"/);
@@ -3493,7 +3494,7 @@ function openSheet(id){
   SHEETS.forEach(sid=>{ const el=$(sid); if(!el||sid===id) return; if(el.classList.contains("open")){ el.classList.remove("open"); el.classList.add("leaving"); setTimeout(()=>el.classList.remove("leaving"),340); } });
   target.scrollTop=0; target.classList.add("open");
 }
-window.addEventListener("resize",()=>{ const on=$("hdr")&&$("hdr").querySelector(".navmini button.on"); if(on) setActiveNav(on.dataset.go); });
+window.addEventListener("resize",()=>{ if($("sheetMv")&&$("sheetMv").classList.contains("open")&&S.cache) renderMvBar(); const on=$("hdr")&&$("hdr").querySelector(".navmini button.on"); if(on) setActiveNav(on.dataset.go); });
 
 // ---------- finiture: splash, feedback aptico, numeri animati, gesti ----------
 window.addEventListener("load",()=>{ setTimeout(()=>{ const sp=$("splash"); if(sp) sp.classList.add("hide"); },1650); });
@@ -4103,6 +4104,7 @@ function mvFilt(skip){ const rows=(S.cache&&S.cache.rows)||[], q=norm(MV.q);
 function mvSet(k,v){ haptic(k==="month"?"tick":"light"); MV[k]=v; MV.limit=60; renderMv(); }
 // barra fissa: mesi a scorrimento, filtri attivi come pillole, numero di filtri sul pulsante
 function renderMvBar(){
+  { const h=$("hdr"), sh=$("sheetMv"); if(h&&sh){ const t=Math.round(h.getBoundingClientRect().bottom-sh.getBoundingClientRect().top+6); if(t>20&&t<260) $("mvBar").style.setProperty("--mvt",t+"px"); } }
   const C=S.cache; const months=[...new Set(C.rows.map(r=>r.d.slice(0,7)))].sort().reverse().slice(0,24), yNow=String(today().getFullYear());
   const mb=$("mvMonth"), key=(MV.month||"")+"|"+months.join(",");
   if(mb._k!==key){ mb._k=key;
