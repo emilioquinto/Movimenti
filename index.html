@@ -2380,7 +2380,7 @@ async function fetchPrices(){
 }
 let lastRefresh=0;
 // ---------- aggiornamento automatico: se è pubblicata una versione più nuova la carica subito ----------
-const APP_VER="102";
+const APP_VER="103";
 async function checkUpdate(){
   try{ const u=location.href.split("#")[0].split("?")[0]; if(!/^https?:/.test(u)) return;
     const t=await (await fetch(u+"?v="+Date.now(),{cache:"no-store"})).text(); const m=t.match(/const APP_VER="(\d+)"/);
@@ -2860,20 +2860,45 @@ function bindExp(root){
   root.querySelectorAll("li.exp2").forEach(li=>li.onclick=()=>{ haptic(); const k="sum|"+li.dataset.k; const on=!li.classList.contains("open");
     li.classList.toggle("open",on); const n=li.nextElementSibling; if(n&&n.classList.contains("sub")) n.style.display=on?"":"none"; if(on) R.openCats.add(k); else R.openCats.delete(k); });
 }
+// Patrimonio "fotografato" a fine mese m: saldi e carte ricostruiti dai movimenti fino a quel giorno,
+// investimenti = patrimonio dello storico meno liquidità, carte e crediti, divisi tra le voci come allora (stima).
+function snapAt(D,m,SC){
+  const C=S.cache; if(!C||!D) return null; const rows=C.rows, nx=shiftMonth(m,1)+"-01", end=fromISO(nx); end.setDate(end.getDate()-1);
+  const before=r=>r.d<nx;
+  const carte=D.carte.map(c=>{ const gg=c.giorno||15, lag=MESI_RITARDO[c.name]||1; let settled=0; const pend=[];
+    const own=rows.filter(r=>r.conto===c.name&&before(r));
+    [...new Set(own.map(r=>r.d.slice(0,7)))].sort().forEach(mm=>{ const [y,mo]=mm.split("-").map(Number); const spend=own.filter(r=>r.d.startsWith(mm)).reduce((a,r)=>a+r.imp,0), due=new Date(y,mo-1+lag,gg);
+      if(end>=due) settled+=spend; else if(Math.abs(spend)>0.004) pend.push({mese:MESI[mo-1],due,amount:spend}); });
+    return {...c,settled,pend,daAddebitare:pend.reduce((a,x)=>a+x.amount,0)}; });
+  const saldi=D.saldi.map(a=>({...a,saldo:a.saldo0+rows.filter(r=>r.conto===a.name&&before(r)).reduce((x,r)=>x+r.imp,0)+carte.filter(c=>c.addebita===a.name).reduce((x,c)=>x+c.settled,0)}));
+  const liquidita=saldi.reduce((a,x)=>a+x.saldo,0), carteTot=carte.reduce((a,x)=>a+x.daAddebitare,0);
+  const credito=-rows.filter(r=>r.cat===CAT_TRASFERTE&&before(r)).reduce((a,r)=>a+r.imp,0);
+  const pt=SC&&SC.pts.find(x=>x.kind==="hist"&&x.d>m+"-01"&&x.d<=nx);
+  const assetTot=pt?pt.tot-liquidita-carteTot-credito:D.assetTot;
+  const share=pt&&pt.crypto!=null&&(pt.inv+pt.crypto)>0?pt.crypto/(pt.inv+pt.crypto):(D.assetTot>0?D.crypto/D.assetTot:0);
+  const crypto=assetTot*share, nonNow=D.assetTot-D.crypto, k=nonNow>0?(assetTot-crypto)/nonNow:0, kc=D.crypto>0?crypto/D.crypto:0;
+  const isC=a=>/bitcoin|btc|cronos|cro|crypto|eth/i.test(a.name);
+  const assets=D.assets.map(a=>({...a,value:Math.round(a.value*(isC(a)?kc:k)*100)/100,qty:null,live:false,stima:true}));
+  return {...D,saldi,carte,liquidita,carteTot,assetTot,etf:D.etf*k,pensione:D.pensione*k,crypto,patrimonio:liquidita+carteTot+assetTot+credito,
+    trasferte:{...D.trasferte,credito},assets,livePrices:false,assetDate:null,snap:true,storicoOk:!!pt};
+}
 function renderRp(){
   const body=$("rpBody"); const D=calc(); if(!R.openCats) R.openCats=new Set();
   if(!D){ body.innerHTML=R.loading?skeletonHTML():`<div class="card"><div class="empty">${EMPTY_ART.chart}<b>Nessun dato ancora</b>${S.share?"Trascina in giù o tocca Aggiorna per leggere il file.":"In ⚙︎ incolla l'indirizzo del relay, poi torna qui."}</div></div>`; return; }
   // il mese mostrato è quello in corso, finché non lo cambi con le frecce
   if(!R.month||!R.monthPicked) R.month=dateISO(today()).slice(0,7);
-  const M=D.month(R.month); const ytd=D.inizioAnno!=null?D.patrimonio-D.inizioAnno:null;
+  const M=D.month(R.month); let ytd=D.inizioAnno!=null?D.patrimonio-D.inizioAnno:null;
   const when=new Date(D.ts); const ago=Math.round((Date.now()-D.ts)/60000);
   const msPrev=D.months.filter(x=>x<R.month).slice(-12); const avgSp=msPrev.length?msPrev.reduce((a,x)=>a+D.month(x).spese,0)/msPrev.length:0;
   const avgIn=msPrev.length?msPrev.reduce((a,x)=>a+D.month(x).entrate,0)/msPrev.length:0;
   const ratio=avgSp?M.spese/avgSp:0; const stato=!avgSp?"":(ratio<=0.85?"ok":(ratio<=1.05?"warn":"over"));
   const curM=dateISO(today()).slice(0,7); const isCur=R.month>=curM;
-  const patM=isCur?D.patrimonio:patFineMese(D,R.month);
-  const SCx=serieComposizione(); const prevPt=SCx?[...SCx.pts].reverse().find(p=>p.kind==="hist"&&p.d<dateISO(today()).slice(0,7)+"-02"&&p.liq!=null):null;
-  const dLiq=prevPt?D.liquidita-prevPt.liq:null, dAss=prevPt?D.assetTot-prevPt.asset:null;
+  const SCx=serieComposizione();
+  // mese passato: patrimonio, composizione e conti come erano a fine mese
+  const P=isCur?D:(snapAt(D,R.month,SCx)||D), patM=P.patrimonio, finM="fine "+monthLabel(R.month).toLowerCase();
+  let dLiq=null, dAss=null;
+  if(isCur){ const prevPt=SCx?[...SCx.pts].reverse().find(p=>p.kind==="hist"&&p.d<dateISO(today()).slice(0,7)+"-02"&&p.liq!=null):null; if(prevPt){ dLiq=P.liquidita-prevPt.liq; dAss=P.assetTot-prevPt.asset; } }
+  else { const pr=snapAt(D,shiftMonth(R.month,-1),SCx); if(pr&&pr.storicoOk&&P.storicoOk){ dLiq=P.liquidita-pr.liquidita; dAss=P.assetTot-pr.assetTot; } }
   const delta=v=>v==null?"":`<em class="dv ${v>=0?"up":"down"}">${v>=0?"+":"−"}${fmt0(Math.abs(v))} € sul mese scorso</em>`;
 
   // sezioni comprimibili: stato salvato per sezione
@@ -2891,28 +2916,29 @@ function renderRp(){
     <div class="lbl"><img class="famav sm" src="${FAM_SRC}" alt="" onerror="this.remove()">Patrimonio di famiglia${isCur?"":" · fine "+monthLabel(R.month).toLowerCase()}</div>
     <div class="big"><span class="cnt" data-v="${patM}" data-d="2">${fmtIT(patM)}</span> €</div>`;
   if(!isCur) h+=`<div class="now">Oggi vale <b>${fmtIT(D.patrimonio)} €</b></div>`;
+  if(ytd!=null&&!isCur) ytd=patM-D.inizioAnno;
   if(ytd!=null) h+=`<div class="ytd">Da inizio anno <em class="${ytd<0?"neg":""}">${ytd>=0?"+":"−"}${fmtIT(Math.abs(ytd))} €</em></div>`;
-  h+=`<div class="grid3"><div><small>Liquidità</small><b><span class="cnt" data-v="${D.liquidita}">${fmt0(D.liquidita)}</span> €</b>${delta(dLiq)}</div><div><small>Carte da addebitare</small><b><span class="cnt" data-v="${D.carteTot}">${fmt0(D.carteTot)}</span> €</b></div><div><small>Investimenti</small><b><span class="cnt" data-v="${D.assetTot}">${fmt0(D.assetTot)}</span> €</b>${delta(dAss)}</div>${D.trasferte.credito>0.005?`<div><small>Crediti trasferte</small><b>${fmt0(D.trasferte.credito)} €</b></div>`:""}</div></div>`;
+  h+=`<div class="grid3"><div><small>Liquidità</small><b><span class="cnt" data-v="${P.liquidita}">${fmt0(P.liquidita)}</span> €</b>${delta(dLiq)}</div><div><small>Carte da addebitare</small><b><span class="cnt" data-v="${P.carteTot}">${fmt0(P.carteTot)}</span> €</b></div><div><small>Investimenti</small><b><span class="cnt" data-v="${P.assetTot}">${fmt0(P.assetTot)}</span> €</b>${delta(dAss)}</div>${P.trasferte.credito>0.005?`<div><small>Crediti trasferte</small><b>${fmt0(P.trasferte.credito)} €</b></div>`:""}</div></div>`;
   h+=`<div class="sync">${R.loading?"Aggiornamento in corso…":`Letto da Excel ${ago<1?"adesso":ago<60?ago+" min fa":"alle "+pad2(when.getHours())+":"+pad2(when.getMinutes())+" del "+shortDate(when)}${S.cache.fileMod?` · file salvato ${(()=>{ const f=new Date(S.cache.fileMod); return shortDate(f)+" alle "+pad2(f.getHours())+":"+pad2(f.getMinutes()); })()}`:""}`}<button id="rpRefresh">Aggiorna</button><button id="rpToggleAll">${allClosed?"Espandi tutto":"Comprimi tutto"}</button></div>`;
 
   // ===== 2. COMPOSIZIONE: torta a 4 voci + gerarchia =====
-  const altroAsset=D.assetTot-D.etf-D.pensione-D.crypto;
-  const compItems=[{name:"Liquidità",ico:"banca",col:"#2F6FD6",v:D.liquidita},{name:"ETF",ico:"trend",col:"#8A55D6",v:D.etf},{name:"Piano pensionistico",ico:"scudo",col:"#0E9AB0",v:D.pensione},{name:"Cripto",ico:"cripto",col:"#E8890C",v:D.crypto},{name:"Altri asset",ico:"scatola",col:"#7C8899",v:altroAsset}].filter(x=>x.v>0.005);
+  const altroAsset=P.assetTot-P.etf-P.pensione-P.crypto;
+  const compItems=[{name:"Liquidità",ico:"banca",col:"#2F6FD6",v:P.liquidita},{name:"ETF",ico:"trend",col:"#8A55D6",v:P.etf},{name:"Piano pensionistico",ico:"scudo",col:"#0E9AB0",v:P.pensione},{name:"Cripto",ico:"cripto",col:"#E8890C",v:P.crypto},{name:"Altri asset",ico:"scatola",col:"#7C8899",v:altroAsset}].filter(x=>x.v>0.005);
   const compTot=compItems.reduce((a,x)=>a+x.v,0);
   const g=(key,label,tot,note,rows)=>`<li class="exp exp2 grp${R.openCats.has("sum|"+key)?" open":""}" data-k="${key}"><span>${label}<small>${note}</small></span><b>${fmtIT(tot)} €</b><em class="chev">›</em></li><li class="sub" style="display:${R.openCats.has("sum|"+key)?"":"none"}"><ul>${rows}</ul></li>`;
-  const liqRows=D.saldi.map(a=>`<li><span>${logo(a.name)}${esc(lbl(a.name))}</span><b>${fmtIT(a.saldo)} €</b></li>`).join("");
-  const carteRows=D.carte.map(c=>c.pend.length?c.pend.map(p=>`<li><span>${logo(c.name)}${esc(lbl(c.name))} · spese di ${p.mese.toLowerCase()}<small>addebito su ${esc(lbl(c.addebita))} il ${dateIT(p.due)}</small></span><b>${fmtIT(p.amount)} €</b></li>`).join(""):`<li><span>${logo(c.name)}${esc(lbl(c.name))}<small>nessuna spesa da addebitare</small></span><b>0,00 €</b></li>`).join("");
-  const assRows=D.assets.map(a=>`<li><span>${logo(a.name)}${esc(a.name)}${a.qty!=null?`<small>${a.qty.toLocaleString("it-IT",{maximumFractionDigits:4})} × ${fmtIT(a.price)} €${a.live?" · live":""}</small>`:""}</span><b>${fmtIT(a.value)} €</b></li>`).join("");
-  const compoExtra=(Math.abs(D.carteTot)>0.005?`<li class="xtra"><i></i><span>Carte da addebitare</span><b>${D.carteTot<0?"−":"+"}${fmt0(Math.abs(D.carteTot))} €</b></li>`:"")+(D.trasferte.credito>0.005?`<li class="xtra"><i></i><span>Crediti trasferte</span><b>+${fmt0(D.trasferte.credito)} €</b></li>`:"");
-  let compo=(compTot>0?donutHTML(compItems,compTot,"Patrimonio",{center:D.patrimonio,extra:compoExtra}):"")+`<ul class="rows tree" style="margin-top:10px">
-    ${g("liq","Liquidità",D.liquidita,`somma di ${D.saldi.length} conti · tocca per vederli`,liqRows)}
-    ${D.carte.length?g("carte","Carte da addebitare",D.carteTot,"spese già fatte, non ancora prelevate dal conto",carteRows):""}
-    ${g("ass","Investimenti",D.assetTot,`${D.assets.length} asset${D.livePrices?" · prezzi live":(D.assetDate?" · al "+dateIT(fromISO(D.assetDate)):"")} · tocca per vederli`,assRows)}
-    ${D.trasferte.credito>0.005?`<li class="grp"><span>Crediti trasferte<small>anticipati per Siemens, da rimborsare</small></span><b>${fmtIT(D.trasferte.credito)} €</b></li>`:""}
-    <li class="tot"><span>Patrimonio<small>liquidità ${D.carte.length?"+ carte ":""}+ investimenti${D.trasferte.credito>0.005?" + crediti":""}</small></span><b>${fmtIT(D.patrimonio)} €</b></li></ul>
-    <div style="display:flex;gap:8px;margin-top:10px"><button class="btn" id="btnPrezziOpen" style="flex:1;margin:0">${ig("modifica")}Aggiorna valori</button><button class="btn" id="btnPacOpen" style="flex:1;margin:0">${ig("scarica")}Da Trade</button></div>`;
-  h+=sec("compo","Com'è diviso il patrimonio","oggi",compo,"",{short:"Patrimonio",ico:"torta",
-    peek:pv(D.patrimonio)+(compTot>0?`<div class="stk">${compItems.map(x=>`<i style="flex:${Math.round(x.v)};background:${x.col}"></i>`).join("")}</div>`:"")+`<small class="ps">${compItems.slice().sort((a,b)=>b.v-a.v).slice(0,2).map(x=>`${esc(x.name)} ${Math.round(x.v/compTot*100)}%`).join(" · ")}</small>`});
+  const liqRows=P.saldi.map(a=>`<li><span>${logo(a.name)}${esc(lbl(a.name))}</span><b>${fmtIT(a.saldo)} €</b></li>`).join("");
+  const carteRows=P.carte.map(c=>c.pend.length?c.pend.map(p=>`<li><span>${logo(c.name)}${esc(lbl(c.name))} · spese di ${p.mese.toLowerCase()}<small>addebito su ${esc(lbl(c.addebita))} il ${dateIT(p.due)}</small></span><b>${fmtIT(p.amount)} €</b></li>`).join(""):`<li><span>${logo(c.name)}${esc(lbl(c.name))}<small>nessuna spesa da addebitare</small></span><b>0,00 €</b></li>`).join("");
+  const assRows=P.assets.map(a=>`<li><span>${logo(a.name)}${esc(a.name)}${a.stima?`<small>stima a ${finM}</small>`:""}${a.qty!=null?`<small>${a.qty.toLocaleString("it-IT",{maximumFractionDigits:4})} × ${fmtIT(a.price)} €${a.live?" · live":""}</small>`:""}</span><b>${fmtIT(a.value)} €</b></li>`).join("");
+  const compoExtra=(Math.abs(P.carteTot)>0.005?`<li class="xtra"><i></i><span>Carte da addebitare</span><b>${P.carteTot<0?"−":"+"}${fmt0(Math.abs(P.carteTot))} €</b></li>`:"")+(P.trasferte.credito>0.005?`<li class="xtra"><i></i><span>Crediti trasferte</span><b>+${fmt0(P.trasferte.credito)} €</b></li>`:"");
+  let compo=(compTot>0?donutHTML(compItems,compTot,"Patrimonio",{center:P.patrimonio,extra:compoExtra}):"")+`<ul class="rows tree" style="margin-top:10px">
+    ${g("liq","Liquidità",P.liquidita,`somma di ${P.saldi.length} conti · tocca per vederli`,liqRows)}
+    ${P.carte.length?g("carte","Carte da addebitare",P.carteTot,"spese già fatte, non ancora prelevate dal conto",carteRows):""}
+    ${g("ass","Investimenti",P.assetTot,`${P.assets.length} asset${P.snap?" · stima a "+finM:P.livePrices?" · prezzi live":(P.assetDate?" · al "+dateIT(fromISO(P.assetDate)):"")} · tocca per vederli`,assRows)}
+    ${P.trasferte.credito>0.005?`<li class="grp"><span>Crediti trasferte<small>anticipati per Siemens, da rimborsare</small></span><b>${fmtIT(P.trasferte.credito)} €</b></li>`:""}
+    <li class="tot"><span>Patrimonio<small>liquidità ${P.carte.length?"+ carte ":""}+ investimenti${P.trasferte.credito>0.005?" + crediti":""}</small></span><b>${fmtIT(P.patrimonio)} €</b></li></ul>
+    ${P.snap?`<p class="fn" style="margin:10px 0 0">Saldi e carte a fine mese dai movimenti; investimenti dallo storico del patrimonio, divisi tra le voci in proporzione (stima).</p>`:""}<div style="display:${P.snap?"none":"flex"};gap:8px;margin-top:10px"><button class="btn" id="btnPrezziOpen" style="flex:1;margin:0">${ig("modifica")}Aggiorna valori</button><button class="btn" id="btnPacOpen" style="flex:1;margin:0">${ig("scarica")}Da Trade</button></div>`;
+  h+=sec("compo","Com'è diviso il patrimonio",isCur?"oggi":finM,compo,"",{short:"Patrimonio",ico:"torta",
+    peek:pv(P.patrimonio)+(compTot>0?`<div class="stk">${compItems.map(x=>`<i style="flex:${Math.round(x.v)};background:${x.col}"></i>`).join("")}</div>`:"")+`<small class="ps">${compItems.slice().sort((a,b)=>b.v-a.v).slice(0,2).map(x=>`${esc(x.name)} ${Math.round(x.v/compTot*100)}%`).join(" · ")}</small>`});
 
   // ===== 3. ANDAMENTO NEL TEMPO =====
   if(D.storico.length>=2){ const sp=D.storico.filter(p=>p.d<=dateISO(today())).slice(-12).map(p=>p.v); sp.push(D.patrimonio); const d12=D.patrimonio-sp[0];
