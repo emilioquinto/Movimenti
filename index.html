@@ -1194,6 +1194,8 @@
     .edback{background:rgba(0,0,0,.6)}
     .toast{background:rgba(242,245,248,.94);color:#000}
   }
+  .rp .trl{margin:14px 0 4px;font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-2)}
+  .rp .rows li b.up{color:#2FB27A}
   /* ---------- coda Apple Pay / Siri ---------- */
   .coda{display:grid;grid-template-rows:0fr;opacity:0;transform:translateY(-8px) scale(.98);margin:0;pointer-events:none;
     transition:grid-template-rows .5s cubic-bezier(.22,1,.36,1),opacity .3s ease,transform .5s cubic-bezier(.22,1,.36,1),margin .5s cubic-bezier(.22,1,.36,1)}
@@ -2440,7 +2442,7 @@ async function fetchPrices(){
 }
 let lastRefresh=0;
 // ---------- aggiornamento automatico: se è pubblicata una versione più nuova la carica subito ----------
-const APP_VER="105";
+const APP_VER="106";
 async function checkUpdate(){
   try{ const u=location.href.split("#")[0].split("?")[0]; if(!/^https?:/.test(u)) return;
     const t=await (await fetch(u+"?v="+Date.now(),{cache:"no-store"})).text(); const m=t.match(/const APP_VER="(\d+)"/);
@@ -2480,9 +2482,14 @@ function calc(){
     const total=sum(r=>r.conto===c.name); return {...c,giorno:gg,settled,pend,daAddebitare:total-settled}; });
   // saldi conto = saldo iniziale + movimenti + addebiti già passati delle carte collegate
   const liquid=C.accounts.filter(a=>!a.addebita&&!cardAccounts.some(c=>c.name===a.name)).map(a=>({...a,saldo:a.saldo0+sum(r=>r.conto===a.name)+cards.filter(c=>c.addebita===a.name).reduce((x,c)=>x+c.settled,0)}));
-  const trasfCredito=-sum(r=>r.cat===CAT_TRASFERTE);
-  const trasfPerConto={}; rows.filter(r=>r.cat===CAT_TRASFERTE).forEach(r=>{ trasfPerConto[r.conto]=(trasfPerConto[r.conto]||0)+r.imp; });
-  const trasferte={ daAddebitare:sum(r=>r.conto===CONTO_TRASFERTE), credito:trasfCredito, righe:rows.filter(r=>r.cat===CAT_TRASFERTE).length, perConto:trasfPerConto };
+  // Trasferte: spese (negative) meno rimborsi ricevuti (positivi). Se i rimborsi superano le spese registrate il saldo è negativo:
+  // quel di più è già nei conti e non è un debito, quindi il credito che pesa sul patrimonio non scende mai sotto zero.
+  const tRows=rows.filter(r=>r.cat===CAT_TRASFERTE), trasfSaldo=-tRows.reduce((a,r)=>a+r.imp,0), trasfCredito=Math.max(0,trasfSaldo);
+  const trasfPerConto={}; tRows.forEach(r=>{ trasfPerConto[r.conto]=(trasfPerConto[r.conto]||0)+r.imp; });
+  const siem=cards.find(c=>c.name===CONTO_TRASFERTE);
+  const trasferte={ daAddebitare:siem?siem.daAddebitare:sum(r=>r.conto===CONTO_TRASFERTE), addebitato:siem?siem.settled:0, speseTot:-tRows.filter(r=>r.imp<0).reduce((a,r)=>a+r.imp,0), nSpese:tRows.filter(r=>r.imp<0).length,
+    rimborsi:tRows.filter(r=>r.imp>0).sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:0), rimborsiTot:tRows.filter(r=>r.imp>0).reduce((a,r)=>a+r.imp,0),
+    credito:trasfCredito, saldo:trasfSaldo, eccesso:Math.max(0,-trasfSaldo), righe:tRows.length, perConto:trasfPerConto };
   const liquidita=liquid.reduce((a,x)=>a+x.saldo,0);
   const carte=cards;
   const carteTot=carte.reduce((a,x)=>a+x.daAddebitare,0);
@@ -2932,7 +2939,7 @@ function snapAt(D,m,SC){
     return {...c,settled,pend,daAddebitare:pend.reduce((a,x)=>a+x.amount,0)}; });
   const saldi=D.saldi.map(a=>({...a,saldo:a.saldo0+rows.filter(r=>r.conto===a.name&&before(r)).reduce((x,r)=>x+r.imp,0)+carte.filter(c=>c.addebita===a.name).reduce((x,c)=>x+c.settled,0)}));
   const liquidita=saldi.reduce((a,x)=>a+x.saldo,0), carteTot=carte.reduce((a,x)=>a+x.daAddebitare,0);
-  const credito=-rows.filter(r=>r.cat===CAT_TRASFERTE&&before(r)).reduce((a,r)=>a+r.imp,0);
+  const credito=Math.max(0,-rows.filter(r=>r.cat===CAT_TRASFERTE&&before(r)).reduce((a,r)=>a+r.imp,0));
   const pt=SC&&SC.pts.find(x=>x.kind==="hist"&&x.d>m+"-01"&&x.d<=nx);
   const assetTot=pt?pt.tot-liquidita-carteTot-credito:D.assetTot;
   const share=pt&&pt.crypto!=null&&(pt.inv+pt.crypto)>0?pt.crypto/(pt.inv+pt.crypto):(D.assetTot>0?D.crypto/D.assetTot:0);
@@ -3054,12 +3061,20 @@ function renderRp(){
   const fx=(()=>{ try{ const f=fireDefaults(); const rr=realRate(f.rate,f.infl), target=f.spesa*12/(f.swr/100), y=yearsTo(f.cap,f.pac,rr,target); return {y,target,pct:target>0?Math.min(100,Math.round(f.cap/target*100)):0}; }catch(e){ return null; } })();
   h+=`<div class="tiles">${fx?`<div class="tile act" id="tileFire" style="--sc:#F0A030"><h4><i>${svgG("fiamma")}</i>FIRE</h4><b class="pv">${fx.y!=null?fx.y.toFixed(1).replace(".",",")+" anni":"oltre 100 anni"}</b><div class="prg"><i style="width:${fx.pct}%"></i></div><small class="ps">${fx.pct}% dell'obiettivo di ${fmt0(fx.target)} €</small></div>`:""}<div class="tile act" id="btnReport" style="--sc:#8E5BD9"><h4><i>${svgG("documento")}</i>Report PDF</h4><b class="pv">Genera</b><small class="ps">patrimonio, spese, trend e FIRE del mese chiuso</small></div><div class="tile act wide wrt" id="tileWrapped"><h4><i>${svgG("trofeo")}</i>Wrapped</h4><b class="pv">Il vostro ${today().getFullYear()}</b><small class="ps">dove sono andati i soldi, il mese migliore, i record</small></div></div>`;
   // ===== 7. TRASFERTE SIEMENS (in fondo) =====
-  if(D.trasferte.righe) h+=`<div class="card"><h3 class="trh"><img src="siemens-logo.png" alt="Siemens" onerror="this.replaceWith('Siemens')"><span>Trasferte</span></h3><ul class="rows">
-    <li><span>Da farsi rimborsare<small>spese fatte e non ancora accreditate da Siemens</small></span><b>${fmtIT(D.trasferte.credito)} €</b></li>
-    <li><span>Speso su Amex Siemens<small>non ancora addebitato sul conto</small></span><b>${fmtIT(D.trasferte.daAddebitare)} €</b></li>
-    ${Object.entries(D.trasferte.perConto).filter(([c,v])=>v<-0.005&&c!==CONTO_TRASFERTE).map(([c,v])=>`<li><span>Anticipato con ${logo(c)}${esc(lbl(c))}<small>rientrerà con la nota spese</small></span><b>${fmtIT(-v)} €</b></li>`).join("")}</ul>
-    ${D.trasferte.credito>0.005?`<button class="btn" id="btnRimborso" style="width:100%;margin-top:10px">Registra rimborso di ${fmtIT(D.trasferte.credito)} €</button>`:""}
-    <p style="font-size:12.5px;color:var(--ink-2);margin:8px 0 0">Non entra nelle spese del mese né nel patrimonio: l'uscita è compensata dal rimborso. L'indennità di trasferta va registrata a parte come Stipendio Emi, perché è reddito e non un rimborso.</p></div>`;
+  if(D.trasferte.righe){ const T=D.trasferte, anticip=Object.entries(T.perConto).filter(([c,v])=>v<-0.005&&c!==CONTO_TRASFERTE);
+    const ult=T.rimborsi[0], sg=v=>(v<0?"−":"+")+fmtIT(Math.abs(v))+" €";
+    const esito=T.saldo>0.005?`<li class="tot"><span>Da farsi rimborsare<small>spese fatte e non ancora accreditate da Siemens</small></span><b>${fmtIT(T.credito)} €</b></li>`
+      :T.eccesso>0.005?`<li class="tot"><span>Rimborsato in più<small>pagamenti oltre le spese registrate: non pesano sul patrimonio</small></span><b class="up">+${fmtIT(T.eccesso)} €</b></li>`
+      :`<li class="tot"><span>Tutto rimborsato<small>spese e pagamenti Siemens si compensano</small></span><b>0,00 €</b></li>`;
+    h+=`<div class="card"><h3 class="trh"><img src="siemens-logo.png" alt="Siemens" onerror="this.replaceWith('Siemens')"><span>Trasferte</span></h3><ul class="rows">
+    <li><span>Spese di trasferta<small>${T.nSpese} ${T.nSpese===1?"spesa":"spese"} registrate come Trasferte</small></span><b>${sg(-T.speseTot)}</b></li>
+    <li><span>Rimborsi ricevuti da Siemens<small>${T.rimborsi.length?`${T.rimborsi.length} ${T.rimborsi.length===1?"pagamento":"pagamenti"} · ultimo ${dateIT(fromISO(ult.d))} su ${esc(lbl(ult.conto))}`:"nessun pagamento registrato"}</small></span><b>${T.rimborsiTot>0?sg(T.rimborsiTot):"0,00 €"}</b></li>
+    ${esito}
+    <li><span>Carta Amex Siemens<small>${Math.abs(T.addebitato)>0.005?`già addebitato su Trade ${fmtIT(-T.addebitato)} € · `:""}${Math.abs(T.daAddebitare)>0.005?`da addebitare ${fmtIT(-T.daAddebitare)} €`:"niente da addebitare"}</small></span><b>${fmtIT(-(T.addebitato+T.daAddebitare))} €</b></li>
+    ${anticip.map(([c,v])=>`<li><span>Anticipato con ${logo(c)}${esc(lbl(c))}<small>rientrerà con la nota spese</small></span><b>${fmtIT(-v)} €</b></li>`).join("")}</ul>
+    ${T.rimborsi.length?`<div class="trl">Pagamenti Siemens registrati</div><ul class="rows">${T.rimborsi.slice(0,6).map(r=>`<li><span>${esc(r.desc)}<small>${dateIT(fromISO(r.d))} · ${logo(r.conto)}${esc(lbl(r.conto))}</small></span><b class="up">+${fmtIT(r.imp)} €</b></li>`).join("")}</ul>`:""}
+    ${T.credito>0.005?`<button class="btn" id="btnRimborso" style="width:100%;margin-top:10px">Registra rimborso di ${fmtIT(T.credito)} €</button>`:""}
+    <p style="font-size:12.5px;color:var(--ink-2);margin:8px 0 0">${T.eccesso>0.005?`Hai registrato più pagamenti di quante spese di trasferta. Se uno è un'indennità o altro che non è un rimborso, in Excel cambia la categoria in Stipendio Emi; se invece mancano delle spese (per esempio l'estratto conto Amex Siemens), registrale come Trasferte.`:`Non entra nelle spese del mese né nel patrimonio: l'uscita è compensata dal rimborso. L'indennità di trasferta va registrata a parte come Stipendio Emi, perché è reddito e non un rimborso.`}</p></div>`; }
 
   body.innerHTML=`<div class="ptr ${R.loading?"on":""}"><span><i class="spin"></i>Aggiorno da Excel…</span></div>`+h;
   stagger(body,":scope>.card,:scope>.tiles"); animateCounts(body); bindExp(body);
@@ -3078,7 +3093,7 @@ function renderRp(){
     initPat(last.d<oggi?[...D.storico,{d:oggi,v:D.patrimonio,now:true}]:D.storico); initComp(); initLines(); }
   const br=$("btnReport"); if(br) br.onclick=openReport;
   const bri=$("btnRimborso"); if(bri) bri.onclick=()=>{ $("sheetRp").classList.remove("open");
-    F.desc="Rimborso nota spese"; $("desc").value=F.desc; F.cat=CAT_TRASFERTE; F.conto="BNL"; F.sign=1; F.amt=fmtIT(D.trasferte.credito);
+    F.desc="Rimborso nota spese"; $("desc").value=F.desc; F.cat=CAT_TRASFERTE; { const lc=D.trasferte.rimborsi[0]; F.conto=lc&&CONTI.includes(lc.conto)?lc.conto:"Trade"; } F.sign=1; F.amt=fmtIT(D.trasferte.credito);
     render(); toast("Controlla l'importo: l'indennità va registrata a parte come Stipendio Emi"); };
   $("rpRefresh").onclick=()=>{ haptic(); doRefresh(true); };
   const bp=$("btnPacOpen"); if(bp) bp.onclick=openPac;
