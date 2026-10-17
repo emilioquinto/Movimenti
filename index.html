@@ -313,6 +313,9 @@
   .log li .lact button svg{width:20px;height:20px}
   .log li .lact .a-hide{background:#7C8C9E} .log li .lact .a-edit{background:#1F6FD0} .log li .lact .a-del{background:#E4572E}
   .log li.gone{opacity:0;margin-bottom:0}
+  .log li.dusting .lact{visibility:hidden}
+  .dust{position:absolute;z-index:20;pointer-events:none;overflow:visible;list-style:none}
+  .dust .dt{position:absolute;overflow:hidden;will-change:transform,opacity}
   .log li .r .st.pend{color:var(--go);background:var(--go-soft)} .log li .r .st.okx{color:#0B8A4B;background:color-mix(in srgb,#2FB27A 18%,transparent)}
   .log li .r .st.pend::before{content:"";display:inline-block;width:8px;height:8px;margin-right:5px;border-radius:50%;border:1.5px solid currentColor;border-right-color:transparent;vertical-align:-1px;animation:spin .8s linear infinite}
   /* --- pannello di modifica --- */
@@ -2096,7 +2099,7 @@ function bindSwipe(li,i){
     if(drag){ const open=dx<-W/2; row.style.transform=open?`translateX(${-W}px)`:""; if(open){ if(SW_OPEN!==li) haptic("tick"); SW_OPEN=li; } else if(SW_OPEN===li) SW_OPEN=null; } });
   row.onclick=()=>{ if(drag){ drag=false; return; } if(SW_OPEN===li){ closeSwipe(); return; } closeSwipe(); openEditLog(i); };
   li.querySelectorAll(".lact button").forEach(b=>b.onclick=e=>{ e.stopPropagation(); const a=b.dataset.a; closeSwipe();
-    if(a==="hide"){ haptic(); li.style.height=li.offsetHeight+"px"; requestAnimationFrame(()=>{ li.classList.add("gone"); li.style.height="0px"; }); setTimeout(()=>{ S.log.splice(i,1); save(); renderLog(); render(); },360); toast("Tolta dall'elenco (in Excel resta)"); }
+    if(a==="hide"){ toast("Tolta dall'elenco (in Excel resta)"); setTimeout(()=>vanishRow(li).then(()=>{ S.log.splice(i,1); save(); renderLog(); render(); }),300); }
     else if(a==="edit") openEditLog(i); else askDelete(i); });
 }
 document.addEventListener("touchstart",e=>{ if(SW_OPEN&&!SW_OPEN.contains(e.target)) closeSwipe(); },{passive:true});
@@ -2176,13 +2179,45 @@ async function askDelete(i){ const e=S.log[i]; if(!e) return; if(!S.hook) return
     body:`<div class="eddiff"><div><small>Movimento</small><span><b style="color:var(--ink);display:block">${esc(e.Descrizione)}</b>${esc(e.Data)} · ${esc(e.Categoria)}</span></div><div><small>Importo</small><span><b style="color:${e.Importo<0?"#E4572E":"#2FB27A"}">${fmtIT(e.Importo)} €</b></span></div></div><p style="font-size:12.5px;color:var(--ink-2);margin:-4px 0 14px">La riga viene tolta dal file. Non si può annullare.</p>`});
   if(ok) runDelete(e); }
 function confirmBoxOpen(o){ $("edWrap").classList.add("open"); $("edCard").style.transform="translateY(105%)"; return confirmBox(o).then(r=>{ $("edCard").style.transform=""; if(!ED){ $("edWrap").classList.remove("open"); } return r; }); }
+// ---------- la riga va in polvere: frammenti della riga vera + granelli che volano via, da sinistra a destra ----------
+// le copie restano dentro il contenitore dell'elemento, così conservano il suo stile (sfondo, bordi, colori)
+function dustAway(el,strip){ return new Promise(done=>{
+  const r=el.getBoundingClientRect(); if(!r.width||reducedMotion()||!el.animate){ el.style.transition="opacity .25s"; el.style.opacity="0"; setTimeout(done,250); return; }
+  const host=el.parentElement; if(getComputedStyle(host).position==="static") host.style.position="relative"; const hr=host.getBoundingClientRect();
+  const box=document.createElement("div"); box.className="dust"; box.style.cssText=`left:${r.left-hr.left-host.clientLeft}px;top:${r.top-hr.top-host.clientTop}px;width:${r.width}px;height:${r.height}px`;
+  const T=14, cols=Math.ceil(r.width/T), rows=Math.ceil(r.height/T), src=el.cloneNode(true); src.removeAttribute("id"); src.classList.remove("dusting"); if(strip) src.querySelectorAll(strip).forEach(x=>x.remove());
+  src.style.cssText+=`;position:absolute;left:0;top:0;width:${r.width}px;height:${r.height}px;margin:0;transform:none;transition:none;animation:none`;
+  const fr=document.createDocumentFragment(), anims=[];
+  for(let y=0;y<rows;y++) for(let x=0;x<cols;x++){
+    const t=document.createElement("div"); t.className="dt"; t.style.cssText=`left:${x*T}px;top:${y*T}px;width:${T}px;height:${T}px`;
+    const c=src.cloneNode(true); c.style.left=-x*T+"px"; c.style.top=-y*T+"px"; t.appendChild(c); fr.appendChild(t);
+    const k=x/cols, delay=k*520+Math.random()*160, dx=24+Math.random()*70+k*20, dy=-(14+Math.random()*60), rot=(Math.random()-.5)*70;
+    anims.push([t,delay,dx,dy,rot]); }
+  box.appendChild(fr);
+  // granelli: piccole particelle del colore del testo, in un canvas sopra
+  const cv=document.createElement("canvas"), dpr=Math.min(2,window.devicePixelRatio||1), pad=90; cv.width=(r.width+pad*2)*dpr; cv.height=(r.height+pad*2)*dpr;
+  cv.style.cssText=`position:absolute;left:${-pad}px;top:${-pad}px;width:${r.width+pad*2}px;height:${r.height+pad*2}px`; box.appendChild(cv);
+  host.appendChild(box); el.style.visibility="hidden";
+  anims.forEach(([t,delay,dx,dy,rot])=>t.animate([{transform:"none",opacity:1,filter:"blur(0)"},{opacity:.9,offset:.35},{transform:`translate(${dx}px,${dy}px) rotate(${rot}deg) scale(.35)`,opacity:0,filter:"blur(2.5px)"}],{duration:760+Math.random()*260,delay,easing:"cubic-bezier(.3,.1,.6,1)",fill:"both"}));
+  const ink=getComputedStyle(el).color||"#888", g=cv.getContext("2d"); g.scale(dpr,dpr);
+  const P=[]; for(let i=0;i<170;i++){ const k=Math.random(); P.push({x:pad+k*r.width,y:pad+Math.random()*r.height,vx:.4+Math.random()*1.6,vy:-(.2+Math.random()*1.3),s:.8+Math.random()*1.8,t0:k*520+Math.random()*200,life:700+Math.random()*500}); }
+  const t0=performance.now(); let ticks=0;
+  const step=now=>{ const e=now-t0; g.clearRect(0,0,r.width+pad*2,r.height+pad*2); g.fillStyle=ink; let live=false;
+    for(const p of P){ const a=e-p.t0; if(a<0){ live=true; continue; } if(a>p.life) continue; live=true; const q=a/16;
+      g.globalAlpha=Math.max(0,1-a/p.life)*.85; g.fillRect(p.x+p.vx*q+Math.sin(a/90+p.s)*2,p.y+p.vy*q-q*q*.004,p.s,p.s); }
+    if(e<620&&e/110>ticks){ ticks++; haptic("tick"); }
+    if(live||e<1200) requestAnimationFrame(step); else { box.remove(); done(); } };
+  requestAnimationFrame(step); haptic("close");
+}); }
+// dopo la polvere lo spazio della riga si richiude
+async function vanishRow(li){ li.classList.add("dusting"); await dustAway(li,".lact");
+  li.style.height=li.offsetHeight+"px"; requestAnimationFrame(()=>{ li.classList.add("gone"); li.style.height="0px"; }); await new Promise(r=>setTimeout(r,360)); }
 async function runDelete(e){
   e.sync={st:"pend",op:"elimina"}; renderLog();
   try{ const {r,t}=await freshRow(e); const before=rowsLike(e.DataISO,e.Descrizione,e.Importo).length;
     await xlSend("elimina","DELETE",xlBase()+`/tables/${encodeURIComponent(t.name)}/rows/$/ItemAt(index=${r.riga-t.head-1})`,"");
     const done=await verify(()=>rowsLike(e.DataISO,e.Descrizione,e.Importo).length<before);
-    if(done){ const li=document.querySelector(`#logList li[data-i="${S.log.indexOf(e)}"]`); if(li){ li.style.height=li.offsetHeight+"px"; requestAnimationFrame(()=>{ li.classList.add("gone"); li.style.height="0px"; }); }
-      haptic("ok"); toast("Eliminato anche da Excel"); await new Promise(res=>setTimeout(res,380)); const k=S.log.indexOf(e); if(k>=0) S.log.splice(k,1); }
+    if(done){ const li=document.querySelector(`#logList li[data-i="${S.log.indexOf(e)}"]`); toast("Eliminato anche da Excel"); if(li) await vanishRow(li); const k=S.log.indexOf(e); if(k>=0) S.log.splice(k,1); }
     else { e.sync={st:"fail"}; toast("Make non ha eliminato la riga: guarda History in Make",true); }
   }catch(x){ e.sync=null; toast(x.message||"Invio non riuscito",true); }
   save(); renderLog(); render(); }
@@ -2451,7 +2486,7 @@ async function fetchPrices(){
 }
 let lastRefresh=0;
 // ---------- aggiornamento automatico: se è pubblicata una versione più nuova la carica subito ----------
-const APP_VER="108";
+const APP_VER="109";
 async function checkUpdate(){
   try{ const u=location.href.split("#")[0].split("?")[0]; if(!/^https?:/.test(u)) return;
     const t=await (await fetch(u+"?v="+Date.now(),{cache:"no-store"})).text(); const m=t.match(/const APP_VER="(\d+)"/);
