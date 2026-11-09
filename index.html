@@ -1425,6 +1425,53 @@
   .rp .hero{overflow:hidden}
   .rp .hero::after{content:"";position:absolute;top:0;bottom:0;width:40%;left:-50%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.22),transparent);transform:skewX(-16deg);animation:shine 1.4s .35s cubic-bezier(.4,0,.2,1) forwards;pointer-events:none}
   @media (prefers-reduced-motion:reduce){ .go.ready::after,.rp .hero::after,.scimg .laser,.scimg::before{animation:none;display:none} }
+  /* ---------- riconcilia ---------- */
+  .recin{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:14px 6px}
+  .recart{width:74px;height:74px;border-radius:22px;display:grid;place-items:center;background:color-mix(in srgb,#0E9AB0 16%,transparent);color:#0E9AB0;animation:popIn .5s cubic-bezier(.22,1,.36,1)}
+  .recart svg{width:38px;height:38px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+  .recin>b{font-size:21px} .recin p{font-size:14.5px;color:var(--ink-2);line-height:1.45;max-width:420px}
+  .reccon{width:100%;text-align:left} .reccon small{font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
+  .recpick{display:flex;align-items:center;justify-content:center;width:100%;max-width:420px;cursor:pointer;margin-top:6px}
+  .recnote{font-size:12.5px!important} .recerr{color:var(--warn)!important;font-weight:600}
+  .recload{display:flex;flex-direction:column;align-items:center;gap:10px;padding:60px 10px;text-align:center} .recload small{color:var(--ink-2)}
+  .recspin{display:flex;gap:7px} .recspin i{width:11px;height:11px;border-radius:50%;background:#0E9AB0;animation:dotB 1s infinite} .recspin i:nth-child(2){animation-delay:.15s} .recspin i:nth-child(3){animation-delay:.3s}
+  .rechero{display:flex;align-items:center;gap:14px;padding:14px;border-radius:20px;background:var(--surface,var(--paper));border:1px solid var(--hair);margin-bottom:10px;animation:cardIn .5s cubic-bezier(.22,1,.36,1) both}
+  .recring{position:relative;width:64px;height:64px;flex:0 0 auto} .recring svg{width:64px;height:64px;transform:rotate(-90deg);fill:none}
+  .recring .tr{stroke:var(--line);stroke-width:3.4} .recring .pr{stroke:#2FB27A;stroke-width:3.4;stroke-linecap:round;stroke-dasharray:97.4;animation:recRing 1s cubic-bezier(.22,1,.36,1) both}
+  @keyframes recRing{from{stroke-dashoffset:97.4}}
+  .recring b{position:absolute;inset:0;display:grid;place-items:center;font-size:15px;font-family:ui-rounded,-apple-system,system-ui,sans-serif}
+  .rechero small{display:block;font-size:12px;color:var(--ink-2)} .rechero small img{width:14px;height:14px;border-radius:4px;vertical-align:-3px;margin:0 3px}
+  .rechero>div>b{display:block;font-size:19px} .rechero span{font-size:13px;color:var(--ink-2)}
+  .recstat{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
+  .recstat div{padding:10px;border-radius:16px;background:var(--surface,var(--paper));border:1px solid var(--hair);text-align:center;animation:cardIn .5s .08s cubic-bezier(.22,1,.36,1) both}
+  .recstat b{display:block;font-size:24px;font-family:ui-rounded,-apple-system,system-ui,sans-serif} .recstat small{font-size:12px;color:var(--ink-2);font-weight:600}
+  .recstat div.warn b{color:#E8890C}
+  #sheetRec .rows{list-style:none;margin:0;padding:0}
+  #sheetRec .rows li{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:15px}
+  #sheetRec .rows li:last-child{border-bottom:0} #sheetRec .rows li.tot{font-weight:700;border-top:2px solid var(--line)}
+  #sheetRec .rows li>span:first-child{flex:1 1 auto;min-width:0} #sheetRec .rows li small{color:var(--ink-2);font-size:12.5px;display:block;margin-top:2px}
+  #sheetRec .rows li>b{flex:0 0 auto;white-space:nowrap;text-align:right;font-family:ui-rounded,-apple-system,system-ui,sans-serif;font-weight:700;font-variant-numeric:tabular-nums}
+  .rechero .recring b{display:grid;font-size:14px}
+  .recsaldo h3{margin-top:0} .recsaldo .rows b.up{color:#2FB27A} .recsaldo .rows b.down{color:#E4572E}
+  .rechd{display:flex;justify-content:space-between;align-items:center;margin:16px 2px 8px} .rechd b{font-size:16px} .rechd button{font-weight:700;color:var(--chip-on);font-size:14px}
+  .reclist{display:grid;grid-template-columns:minmax(0,1fr);gap:7px}
+  .recrow{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:16px;background:var(--surface,var(--paper));border:1px solid var(--hair);opacity:.55;transition:opacity .25s,border-color .25s,transform .3s;animation:cardIn .4s cubic-bezier(.22,1,.36,1) both;animation-delay:calc(var(--i)*25ms)}
+  .recrow.on{opacity:1} .recrow.on.todo{border-color:#E8890C}
+  .recrow.sent{opacity:1;border-color:#2FB27A;background:color-mix(in srgb,#2FB27A 9%,var(--surface,var(--paper)))}
+  .recck{width:26px;height:26px;border-radius:8px;border:2px solid var(--line);flex:0 0 auto;display:grid;place-items:center;color:#fff;font-weight:800;font-size:14px;transition:background .2s,border-color .2s}
+  .recrow.on .recck{background:var(--chip-on);border-color:var(--chip-on)} .recrow.on .recck::after{content:"";width:5px;height:10px;border:solid #fff;border-width:0 2.5px 2.5px 0;transform:translateY(-1px) rotate(45deg)}
+  .recrow.sent .recck{background:#2FB27A;border-color:#2FB27A} .recrow.sent .recck::after{display:none}
+  .recmid{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+  .recmid input.recd{border:0;background:transparent;padding:0;font-size:15px;font-weight:700;color:var(--ink);width:100%;outline:none}
+  .recmeta{display:flex;gap:8px;font-size:12px;color:var(--ink-2);min-width:0} .recmeta .recsrc{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.8}
+  .recmid select{align-self:flex-start;font-size:13px;font-weight:600;color:var(--chip-on);background:color-mix(in srgb,var(--chip-on) 11%,transparent);border:0;border-radius:9px;padding:4px 8px;max-width:100%}
+  .recrow.todo select{color:#E8890C;background:color-mix(in srgb,#E8890C 13%,transparent)}
+  .recv{font-weight:800;white-space:nowrap;font-family:ui-rounded,-apple-system,system-ui,sans-serif;font-variant-numeric:tabular-nums} .recv.in{color:#2FB27A}
+  .recinfo li small{white-space:normal}
+  .recbar{position:sticky;bottom:calc(env(safe-area-inset-bottom) + 6px);display:flex;gap:8px;margin-top:16px;padding:8px;border-radius:20px;background:var(--glass-strong,var(--paper));-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border:1px solid var(--glass-brd,var(--hair));z-index:3}
+  .recbar .btn{margin:0!important;flex:0 0 auto} .recbar .go{flex:1;height:50px;font-size:16.5px}
+  .rectodo{color:#E8890C!important;font-weight:600;text-align:center}
+  body.blur .recv,body.blur .recsaldo b{filter:blur(7px)}
 </style>
 <script>try{if(localStorage.getItem("movimenti:lock"))document.documentElement.classList.add("locked")}catch(e){}</script>
 </head>
@@ -1538,6 +1585,11 @@
     <div class="mvfs"><label>Conto</label><div class="mvgrid" id="mvConto"></div></div>
     <button class="mvfgo" id="mvFgo">Mostra</button>
   </div></div>
+
+<div class="sheet" id="sheetRec">
+  <div class="top"><h2>Riconcilia</h2><button class="close" data-close="sheetRec">Chiudi</button></div>
+  <div id="recBody"></div>
+</div>
 
 <div class="sheet fire" id="sheetFire">
   
@@ -2664,7 +2716,7 @@ async function fetchPrices(){
 }
 let lastRefresh=0;
 // ---------- aggiornamento automatico: se è pubblicata una versione più nuova la carica subito ----------
-const APP_VER="111";
+const APP_VER="112";
 async function checkUpdate(){
   try{ const u=location.href.split("#")[0].split("?")[0]; if(!/^https?:/.test(u)) return;
     const t=await (await fetch(u+"?v="+Date.now(),{cache:"no-store"})).text(); const m=t.match(/const APP_VER="(\d+)"/);
@@ -3017,6 +3069,177 @@ $("scCancel").onclick=()=>{ SCAN=null; scanHide(); };
 let SEND_READY=false;
 function sendReadyFx(){ const b=$("btnSend"); if(!b) return; const ready=!b.disabled; if(ready&&!SEND_READY&&!reducedMotion()){ b.classList.remove("ready"); void b.offsetWidth; b.classList.add("ready"); haptic("light"); } SEND_READY=ready; }
 ["cat","conto","dateChips"].forEach(id=>$(id).addEventListener("click",e=>{ if(!e.target.closest("button,label")) return; setTimeout(()=>{ const on=$(id).querySelector("button.on,label.on"); if(on&&on.animate&&!reducedMotion()) on.animate([{transform:"scale(.88)"},{transform:"scale(1.07)",offset:.55},{transform:"scale(1)"}],{duration:420,easing:"cubic-bezier(.22,1,.36,1)"}); },0); }));
+
+// ================= RICONCILIA ESTRATTO CONTO =================
+// Legge il PDF dell'estratto conto (Trade Republic), confronta ogni transazione con le righe di Excel del conto
+// e propone quelle che mancano, con descrizione e categoria imparate dalle righe già abbinate.
+const PDFJS="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js", PDFW="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+function loadPdfJs(){ return window.pdfjsLib?Promise.resolve():new Promise((res,rej)=>{ const sc=document.createElement("script"); sc.src=PDFJS;
+  sc.onload=()=>{ try{ pdfjsLib.GlobalWorkerOptions.workerSrc=PDFW; }catch(e){} res(); }; sc.onerror=()=>rej(new Error("Non riesco a scaricare il lettore PDF: controlla la connessione")); document.head.appendChild(sc); }); }
+const MMI={gen:1,feb:2,mar:3,apr:4,mag:5,giu:6,lug:7,ago:8,set:9,ott:10,nov:11,dic:12};
+const AMT_G=/\d{1,3}(?:\.\d{3})*,\d{2}\s?€/g, eurN=x=>parseFloat(x.replace(/[€\s]/g,"").replace(/\./g,"").replace(",","."));
+async function parseStatement(buf,onPage){
+  await loadPdfJs(); const doc=await pdfjsLib.getDocument({data:buf}).promise;
+  let on=false, saldo0=null, saldoFin=null, period="", holder="", bank=""; const tx=[];
+  for(let pn=1;pn<=doc.numPages;pn++){ if(onPage) onPage(pn,doc.numPages);
+    const tc=await (await doc.getPage(pn)).getTextContent();
+    const it=tc.items.filter(i=>i.str&&i.str.trim()).map(i=>({s:i.str.trim(),x:i.transform[4],y:i.transform[5]}));
+    if(pn===1){ bank=(it.find(i=>/BANK|BANCA/i.test(i.s))||{s:""}).s; const pr=it.find(i=>/^\d{2} \w{3} \d{4} - \d{2} \w{3} \d{4}$/.test(i.s)); if(pr) period=pr.s;
+      const d=it.find(i=>i.s==="DATA"&&i.x>200); if(d){ const h=it.filter(i=>Math.abs(i.y-d.y)<1.5&&i.x<d.x-50).sort((a,b)=>a.x-b.x)[0]; if(h) holder=h.s; } }
+    if(saldo0==null){ const cc=it.find(i=>/^Conto corrente$/i.test(i.s)); if(cc){ const am=it.filter(i=>Math.abs(i.y-cc.y)<1.5).sort((a,b)=>a.x-b.x).flatMap(i=>i.s.match(AMT_G)||[]); if(am.length>=4){ saldo0=eurN(am[0]); saldoFin=eurN(am[am.length-1]); } } }
+    const start=it.find(i=>/^TRANSAZIONI SUL CONTO/.test(i.s)), stop=it.find(i=>/^PANORAMICA DEL SALDO/.test(i.s));
+    if(start) on=true; if(!on) continue;
+    const hd=it.find(i=>i.s==="DESCRIZIONE"&&(!start||i.y<start.y)); if(!hd){ if(stop) break; continue; }
+    const H=it.filter(i=>Math.abs(i.y-hd.y)<1.5), xT=(H.find(i=>i.s==="TIPO")||{x:hd.x-45}).x, xD=hd.x, xI=(H.find(i=>/^IN ENTRATA$/.test(i.s))||{x:hd.x+260}).x;
+    const lo=stop?stop.y+2:90, body=it.filter(i=>i.y<hd.y-2&&i.y>lo);
+    const anchors=body.filter(i=>i.x<xT-3&&/^\d{2} (gen|feb|mar|apr|mag|giu|lug|ago|set|ott|nov|dic)$/.test(i.s)).sort((a,b)=>b.y-a.y);
+    const own=anchors.map(()=>[]);
+    body.forEach(i=>{ let k=-1; for(let j=anchors.length-1;j>=0;j--){ if(anchors[j].y>=i.y-1.5){ k=j; break; } } if(k>=0&&i!==anchors[k]) own[k].push(i); });
+    anchors.forEach((a,k)=>{ const its=own[k].sort((p,q)=>q.y-p.y||p.x-q.x);
+      const yr=(its.find(i=>i.x<xT-3&&/^\d{4}$/.test(i.s))||{s:String(today().getFullYear())}).s, [dd,mm]=a.s.split(" ");
+      const amts=its.filter(i=>i.x>=xI-8).sort((p,q)=>p.x-q.x).flatMap(i=>i.s.match(AMT_G)||[]);
+      if(amts.length<2) return;
+      tx.push({d:`${yr}-${pad2(MMI[mm])}-${dd}`,tipo:its.filter(i=>i.x>=xT-3&&i.x<xD-3).map(i=>i.s).join(" "),desc:its.filter(i=>i.x>=xD-3&&i.x<xI-8).map(i=>i.s).join(" "),amt:eurN(amts[amts.length-2]),saldo:eurN(amts[amts.length-1])}); });
+    if(stop) break; }
+  let prev=saldo0; tx.forEach(t=>{ t.imp=prev!=null?Math.round((t.saldo-prev)*100)/100:-t.amt; prev=t.saldo; });
+  if(saldo0==null&&tx.length) saldo0=Math.round((tx[0].saldo-tx[0].imp)*100)/100; if(saldoFin==null&&tx.length) saldoFin=tx[tx.length-1].saldo;
+  return {bank,holder,period,saldo0,saldoFin,tx}; }
+// che cos'è una riga dell'estratto
+function recKind(t,holder){ const d=t.desc;
+  if(/savings plan|piano di accumulo/i.test(d)) return "pac";
+  if(/saveback/i.test(d)) return "saveback";
+  if(/interest payment|^interessi/i.test(d)||/interessi/i.test(t.tipo)) return "interessi";
+  if(/stamp duty|imposta di bollo/i.test(d)) return "bollo";
+  if(/direct debit.*american express|addebito.*american express/i.test(d)) return "addcarta";
+  if(/^(incoming transfer from|outgoing transfer for|bonifico)/i.test(d)){ const h=norm(holder); return h&&norm(d).includes(h)?"giro":"bonifico"; }
+  if(/direct debit/i.test(d)) return "sdd";
+  return "carta"; }
+// nome leggibile dell'esercente
+function recName(t){ let d=t.desc.replace(/\s+/g," ").trim(), m;
+  if(/amzn|amazon/i.test(d)) return "Amazon"; if(/uber/i.test(d)) return "Uber";
+  if((m=d.match(/direct debit transfer to (.+?)(?: \(|$)/i))) d=m[1];
+  if((m=d.match(/(?:incoming transfer from|outgoing transfer for) (.+?)(?: \(|$)/i))) d=m[1];
+  d=d.replace(/^(paypal|sumup|sq|sp|iz|zettle|nexi|stripe|mgp|ubr)\s*\*\s*/i,"").replace(/\*.*$/,"").replace(/\b(s\.?p\.?a\.?|s\.?r\.?l\.?|snc|sas|italia)\b\.?/gi," ").replace(/#.*$/,"").replace(/\b[A-Z0-9]*\d[A-Z0-9]*\b/g," ").replace(/[-,.]+\s*$/,"").replace(/\s+/g," ").trim();
+  return prettyName(d||t.desc); }
+const REC_KW=[[/netflix|disney|spotify|dazn|prime video|apple\.com\/bill|youtube/i,"Divertimento"],[/strava|palestra|piscina|decathlon/i,"Sport"],[/engie|enel|a2a|hera|iren|edison/i,"Casa"],
+  [/ryanair|easyjet|ita airways|trenitalia|italo|sncf|ratp|uber|airbnb|booking|hotel|tour eiffel/i,"Viaggi"],[/farmac|fcia/i,"Mediche"],[/lidl|crai|esselunga|coop|conad|carrefour|gigante|tigot|pam |eurospin|aldi/i,"Spesa"],
+  [/ikea|leroy|brico|obi /i,"Casa"],[/caff|bar |gelat|cremeria|ristor|pizz|trattoria|sushi|pellegrini/i,"Ristorante"],[/veterinar|zampett|toelett/i,"Cane"],[/benzin|carburant|gas |q8|eni |ip |tamoil/i,"Auto Emi"]];
+function recPropose(t,kind,learnt){ const n=recName(t), k=norm(n);
+  if(kind==="pac") return {desc:"Investimento ETF",cat:"Investimento"};
+  if(kind==="saveback") return {desc:"Saveback",cat:"Interessi conto deposito"};
+  if(kind==="interessi") return {desc:"Interessi",cat:"Interessi conto deposito"};
+  if(kind==="bollo") return {desc:"Imposta di bollo",cat:"Altro"};
+  if(kind==="giro") return {desc:t.imp>0?"Trasferimento in entrata":"Trasferimento in uscita",cat:"Trasferimento"};
+  if(learnt[k]) return {...learnt[k],from:"le tue righe"};
+  const L=S.merchMap||{}; if(L[k]) return {desc:L[k].desc,cat:L[k].cat,from:"le tue righe"};
+  const g=guessMerchant(n); if(g.cat&&CATS.includes(g.cat)) return {desc:g.desc,cat:g.cat};
+  for(const [re,c] of REC_KW) if(re.test(t.desc)) return {desc:n,cat:c};
+  if(kind==="bonifico") return {desc:(t.imp>0?"Bonifico da ":"Bonifico a ")+n,cat:"",todo:true};
+  return {desc:n,cat:"",todo:true}; }
+// saldo del conto nell'app a fine giorno iso (movimenti + addebiti delle carte collegate già passati)
+function contoAt(conto,iso){ const C=S.cache, D=calc(); if(!C||!D) return null; const a=C.accounts.find(x=>x.name===conto); if(!a) return null;
+  let v=a.saldo0+C.rows.filter(r=>r.conto===conto&&r.d<=iso).reduce((x,r)=>x+r.imp,0); const end=fromISO(iso);
+  D.carte.filter(c=>c.addebita===conto).forEach(c=>{ const gg=c.giorno||15, lag=MESI_RITARDO[c.name]||1, own=C.rows.filter(r=>r.conto===c.name);
+    [...new Set(own.map(r=>r.d.slice(0,7)))].forEach(mm=>{ const [y,mo]=mm.split("-").map(Number); if(end>=new Date(y,mo-1+lag,gg)) v+=own.filter(r=>r.d.startsWith(mm)).reduce((x,r)=>x+r.imp,0); }); });
+  return v; }
+function reconcile(st,conto){
+  const rows=(S.cache&&S.cache.rows)||[], days=(a,b)=>Math.round((fromISO(a)-fromISO(b))/864e5);
+  const first=st.tx.length?st.tx[0].d:dateISO(today()), last=st.tx.length?st.tx[st.tx.length-1].d:first;
+  const lo=dateISO(new Date(fromISO(first).getTime()-7*864e5));
+  const xl=rows.filter(r=>r.conto===conto&&r.d>=lo&&r.d<=last).map(r=>({...r,m:null})), tx=st.tx.map(t=>({...t,m:null,kind:recKind(t,st.holder)}));
+  const D=calc(), cardsHere=D?D.carte.filter(c=>c.addebita===conto):[];
+  // addebiti delle carte che l'app calcola già da sola
+  tx.forEach(t=>{ if(t.kind==="addcarta"&&cardsHere.length) t.m={auto:cardsHere.map(c=>c.name).join(", ")}; });
+  // 1. stesso importo, data più vicina
+  const pairs=[]; tx.forEach((t,i)=>{ if(t.m) return; xl.forEach((x,j)=>{ const dd=Math.abs(days(x.d,t.d)); if(Math.abs(x.imp-t.imp)<0.005&&dd<=5) pairs.push([dd,i,j]); }); });
+  pairs.sort((a,b)=>a[0]-b[0]).forEach(([,i,j])=>{ if(!tx[i].m&&!xl[j].m){ tx[i].m={x:xl[j]}; xl[j].m={t:[tx[i]]}; } });
+  // 2. una riga di Excel = più righe dell'estratto dello stesso periodo (es. il PAC registrato in un'unica riga)
+  xl.forEach(x=>{ if(x.m) return; const c=tx.filter(t=>!t.m&&Math.abs(days(x.d,t.d))<=3&&(t.imp<0)===(x.imp<0)).slice(0,12);
+    const rec=(start,n,acc,pick)=>{ if(pick.length===n) return Math.abs(acc-x.imp)<0.005?pick:null; for(let k=start;k<c.length;k++){ const r=rec(k+1,n,acc+c[k].imp,[...pick,c[k]]); if(r) return r; } return null; };
+    for(let n=2;n<=4;n++){ const got=rec(0,n,0,[]); if(got){ got.forEach(t=>t.m={x,sum:true}); x.m={t:got,sum:true}; break; } } });
+  // 3. importo quasi uguale: probabile errore di battitura
+  xl.forEach(x=>{ if(x.m||x.d<first) return; let best=null;
+    tx.forEach(t=>{ if(t.m||(t.imp<0)!==(x.imp<0)||Math.abs(days(x.d,t.d))>3) return; const df=Math.abs(Math.abs(t.imp)-Math.abs(x.imp)); if(df<=Math.max(1.01,Math.abs(t.imp)*.02)&&(!best||df<best.df)) best={t,df}; });
+    if(best){ best.t.m={x,near:true}; x.m={t:[best.t],near:true}; } });
+  // descrizioni e categorie imparate dalle righe abbinate (es. "CAFFE REBELOT" → "Brioches Ele", Ristorante)
+  // impara da ciò che è già abbinato: stessa descrizione solo se il negozio ha sempre la stessa (Amazon no), altrimenti solo la categoria più usata
+  const seen={}; tx.forEach(t=>{ if(t.m&&t.m.x&&!t.m.sum&&t.kind!=="pac"){ const k=norm(recName(t)); (seen[k]=seen[k]||[]).push(t.m.x); } });
+  const learnt={}; for(const k in seen){ const xs=seen[k], ds=new Set(xs.map(x=>norm(x.desc))), cc={}; xs.forEach(x=>cc[x.cat]=(cc[x.cat]||0)+1);
+    const cat=Object.keys(cc).sort((a,b)=>cc[b]-cc[a])[0]; const nm=recName(tx.find(t=>t.m&&t.m.x===xs[0]));
+    learnt[k]=ds.size===1?{desc:xs[0].desc,cat:xs[0].cat}:{desc:nm,cat}; }
+  let miss=tx.filter(t=>!t.m).map(t=>({t,...recPropose(t,t.kind,learnt)}));
+  // PAC mancanti: una riga per giorno, come fai tu
+  const pac={}; miss=miss.filter(m=>{ if(m.t.kind!=="pac") return true; const k=m.t.d; if(!pac[k]){ pac[k]={...m,t:{...m.t,desc:"Piano di accumulo",imp:0}}; } pac[k].t.imp=Math.round((pac[k].t.imp+m.t.imp)*100)/100; return false; });
+  miss=[...miss,...Object.values(pac)].sort((a,b)=>a.t.d<b.t.d?-1:a.t.d>b.t.d?1:0).map((m,i)=>({...m,i,on:true}));
+  const near=xl.filter(x=>x.m&&x.m.near).map(x=>({x,t:x.m.t[0]})), extra=xl.filter(x=>!x.m&&x.d>=first);
+  const auto=tx.filter(t=>t.m&&t.m.auto), ok=tx.filter(t=>t.m&&!t.m.auto&&!t.m.near).length;
+  const app=contoAt(conto,last), diff=app!=null&&st.saldoFin!=null?st.saldoFin-app:null;
+  const sMiss=miss.reduce((a,m)=>a+m.t.imp,0), sNear=near.reduce((a,n)=>a+(n.t.imp-n.x.imp),0), sExtra=-extra.reduce((a,x)=>a+x.imp,0);
+  return {st,conto,first,last,tx,miss,near,extra,auto,ok,app,diff,sMiss,sNear,sExtra,rest:diff!=null?diff-sMiss-sNear-sExtra:null}; }
+let REC=null;
+function openRec(){ $("sheetRp").classList.remove("open"); openSheet("sheetRec"); setActiveNav("rp"); if(!REC||REC.sent) renderRecIntro(); }
+function renderRecIntro(err){ REC=null; const conti=CONTI.filter(c=>!/amex|visa/i.test(c)&&c!=="Contanti");
+  $("recBody").innerHTML=`<div class="recin"><div class="recart">${svgG("documento")}</div><b>Riconcilia l'estratto conto</b>
+    <p>Carica il PDF dell'estratto conto: confronto ogni transazione con quelle in Excel e ti preparo quelle che mancano, già con descrizione e categoria. Poi le registri tutte con un tocco.</p>
+    <div class="reccon"><small>Conto</small><div class="chips" id="recConto">${conti.map(c=>`<button data-c="${esc(c)}" class="${c==="Trade"?"on":""}">${logo(c)}${esc(lbl(c))}</button>`).join("")}</div></div>
+    <label class="go recpick">Scegli il PDF<input type="file" id="recIn" accept="application/pdf,.pdf" hidden></label>
+    <p class="recnote">Per ora legge gli estratti conto di Trade Republic (in app: Profilo › Documenti › Estratti conto). Il PDF resta sul telefono.</p>
+    ${err?`<p class="recerr">${esc(err)}</p>`:""}</div>`;
+  $("recConto").querySelectorAll("button").forEach(b=>b.onclick=()=>{ haptic("light"); $("recConto").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); });
+  $("recIn").onchange=e=>{ const f=e.target.files&&e.target.files[0]; e.target.value=""; if(f) runRec(f,($("recConto").querySelector("button.on")||{dataset:{c:"Trade"}}).dataset.c); }; }
+async function runRec(file,conto){
+  if(!S.cache){ renderRecIntro("Apri prima il Riepilogo: servono i movimenti letti da Excel."); return; }
+  $("recBody").innerHTML=`<div class="recload"><div class="recspin"><i></i><i></i><i></i></div><b id="recStep">Leggo l'estratto conto…</b><small id="recSub"></small></div>`; haptic("pop");
+  try{ try{ await refreshExcel(true); }catch(e){}
+    const st=await parseStatement(new Uint8Array(await file.arrayBuffer()),(p,n)=>{ const el=$("recSub"); if(el) el.textContent=`pagina ${p} di ${n}`; });
+    if(!st.tx.length) throw new Error("Non trovo transazioni in questo PDF: serve l'estratto conto di Trade Republic.");
+    $("recStep").textContent=`Confronto ${st.tx.length} transazioni con Excel…`; await new Promise(r=>setTimeout(r,450));
+    REC=reconcile(st,conto); renderRec(); haptic("ok"); }
+  catch(e){ renderRecIntro(e.message||"Non sono riuscito a leggere il PDF"); haptic("warn"); } }
+function renderRec(){ const R0=REC; if(!R0) return; const m=R0.miss, sel=m.filter(x=>x.on&&!x.sent), nSel=sel.length, todo=sel.filter(x=>!x.cat).length;
+  const tot=R0.tx.length, pOk=Math.round((tot-m.length-R0.near.length)/tot*100), per=R0.st.period||`${dateIT(fromISO(R0.first))} – ${dateIT(fromISO(R0.last))}`;
+  const ln=(l,v,cls)=>Math.abs(v)<0.005?"":`<li><span>${l}</span><b class="${cls||""}">${v>0?"+":"−"}${fmtIT(Math.abs(v))} €</b></li>`;
+  let h=`<div class="rechero"><div class="recring" style="--p:${pOk}"><svg viewBox="0 0 36 36"><circle class="tr" cx="18" cy="18" r="15.5"/><circle class="pr" cx="18" cy="18" r="15.5" style="stroke-dashoffset:${(97.4*(1-pOk/100)).toFixed(1)}"/></svg><b>${pOk}%</b></div>
+    <div><small>${esc(per)} · ${logo(R0.conto)}${esc(lbl(R0.conto))}</small><b>${tot} transazioni</b><span>${tot-m.length-R0.near.length-R0.auto.length} già in Excel${R0.auto.length?` · ${R0.auto.length} calcolate dall'app`:""}</span></div></div>
+    <div class="recstat"><div class="${m.length?"warn":""}"><b>${m.filter(x=>!x.sent).length}</b><small>mancano</small></div><div class="${R0.near.length?"warn":""}"><b>${R0.near.length}</b><small>importo diverso</small></div><div class="${R0.extra.length?"warn":""}"><b>${R0.extra.length}</b><small>solo in Excel</small></div></div>`;
+  if(R0.diff!=null) h+=`<div class="card recsaldo"><h3>Saldo al ${dateIT(fromISO(R0.last))}</h3><ul class="rows">
+    <li><span>Estratto conto</span><b>${fmtIT(R0.st.saldoFin)} €</b></li><li><span>Nell'app</span><b>${fmtIT(R0.app)} €</b></li>
+    <li class="tot"><span>Differenza</span><b class="${Math.abs(R0.diff)<0.01?"up":"down"}">${Math.abs(R0.diff)<0.01?"0,00 € ✓":(R0.diff>0?"+":"−")+fmtIT(Math.abs(R0.diff))+" €"}</b></li>
+    ${Math.abs(R0.diff)>=0.01?`${ln("movimenti mancanti",R0.sMiss)}${ln("importi diversi",R0.sNear)}${ln("righe solo in Excel",R0.sExtra)}${ln("già presente prima del periodo",R0.rest)}`:""}</ul>
+    ${Math.abs(R0.rest||0)>=0.01?`<p class="fn">La parte "prima del periodo" viene da movimenti più vecchi: per trovarla serve l'estratto conto del mese precedente.</p>`:""}</div>`;
+  if(m.length){ h+=`<div class="rechd"><b>Da aggiungere</b><button id="recAll">${m.every(x=>x.on||x.sent)?"Nessuna":"Tutte"}</button></div><div class="reclist">`+m.map(x=>`<div class="recrow ${x.on?"on":""} ${x.sent?"sent":""} ${!x.cat?"todo":""}" data-i="${x.i}" style="--i:${Math.min(x.i,14)}">
+      <button class="recck" aria-label="Includi">${x.sent?"✓":""}</button>
+      <div class="recmid"><input class="recd" value="${esc(x.desc)}" ${x.sent?"disabled":""}><div class="recmeta"><span>${dateIT(fromISO(x.t.d))}</span><span class="recsrc">${esc(recName(x.t))}</span></div>
+        <select class="recc" ${x.sent?"disabled":""}><option value="">Categoria…</option>${CATS.map(c=>`<option ${c===x.cat?"selected":""}>${esc(c)}</option>`).join("")}</select></div>
+      <b class="recv ${x.t.imp>0?"in":""}">${x.t.imp>0?"+":""}${fmtIT(x.t.imp)} €</b></div>`).join("")+`</div>`; }
+  if(R0.near.length) h+=`<div class="rechd"><b>Importo diverso</b></div><ul class="rows recinfo">${R0.near.map(n=>`<li><span>${esc(n.x.desc)}<small>${dateIT(fromISO(n.x.d))} · in Excel ${fmtIT(n.x.imp)} €, nell'estratto ${fmtIT(n.t.imp)} € (${esc(recName(n.t))})${n.x.riga?" · riga "+n.x.riga:""}</small></span><b>${n.t.imp-n.x.imp>0?"+":"−"}${fmtIT(Math.abs(n.t.imp-n.x.imp))}</b></li>`).join("")}</ul><p class="fn">Correggi l'importo in Excel alla riga indicata.</p>`;
+  if(R0.extra.length) h+=`<div class="rechd"><b>Solo in Excel</b></div><ul class="rows recinfo">${R0.extra.map(x=>`<li><span>${esc(x.desc)}<small>${dateIT(fromISO(x.d))} · ${esc(x.cat)}${x.riga?" · riga "+x.riga:""}</small></span><b>${fmtIT(x.imp)} €</b></li>`).join("")}</ul><p class="fn">Non le trovo nell'estratto: possibili doppioni, o spese fatte con un altro conto.</p>`;
+  if(R0.auto.length) h+=`<div class="rechd"><b>Già calcolati dall'app</b></div><ul class="rows recinfo">${R0.auto.map(t=>`<li><span>${esc(recName(t))}<small>${dateIT(fromISO(t.d))} · addebito della carta ${esc(t.m.auto)}: l'app lo scala già da sola, non registrarlo</small></span><b>${fmtIT(t.imp)} €</b></li>`).join("")}</ul>`;
+  h+=`<div class="recbar"><button class="btn" id="recCopy">Copia per Excel</button><button class="go" id="recGo" ${nSel?"":"disabled"}>${nSel?`Registra ${nSel} ${nSel===1?"movimento":"movimenti"}`:"Niente da registrare"}</button></div>${todo?`<p class="fn rectodo">${todo} senza categoria: sceglila prima di registrare.</p>`:""}<div style="height:90px"></div>`;
+  $("recBody").innerHTML=h; animateCounts($("recBody"));
+  const ent=i=>R0.miss[i];
+  $("recBody").querySelectorAll(".recrow").forEach(row=>{ const x=ent(+row.dataset.i);
+    row.querySelector(".recck").onclick=()=>{ if(x.sent) return; x.on=!x.on; haptic("tick"); renderRec(); };
+    row.querySelector(".recd").onchange=e=>{ x.desc=e.target.value.trim()||x.desc; };
+    row.querySelector(".recc").onchange=e=>{ x.cat=e.target.value; haptic("light"); renderRec(); }; });
+  const all=$("recAll"); if(all) all.onclick=()=>{ const v=!R0.miss.every(x=>x.on||x.sent); R0.miss.forEach(x=>{ if(!x.sent) x.on=v; }); haptic("light"); renderRec(); };
+  $("recCopy").onclick=()=>{ const t=R0.miss.filter(x=>x.on).map(x=>[dateIT(fromISO(x.t.d)),x.desc,x.cat||"",R0.conto,fmtIT(x.t.imp).replace(/\./g,"")].join("\t")).join("\n"); copyText(t,"Righe copiate: incollale sotto la tabella Movimenti"); };
+  $("recGo").onclick=sendRec; }
+async function sendRec(){ const R0=REC, sel=R0.miss.filter(x=>x.on&&!x.sent);
+  if(!S.hook) return toast("Manca l'indirizzo webhook in ⚙︎",true);
+  if(sel.some(x=>!x.cat)) return toast("Scegli la categoria per tutte le righe selezionate",true);
+  const b=$("recGo"); b.disabled=true; let n=0, off=0;
+  for(const x of sel){ const d=fromISO(x.t.d), r={Data:dateIT(d),DataISO:x.t.d,DataSeriale:dateSerial(d),Descrizione:cleanTxt(x.desc),Categoria:x.cat,Conto:R0.conto,Importo:x.t.imp,ImportoIT:fmtIT(x.t.imp)};
+    const url=hookUrl(r), ok=await postHook(url,false);
+    S.log.unshift({...r,ts:Date.now(),ok,...(ok?{}:{outbox:url})}); if(!ok) off++;
+    if(!["pac","saveback","interessi","bollo","giro"].includes(x.t.kind)){ S.merchMap=S.merchMap||{}; S.merchMap[norm(recName(x.t))]={desc:r.Descrizione,cat:r.Categoria}; }
+    learn(r); x.sent=true; n++; b.textContent=`Registro… ${n} di ${sel.length}`; haptic("tick");
+    const row=$("recBody").querySelector(`.recrow[data-i="${x.i}"]`); if(row){ row.classList.add("sent"); row.querySelector(".recck").textContent="✓"; }
+    await new Promise(res=>setTimeout(res,350)); }
+  S.log=S.log.slice(0,200); save(); haptic("win"); R0.sent=true;
+  toast(off?`${n-off} registrati, ${off} partiranno appena torna la rete`:`${n} movimenti registrati in Excel`);
+  moneyAway(Math.abs(sel.reduce((a,x)=>a+Math.min(0,x.t.imp),0)));
+  renderRec(); setTimeout(()=>refreshExcel(true).catch(()=>{}),4000); }
 
 // ---------- Riepilogo UI ----------
 function monthLabel(m){ const [y,mm]=m.split("-"); return `${MESI[+mm-1]} ${y}`; }
@@ -3513,7 +3736,7 @@ function renderRp(){
     peek:(bTot?`<b class="pv ${bSp>bTot?"down":""}"><span class="cnt" data-v="${bPct}" data-s="%">${bPct}%</span></b><div class="prg"><i class="${bSp>bTot?"over":""}" style="width:${Math.min(100,bPct)}%"></i></div><small class="ps">${fmt0(bSp)} di ${fmt0(bTot)} €${nOver?` · ${nOver} sopra budget`:""}</small>`:`<b class="pv">—</b><small class="ps">nessun budget impostato</small>`)});
   // tessere di azione: FIRE (apre la scheda) e report PDF
   const fx=(()=>{ try{ const f=fireDefaults(); const rr=realRate(f.rate,f.infl), target=f.spesa*12/(f.swr/100), y=yearsTo(f.cap,f.pac,rr,target); return {y,target,pct:target>0?Math.min(100,Math.round(f.cap/target*100)):0}; }catch(e){ return null; } })();
-  h+=`<div class="tiles">${fx?`<div class="tile act" id="tileFire" style="--sc:#F0A030"><h4><i>${svgG("fiamma")}</i>FIRE</h4><b class="pv">${fx.y!=null?fx.y.toFixed(1).replace(".",",")+" anni":"oltre 100 anni"}</b><div class="prg"><i style="width:${fx.pct}%"></i></div><small class="ps">${fx.pct}% dell'obiettivo di ${fmt0(fx.target)} €</small></div>`:""}<div class="tile act" id="btnReport" style="--sc:#8E5BD9"><h4><i>${svgG("documento")}</i>Report PDF</h4><b class="pv">Genera</b><small class="ps">patrimonio, spese, trend e FIRE del mese chiuso</small></div><div class="tile act wide wrt" id="tileWrapped"><h4><i>${svgG("trofeo")}</i>Wrapped</h4><b class="pv">Il vostro ${today().getFullYear()}</b><small class="ps">dove sono andati i soldi, il mese migliore, i record</small></div></div>`;
+  h+=`<div class="tiles">${fx?`<div class="tile act" id="tileFire" style="--sc:#F0A030"><h4><i>${svgG("fiamma")}</i>FIRE</h4><b class="pv">${fx.y!=null?fx.y.toFixed(1).replace(".",",")+" anni":"oltre 100 anni"}</b><div class="prg"><i style="width:${fx.pct}%"></i></div><small class="ps">${fx.pct}% dell'obiettivo di ${fmt0(fx.target)} €</small></div>`:""}<div class="tile act" id="btnReport" style="--sc:#8E5BD9"><h4><i>${svgG("documento")}</i>Report PDF</h4><b class="pv">Genera</b><small class="ps">patrimonio, spese, trend e FIRE del mese chiuso</small></div><div class="tile act" id="tileRec" style="--sc:#0E9AB0"><h4><i>${svgG("bilancia")}</i>Riconcilia</h4><b class="pv">Estratto conto</b><small class="ps">confronta il PDF della banca con Excel e aggiungi ciò che manca</small></div><div class="tile act wide wrt" id="tileWrapped"><h4><i>${svgG("trofeo")}</i>Wrapped</h4><b class="pv">Il vostro ${today().getFullYear()}</b><small class="ps">dove sono andati i soldi, il mese migliore, i record</small></div></div>`;
   // ===== 7. TRASFERTE SIEMENS (in fondo) =====
   if(D.trasferte.righe){ const T=D.trasferte, m=R.month, allR=S.cache.rows, mL=monthLabel(m).toLowerCase();
     // vista del mese scelto in alto: spese, rimborsi e carta Amex Siemens di quel mese; il saldo resta quello di oggi
@@ -3540,6 +3763,7 @@ function renderRp(){
   stagger(body,":scope>.card,:scope>.tiles"); animateCounts(body); bindExp(body);
   const tf=$("tileFire"); if(tf) tf.onclick=()=>goTab("fire");
   const tw=$("tileWrapped"); if(tw) tw.onclick=openWrapped;
+  const tr=$("tileRec"); if(tr) tr.onclick=openRec;
   body.querySelectorAll(".card.sec").forEach(c=>{ const k=c.dataset.sec, hd=c.querySelector(":scope>h3.sh");
     const tog=()=>{ haptic(c.classList.contains("closed")?"pop":"close"); flipLayout(body,()=>{ c.classList.toggle("closed"); S.rpSec=S.rpSec||{}; if(c.classList.contains("closed")) S.rpSec[k]=true; else delete S.rpSec[k]; },c); save(); };
     hd.onclick=e=>{ e.stopPropagation(); tog(); }; c.onclick=()=>{ if(c.classList.contains("closed")) tog(); }; });
@@ -3965,7 +4189,7 @@ function setActiveNav(active){
     else { ind.style.height=""; ind.style.width=b.offsetWidth+"px"; ind.style.transform=`translateX(${b.offsetLeft}px)`; } };
   place(); requestAnimationFrame(place);
 }
-const SHEETS=["sheetRp","sheetMv","sheetFire","sheetLog","sheetSettings","sheetPac","sheetRep","sheetPrezzi","sheetBudget"];
+const SHEETS=["sheetRec","sheetRp","sheetMv","sheetFire","sheetLog","sheetSettings","sheetPac","sheetRep","sheetPrezzi","sheetBudget"];
 function openSheet(id){
   const target=$(id); if(!target) return;
   SHEETS.forEach(sid=>{ const el=$(sid); if(!el||sid===id) return; if(el.classList.contains("open")){ el.classList.remove("open"); el.classList.add("leaving"); setTimeout(()=>el.classList.remove("leaving"),340); } });
