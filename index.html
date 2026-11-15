@@ -1470,6 +1470,10 @@
   .recinfo li small{white-space:normal}
   .recbar{position:sticky;bottom:calc(env(safe-area-inset-bottom) + 6px);display:flex;gap:8px;margin-top:16px;padding:8px;border-radius:20px;background:var(--glass-strong,var(--paper));-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border:1px solid var(--glass-brd,var(--hair));z-index:3}
   .recbar .btn{margin:0!important;flex:0 0 auto} .recbar .go{flex:1;height:50px;font-size:16.5px}
+  .recact{flex:0 0 auto;margin-left:10px;padding:7px 12px;border-radius:11px;font-weight:700;font-size:13px;color:var(--chip-on);background:color-mix(in srgb,var(--chip-on) 12%,transparent);transition:transform .15s,background .2s}
+  .recact:active{transform:scale(.94)} .recact.red{color:#E4572E;background:color-mix(in srgb,#E4572E 12%,transparent)}
+  .recact.done{color:#fff;background:#2FB27A;animation:popIn .35s cubic-bezier(.22,1,.36,1)} .recact.busy{opacity:.6}
+  .recalign{width:100%;margin-top:10px} .recalign.done{color:#2FB27A}
   .rectodo{color:#E8890C!important;font-weight:600;text-align:center}
   body.blur .recv,body.blur .recsaldo b{filter:blur(7px)}
 </style>
@@ -2685,7 +2689,7 @@ function parseWorkbook(buf){
   const im=XLSX.utils.sheet_to_json(wb.Sheets["Impostazioni"],{header:1,range:"A5:K31",raw:true,defval:null});
   const cats=[], accounts=[];
   for(const r of im.slice(0,27)){ if(r[1]) cats.push({name:String(r[1]).trim(),emoji:r[2]||"",tipo:String(r[3]||"").trim(),budget:Math.abs(+r[4]||0)}); }
-  for(const r of im.slice(0,9)){ if(r[6]&&!CONTI_NASCOSTI.has(String(r[6]).trim())) accounts.push({name:String(r[6]).trim(),saldo0:+r[7]||0,addebita:r[8]?String(r[8]).trim():""}); }
+  im.slice(0,9).forEach((r,i)=>{ if(r[6]&&!CONTI_NASCOSTI.has(String(r[6]).trim())) accounts.push({name:String(r[6]).trim(),saldo0:+r[7]||0,addebita:r[8]?String(r[8]).trim():"",riga:5+i}); });
   const ps=wb.Sheets["Patrimonio"]; const gv=a=>{ const c=ps[a]; return c?c.v:null; };
   const assets=[]; for(let r=31;r<=36;r++){ const name=gv("B"+r); if(!name) continue; const qty=gv("C"+r), price=gv("D"+r); const value=(typeof qty==="number"&&typeof price==="number")?qty*price:(typeof price==="number"?price:(+gv("E"+r)||0)); assets.push({name:String(name),qty:typeof qty==="number"?qty:null,price:typeof price==="number"?price:null,value:Math.round(value*100)/100}); }
   const assetDate=cellDate(gv("E4"));
@@ -2716,7 +2720,7 @@ async function fetchPrices(){
 }
 let lastRefresh=0;
 // ---------- aggiornamento automatico: se è pubblicata una versione più nuova la carica subito ----------
-const APP_VER="112";
+const APP_VER="113";
 async function checkUpdate(){
   try{ const u=location.href.split("#")[0].split("?")[0]; if(!/^https?:/.test(u)) return;
     const t=await (await fetch(u+"?v="+Date.now(),{cache:"no-store"})).text(); const m=t.match(/const APP_VER="(\d+)"/);
@@ -3149,12 +3153,19 @@ function reconcile(st,conto){
   const xl=rows.filter(r=>r.conto===conto&&r.d>=lo&&r.d<=last).map(r=>({...r,m:null})), tx=st.tx.map(t=>({...t,m:null,kind:recKind(t,st.holder)}));
   const D=calc(), cardsHere=D?D.carte.filter(c=>c.addebita===conto):[];
   // addebiti delle carte che l'app calcola già da sola
-  tx.forEach(t=>{ if(t.kind==="addcarta"&&cardsHere.length) t.m={auto:cardsHere.map(c=>c.name).join(", ")}; });
+  // addebiti che l'app modella davvero: spese del mese sulla carta, addebitate il giorno previsto
+  const modeled=[]; cardsHere.forEach(c=>{ const gg=c.giorno||15, lag=MESI_RITARDO[c.name]||1, own=rows.filter(r=>r.conto===c.name);
+    [...new Set(own.map(r=>r.d.slice(0,7)))].forEach(mm=>{ const [y,mo]=mm.split("-").map(Number); modeled.push({name:c.name,due:dateISO(new Date(y,mo-1+lag,gg)),amt:own.filter(r=>r.d.startsWith(mm)).reduce((x,r)=>x+r.imp,0)}); }); });
+  tx.forEach(t=>{ if(t.kind!=="addcarta") return; const md=modeled.find(q=>Math.abs(q.amt-t.imp)<0.01&&Math.abs(days(q.due,t.d))<=5); if(md) t.m={auto:md.name}; });
+  // ...e se l'hai anche scritto in Excel a mano, quella riga conta due volte
+  tx.forEach(t=>{ if(!t.m||!t.m.auto) return; let best=null; xl.forEach(x=>{ const dd=Math.abs(days(x.d,t.d)); if(!x.m&&Math.abs(x.imp-t.imp)<0.005&&dd<=5&&(!best||dd<best.dd)) best={x,dd}; }); if(best){ best.x.m={dup:t}; t.m.dup=best.x; } });
   // 1. stesso importo, data più vicina
-  const pairs=[]; tx.forEach((t,i)=>{ if(t.m) return; xl.forEach((x,j)=>{ const dd=Math.abs(days(x.d,t.d)); if(Math.abs(x.imp-t.imp)<0.005&&dd<=5) pairs.push([dd,i,j]); }); });
+  const isInv=x=>/invest|\betf\b|\bpac\b|accumulo/i.test(x.cat+" "+x.desc);
+  const pairs=[]; tx.forEach((t,i)=>{ if(t.m) return; xl.forEach((x,j)=>{ const dd=Math.abs(days(x.d,t.d)); if(Math.abs(x.imp-t.imp)<0.005&&dd<=5&&(t.kind==="pac")===isInv(x)) pairs.push([dd,i,j]); }); });
   pairs.sort((a,b)=>a[0]-b[0]).forEach(([,i,j])=>{ if(!tx[i].m&&!xl[j].m){ tx[i].m={x:xl[j]}; xl[j].m={t:[tx[i]]}; } });
   // 2. una riga di Excel = più righe dell'estratto dello stesso periodo (es. il PAC registrato in un'unica riga)
-  xl.forEach(x=>{ if(x.m) return; const c=tx.filter(t=>!t.m&&Math.abs(days(x.d,t.d))<=3&&(t.imp<0)===(x.imp<0)).slice(0,12);
+  xl.forEach(x=>{ if(x.m) return; const inv=isInv(x);
+    const c=tx.filter(t=>!t.m&&Math.abs(days(x.d,t.d))<=3&&(t.imp<0)===(x.imp<0)&&(!inv||t.kind==="pac")).sort((a,b)=>Math.abs(days(x.d,a.d))-Math.abs(days(x.d,b.d))).slice(0,12);
     const rec=(start,n,acc,pick)=>{ if(pick.length===n) return Math.abs(acc-x.imp)<0.005?pick:null; for(let k=start;k<c.length;k++){ const r=rec(k+1,n,acc+c[k].imp,[...pick,c[k]]); if(r) return r; } return null; };
     for(let n=2;n<=4;n++){ const got=rec(0,n,0,[]); if(got){ got.forEach(t=>t.m={x,sum:true}); x.m={t:got,sum:true}; break; } } });
   // 3. importo quasi uguale: probabile errore di battitura
@@ -3171,11 +3182,11 @@ function reconcile(st,conto){
   // PAC mancanti: una riga per giorno, come fai tu
   const pac={}; miss=miss.filter(m=>{ if(m.t.kind!=="pac") return true; const k=m.t.d; if(!pac[k]){ pac[k]={...m,t:{...m.t,desc:"Piano di accumulo",imp:0}}; } pac[k].t.imp=Math.round((pac[k].t.imp+m.t.imp)*100)/100; return false; });
   miss=[...miss,...Object.values(pac)].sort((a,b)=>a.t.d<b.t.d?-1:a.t.d>b.t.d?1:0).map((m,i)=>({...m,i,on:true}));
-  const near=xl.filter(x=>x.m&&x.m.near).map(x=>({x,t:x.m.t[0]})), extra=xl.filter(x=>!x.m&&x.d>=first);
+  const near=xl.filter(x=>x.m&&x.m.near).map(x=>({x,t:x.m.t[0]})), extra=xl.filter(x=>!x.m&&x.d>=first), dup=xl.filter(x=>x.m&&x.m.dup);
   const auto=tx.filter(t=>t.m&&t.m.auto), ok=tx.filter(t=>t.m&&!t.m.auto&&!t.m.near).length;
   const app=contoAt(conto,last), diff=app!=null&&st.saldoFin!=null?st.saldoFin-app:null;
-  const sMiss=miss.reduce((a,m)=>a+m.t.imp,0), sNear=near.reduce((a,n)=>a+(n.t.imp-n.x.imp),0), sExtra=-extra.reduce((a,x)=>a+x.imp,0);
-  return {st,conto,first,last,tx,miss,near,extra,auto,ok,app,diff,sMiss,sNear,sExtra,rest:diff!=null?diff-sMiss-sNear-sExtra:null}; }
+  const sMiss=miss.reduce((a,m)=>a+m.t.imp,0), sNear=near.reduce((a,n)=>a+(n.t.imp-n.x.imp),0), sExtra=-extra.reduce((a,x)=>a+x.imp,0), sDup=-dup.reduce((a,x)=>a+x.imp,0);
+  return {st,conto,first,last,tx,miss,near,extra,dup,auto,ok,app,diff,sMiss,sNear,sExtra,sDup,rest:diff!=null?diff-sMiss-sNear-sExtra-sDup:null}; }
 let REC=null;
 function openRec(){ $("sheetRp").classList.remove("open"); openSheet("sheetRec"); setActiveNav("rp"); if(!REC||REC.sent) renderRecIntro(); }
 function renderRecIntro(err){ REC=null; const conti=CONTI.filter(c=>!/amex|visa/i.test(c)&&c!=="Contanti");
@@ -3201,19 +3212,20 @@ function renderRec(){ const R0=REC; if(!R0) return; const m=R0.miss, sel=m.filte
   const ln=(l,v,cls)=>Math.abs(v)<0.005?"":`<li><span>${l}</span><b class="${cls||""}">${v>0?"+":"−"}${fmtIT(Math.abs(v))} €</b></li>`;
   let h=`<div class="rechero"><div class="recring" style="--p:${pOk}"><svg viewBox="0 0 36 36"><circle class="tr" cx="18" cy="18" r="15.5"/><circle class="pr" cx="18" cy="18" r="15.5" style="stroke-dashoffset:${(97.4*(1-pOk/100)).toFixed(1)}"/></svg><b>${pOk}%</b></div>
     <div><small>${esc(per)} · ${logo(R0.conto)}${esc(lbl(R0.conto))}</small><b>${tot} transazioni</b><span>${tot-m.length-R0.near.length-R0.auto.length} già in Excel${R0.auto.length?` · ${R0.auto.length} calcolate dall'app`:""}</span></div></div>
-    <div class="recstat"><div class="${m.length?"warn":""}"><b>${m.filter(x=>!x.sent).length}</b><small>mancano</small></div><div class="${R0.near.length?"warn":""}"><b>${R0.near.length}</b><small>importo diverso</small></div><div class="${R0.extra.length?"warn":""}"><b>${R0.extra.length}</b><small>solo in Excel</small></div></div>`;
+    <div class="recstat"><div class="${m.length?"warn":""}"><b>${m.filter(x=>!x.sent).length}</b><small>mancano</small></div><div class="${R0.near.length?"warn":""}"><b>${R0.near.length}</b><small>importo diverso</small></div><div class="${R0.extra.length+R0.dup.length?"warn":""}"><b>${R0.extra.length+R0.dup.length}</b><small>da togliere?</small></div></div>`;
   if(R0.diff!=null) h+=`<div class="card recsaldo"><h3>Saldo al ${dateIT(fromISO(R0.last))}</h3><ul class="rows">
     <li><span>Estratto conto</span><b>${fmtIT(R0.st.saldoFin)} €</b></li><li><span>Nell'app</span><b>${fmtIT(R0.app)} €</b></li>
     <li class="tot"><span>Differenza</span><b class="${Math.abs(R0.diff)<0.01?"up":"down"}">${Math.abs(R0.diff)<0.01?"0,00 € ✓":(R0.diff>0?"+":"−")+fmtIT(Math.abs(R0.diff))+" €"}</b></li>
-    ${Math.abs(R0.diff)>=0.01?`${ln("movimenti mancanti",R0.sMiss)}${ln("importi diversi",R0.sNear)}${ln("righe solo in Excel",R0.sExtra)}${ln("già presente prima del periodo",R0.rest)}`:""}</ul>
-    ${Math.abs(R0.rest||0)>=0.01?`<p class="fn">La parte "prima del periodo" viene da movimenti più vecchi: per trovarla serve l'estratto conto del mese precedente.</p>`:""}</div>`;
+    ${Math.abs(R0.diff)>=0.01?`${ln("movimenti mancanti",R0.sMiss)}${ln("importi diversi",R0.sNear)}${ln("righe solo in Excel",R0.sExtra)}${ln("addebiti carta contati due volte",R0.sDup)}${ln("già presente prima del periodo",R0.rest)}`:""}</ul>
+    ${Math.abs(R0.rest||0)>=0.01?`<p class="fn">La parte "prima del periodo" viene da movimenti più vecchi: per trovarla carica l'estratto conto del mese prima. Se preferisci chiuderla subito, allinea il saldo iniziale del conto: le statistiche non cambiano.</p><button class="btn recalign ${R0.restDone?"done":""}" id="recAlign" ${R0.restDone?"disabled":""}>${R0.restDone?"✓ Saldo iniziale allineato":`Allinea saldo iniziale (${R0.rest>0?"+":"−"}${fmtIT(Math.abs(R0.rest))} €)`}</button>`:""}</div>`;
   if(m.length){ h+=`<div class="rechd"><b>Da aggiungere</b><button id="recAll">${m.every(x=>x.on||x.sent)?"Nessuna":"Tutte"}</button></div><div class="reclist">`+m.map(x=>`<div class="recrow ${x.on?"on":""} ${x.sent?"sent":""} ${!x.cat?"todo":""}" data-i="${x.i}" style="--i:${Math.min(x.i,14)}">
       <button class="recck" aria-label="Includi">${x.sent?"✓":""}</button>
       <div class="recmid"><input class="recd" value="${esc(x.desc)}" ${x.sent?"disabled":""}><div class="recmeta"><span>${dateIT(fromISO(x.t.d))}</span><span class="recsrc">${esc(recName(x.t))}</span></div>
         <select class="recc" ${x.sent?"disabled":""}><option value="">Categoria…</option>${CATS.map(c=>`<option ${c===x.cat?"selected":""}>${esc(c)}</option>`).join("")}</select></div>
       <b class="recv ${x.t.imp>0?"in":""}">${x.t.imp>0?"+":""}${fmtIT(x.t.imp)} €</b></div>`).join("")+`</div>`; }
-  if(R0.near.length) h+=`<div class="rechd"><b>Importo diverso</b></div><ul class="rows recinfo">${R0.near.map(n=>`<li><span>${esc(n.x.desc)}<small>${dateIT(fromISO(n.x.d))} · in Excel ${fmtIT(n.x.imp)} €, nell'estratto ${fmtIT(n.t.imp)} € (${esc(recName(n.t))})${n.x.riga?" · riga "+n.x.riga:""}</small></span><b>${n.t.imp-n.x.imp>0?"+":"−"}${fmtIT(Math.abs(n.t.imp-n.x.imp))}</b></li>`).join("")}</ul><p class="fn">Correggi l'importo in Excel alla riga indicata.</p>`;
-  if(R0.extra.length) h+=`<div class="rechd"><b>Solo in Excel</b></div><ul class="rows recinfo">${R0.extra.map(x=>`<li><span>${esc(x.desc)}<small>${dateIT(fromISO(x.d))} · ${esc(x.cat)}${x.riga?" · riga "+x.riga:""}</small></span><b>${fmtIT(x.imp)} €</b></li>`).join("")}</ul><p class="fn">Non le trovo nell'estratto: possibili doppioni, o spese fatte con un altro conto.</p>`;
+  if(R0.near.length) h+=`<div class="rechd"><b>Importo diverso</b></div><ul class="rows recinfo">${R0.near.map((n,k)=>`<li><span>${esc(n.x.desc)}<small>${dateIT(fromISO(n.x.d))} · in Excel ${fmtIT(n.x.imp)} €, nell'estratto ${fmtIT(n.t.imp)} € (${esc(recName(n.t))})${n.x.riga?" · riga "+n.x.riga:""}</small></span><b>${n.t.imp-n.x.imp>0?"+":"−"}${fmtIT(Math.abs(n.t.imp-n.x.imp))}</b>${recAct("near",k,n.done,"Correggi")}</li>`).join("")}</ul><p class="fn">"Correggi" scrive in Excel l'importo dell'estratto conto.</p>`;
+  if(R0.extra.length) h+=`<div class="rechd"><b>Solo in Excel</b></div><ul class="rows recinfo">${R0.extra.map((x,k)=>`<li><span>${esc(x.desc)}<small>${dateIT(fromISO(x.d))} · ${esc(x.cat)}${x.riga?" · riga "+x.riga:""}</small></span><b>${fmtIT(x.imp)} €</b>${recAct("extra",k,x.done,"Elimina",1)}</li>`).join("")}</ul><p class="fn">Non le trovo nell'estratto: possibili doppioni, o spese pagate con un altro conto (in quel caso cambia il conto, non eliminarle).</p>`;
+  if(R0.dup.length) h+=`<div class="rechd"><b>Contati due volte</b></div><ul class="rows recinfo">${R0.dup.map((x,k)=>`<li><span>${esc(x.desc)}<small>${dateIT(fromISO(x.d))}${x.riga?" · riga "+x.riga:""} · l'app scala già da sola l'addebito della carta: questa riga lo conta due volte</small></span><b>${fmtIT(x.imp)} €</b>${recAct("dup",k,x.done,"Elimina",1)}</li>`).join("")}</ul>`;
   if(R0.auto.length) h+=`<div class="rechd"><b>Già calcolati dall'app</b></div><ul class="rows recinfo">${R0.auto.map(t=>`<li><span>${esc(recName(t))}<small>${dateIT(fromISO(t.d))} · addebito della carta ${esc(t.m.auto)}: l'app lo scala già da sola, non registrarlo</small></span><b>${fmtIT(t.imp)} €</b></li>`).join("")}</ul>`;
   h+=`<div class="recbar"><button class="btn" id="recCopy">Copia per Excel</button><button class="go" id="recGo" ${nSel?"":"disabled"}>${nSel?`Registra ${nSel} ${nSel===1?"movimento":"movimenti"}`:"Niente da registrare"}</button></div>${todo?`<p class="fn rectodo">${todo} senza categoria: sceglila prima di registrare.</p>`:""}<div style="height:90px"></div>`;
   $("recBody").innerHTML=h; animateCounts($("recBody"));
@@ -3224,7 +3236,37 @@ function renderRec(){ const R0=REC; if(!R0) return; const m=R0.miss, sel=m.filte
     row.querySelector(".recc").onchange=e=>{ x.cat=e.target.value; haptic("light"); renderRec(); }; });
   const all=$("recAll"); if(all) all.onclick=()=>{ const v=!R0.miss.every(x=>x.on||x.sent); R0.miss.forEach(x=>{ if(!x.sent) x.on=v; }); haptic("light"); renderRec(); };
   $("recCopy").onclick=()=>{ const t=R0.miss.filter(x=>x.on).map(x=>[dateIT(fromISO(x.t.d)),x.desc,x.cat||"",R0.conto,fmtIT(x.t.imp).replace(/\./g,"")].join("\t")).join("\n"); copyText(t,"Righe copiate: incollale sotto la tabella Movimenti"); };
-  $("recGo").onclick=sendRec; }
+  $("recGo").onclick=sendRec;
+  $("recBody").querySelectorAll(".recact").forEach(b=>b.onclick=()=>recFix(b.dataset.k,+b.dataset.i,b));
+  if($("recAlign")) $("recAlign").onclick=recAlign; }
+const recAct=(k,i,done,label,red)=>`<button class="recact ${red?"red":""} ${done?"done":""}" data-k="${k}" data-i="${i}" ${done?"disabled":""}>${done?"✓":label}</button>`;
+// riga Excel ancora com'era quando ho riconciliato (le righe si spostano se nel frattempo ne cancelli altre)
+async function recRow(x){ await refreshExcel(true); const t=S.cache&&S.cache.tab; if(!t) throw new Error("Non trovo la tabella dei movimenti nel file Excel");
+  const r=rowsLike(x.d,x.desc,x.imp).find(q=>q.conto===x.conto); if(!r) throw new Error("La riga non è più nel file così com'era: forse l'hai già cambiata");
+  if(r.riga<=t.head||r.riga>t.last) throw new Error("La riga è fuori dalla tabella Excel"); return {r,t}; }
+async function recFix(kind,i,btn){ const R0=REC; if(!R0) return; if(!S.hook) return toast("Manca l'indirizzo webhook in ⚙︎",true);
+  const it=kind==="near"?R0.near[i]:(kind==="extra"?R0.extra:R0.dup)[i], x=kind==="near"?it.x:it; if(!it||it.done) return;
+  if(kind!=="near"){ const ok=await confirmBoxOpen({icon:gi("cestino","#E4572E","lg"),title:"Eliminare da Excel?",yes:"Elimina",red:true,body:`<p><b>${esc(x.desc)}</b> · ${dateIT(fromISO(x.d))} · ${fmtIT(x.imp)} €${x.riga?`<br><small>riga ${x.riga}</small>`:""}</p>`}); if(!ok) return; }
+  btn.disabled=true; btn.classList.add("busy"); btn.textContent="…";
+  try{ const {r,t}=await recRow(x);
+    if(kind==="near"){ await xlSend("modifica","PATCH",xlBase()+`/worksheets/Movimenti/range(address='E${r.riga}')`,JSON.stringify({values:[[it.t.imp]]}));
+      it.done=await verify(()=>rowsLike(x.d,x.desc,it.t.imp).some(q=>q.riga===r.riga)); }
+    else { const before=rowsLike(x.d,x.desc,x.imp).length; await xlSend("elimina","DELETE",xlBase()+`/tables/${encodeURIComponent(t.name)}/rows/$/ItemAt(index=${r.riga-t.head-1})`,"");
+      it.done=await verify(()=>rowsLike(x.d,x.desc,x.imp).length<before); }
+    if(it.done){ haptic("ok"); toast(kind==="near"?"Importo corretto in Excel":"Riga eliminata da Excel"); }
+    else toast("Make non ha confermato la modifica: guarda History in Make",true); }
+  catch(e){ toast(e.message,true); }
+  renderRec(); }
+async function recAlign(){ const R0=REC; if(!R0||R0.restDone) return; if(!S.hook) return toast("Manca l'indirizzo webhook in ⚙︎",true);
+  const a=S.cache&&S.cache.accounts.find(q=>q.name===R0.conto); if(!a||!a.riga) return toast("Non trovo il conto nel foglio Impostazioni",true);
+  const nv=Math.round((a.saldo0+R0.rest)*100)/100;
+  const ok=await confirmBoxOpen({icon:gi("modifica","#2F6FD6","lg"),title:"Allineare il saldo iniziale?",yes:"Allinea",body:`<div class="eddiff"><div><small>Saldo iniziale ${esc(lbl(R0.conto))} (Impostazioni, cella H${a.riga})</small><span><s>${fmtIT(a.saldo0)} €</s><b>${fmtIT(nv)} €</b></span></div></div>`}); if(!ok) return;
+  const b=$("recAlign"); b.disabled=true; b.textContent="Allineo…";
+  try{ await xlSend("modifica","PATCH",xlBase()+`/worksheets/Impostazioni/range(address='H${a.riga}')`,JSON.stringify({values:[[nv]]}));
+    R0.restDone=await verify(()=>{ const q=S.cache.accounts.find(z=>z.name===R0.conto); return q&&Math.abs(q.saldo0-nv)<0.005; });
+    if(R0.restDone){ haptic("win"); toast("Saldo iniziale allineato: ora il conto torna"); } else toast("Make non ha confermato la modifica: guarda History in Make",true); }
+  catch(e){ toast(e.message,true); }
+  renderRec(); }
 async function sendRec(){ const R0=REC, sel=R0.miss.filter(x=>x.on&&!x.sent);
   if(!S.hook) return toast("Manca l'indirizzo webhook in ⚙︎",true);
   if(sel.some(x=>!x.cat)) return toast("Scegli la categoria per tutte le righe selezionate",true);
