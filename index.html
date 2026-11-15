@@ -2720,7 +2720,7 @@ async function fetchPrices(){
 }
 let lastRefresh=0;
 // ---------- aggiornamento automatico: se è pubblicata una versione più nuova la carica subito ----------
-const APP_VER="113";
+const APP_VER="114";
 async function checkUpdate(){
   try{ const u=location.href.split("#")[0].split("?")[0]; if(!/^https?:/.test(u)) return;
     const t=await (await fetch(u+"?v="+Date.now(),{cache:"no-store"})).text(); const m=t.match(/const APP_VER="(\d+)"/);
@@ -3166,7 +3166,8 @@ function reconcile(st,conto){
   // 2. una riga di Excel = più righe dell'estratto dello stesso periodo (es. il PAC registrato in un'unica riga)
   xl.forEach(x=>{ if(x.m) return; const inv=isInv(x);
     const c=tx.filter(t=>!t.m&&Math.abs(days(x.d,t.d))<=3&&(t.imp<0)===(x.imp<0)&&(!inv||t.kind==="pac")).sort((a,b)=>Math.abs(days(x.d,a.d))-Math.abs(days(x.d,b.d))).slice(0,12);
-    const rec=(start,n,acc,pick)=>{ if(pick.length===n) return Math.abs(acc-x.imp)<0.005?pick:null; for(let k=start;k<c.length;k++){ const r=rec(k+1,n,acc+c[k].imp,[...pick,c[k]]); if(r) return r; } return null; };
+    const same=pk=>inv||new Set(pk.map(t=>norm(recName(t)))).size===1; // somme solo per PAC o stesso negozio
+    const rec=(start,n,acc,pick)=>{ if(pick.length===n) return Math.abs(acc-x.imp)<0.005&&same(pick)?pick:null; for(let k=start;k<c.length;k++){ const r=rec(k+1,n,acc+c[k].imp,[...pick,c[k]]); if(r) return r; } return null; };
     for(let n=2;n<=4;n++){ const got=rec(0,n,0,[]); if(got){ got.forEach(t=>t.m={x,sum:true}); x.m={t:got,sum:true}; break; } } });
   // 3. importo quasi uguale: probabile errore di battitura
   xl.forEach(x=>{ if(x.m||x.d<first) return; let best=null;
