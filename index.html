@@ -6,8 +6,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Movimenti">
-<meta name="theme-color" content="#EDF3F9" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#EDF1F8" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#05070C" media="(prefers-color-scheme: dark)">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="apple-touch-icon" sizes="167x167" href="icon-167.png">
 <link rel="apple-touch-icon" sizes="152x152" href="icon-152.png">
@@ -1484,8 +1484,139 @@
   .recquick em{font-style:normal;font-size:22px;color:var(--ink-2)}
   .rectodo{color:#E8890C!important;font-weight:600;text-align:center}
   body.blur .recv,body.blur .recsaldo b{filter:blur(7px)}
+
+  /* ================= v117 · AURORA GLASS =================
+     Sfondo: aurora che si muove piano (4 luci sfumate). Sopra, tutto è vetro: riempimento traslucido,
+     bordo chiaro in alto, ombra morbida. Le barre che galleggiano sfocano ciò che passa sotto. */
+  :root{
+    --a1:#2F6BFF; --a2:#8B5CF6; --a3:#12C2C9; --a4:#FF4D8D; --aur-op:.34;
+    --bg:#EDF1F8; --solid:#FFFFFF; --surface:rgba(255,255,255,.60); --surface-2:rgba(24,56,98,.06); --hair:rgba(18,44,80,.09);
+    --g-fill:linear-gradient(155deg,rgba(255,255,255,.86),rgba(255,255,255,.56));
+    --g-brd:rgba(255,255,255,.95);
+    --g-sh:inset 0 1px 0 rgba(255,255,255,1),0 16px 36px -18px rgba(24,52,96,.30),0 2px 6px rgba(24,52,96,.05);
+    --g-blur:saturate(180%) blur(22px); --g-bar:rgba(237,241,248,.66); --g-pop:rgba(250,252,255,.80);
+    --go2:color-mix(in srgb,var(--go) 58%,var(--a2)); --rr:24px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --aur-op:.42; --bg:#05070C; --solid:#12161F; --paper:#12161F; --surface:rgba(255,255,255,.06); --surface-2:rgba(255,255,255,.07); --hair:rgba(255,255,255,.09);
+      --key:rgba(255,255,255,.08); --key-press:rgba(255,255,255,.16); --line:rgba(255,255,255,.13); --go:#4C8DFF; --chip-on:#4C8DFF;
+      --g-fill:linear-gradient(155deg,rgba(255,255,255,.105),rgba(255,255,255,.035));
+      --g-brd:rgba(255,255,255,.11);
+      --g-sh:inset 0 1px 0 rgba(255,255,255,.14),0 20px 44px -20px rgba(0,0,0,.8);
+      --g-bar:rgba(7,10,16,.58); --g-pop:rgba(18,22,31,.78); }
+    html,body{background:var(--bg)}
+  }
+  /* temi colore (⚙︎ › Aspetto) */
+  html[data-skin="aurora"]{--a1:#00C2A8;--a2:#7C5CFF;--a3:#2BD67B;--a4:#3AA0FF;--go:#10B3A0;--chip-on:#10B3A0;--go-press:#0C9485}
+  html[data-skin="tramonto"]{--a1:#FF7A3D;--a2:#FF3D81;--a3:#FFB23D;--a4:#8B5CF6;--go:#F2643A;--chip-on:#F2643A;--go-press:#D2502A}
+  html[data-skin="smeraldo"]{--a1:#1FBF75;--a2:#0EA5A0;--a3:#A3E635;--a4:#2F6BFF;--go:#17A566;--chip-on:#17A566;--go-press:#128652}
+  html[data-skin="grafite"]{--a1:#5E6C82;--a2:#39424F;--a3:#8492A6;--a4:#4A5568;--go:#6C86AD;--chip-on:#6C86AD;--go-press:#586F92;--aur-op:.26}
+  body{--acc-glow:color-mix(in srgb,var(--go) 26%,transparent);--acc-soft:color-mix(in srgb,var(--go) 10%,transparent)}
+
+  /* --- aurora --- */
+  #aurora{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;background:var(--bg);contain:strict}
+  #aurora i{position:absolute;width:130vmax;height:130vmax;border-radius:50%;opacity:var(--aur-op);will-change:transform;
+    background:radial-gradient(closest-side,var(--c) 0%,color-mix(in srgb,var(--c) 45%,transparent) 42%,transparent 72%)}
+  #aurora i:nth-child(1){--c:var(--a1);left:-70vmax;top:-78vmax;animation:aurA 28s ease-in-out infinite alternate}
+  #aurora i:nth-child(2){--c:var(--a2);right:-78vmax;top:-48vmax;animation:aurB 34s ease-in-out infinite alternate}
+  #aurora i:nth-child(3){--c:var(--a3);left:-84vmax;bottom:-86vmax;animation:aurC 38s ease-in-out infinite alternate}
+  #aurora i:nth-child(4){--c:var(--a4);right:-88vmax;bottom:-92vmax;opacity:calc(var(--aur-op) * .7);animation:aurD 31s ease-in-out infinite alternate}
+  @keyframes aurA{to{transform:translate3d(16vmax,10vmax,0) scale(1.12)}}
+  @keyframes aurB{to{transform:translate3d(-14vmax,16vmax,0) scale(.92)}}
+  @keyframes aurC{to{transform:translate3d(18vmax,-12vmax,0) scale(1.08)}}
+  @keyframes aurD{to{transform:translate3d(-16vmax,-14vmax,0) scale(1.16)}}
+  body:has(.sheet.open) #aurora,body:has(.sheet.leaving) #aurora{z-index:39}
+  body.haspic:not(:has(.sheet.open)):not(:has(.sheet.leaving)) #aurora{display:none}
+  body.fxoff #aurora i{animation:none}
+  @media (prefers-reduced-motion:reduce){ #aurora i{animation:none} }
+
+  /* --- pagine: trasparenti sopra l'aurora, si danno il cambio in dissolvenza --- */
+  .sheet{background:transparent!important}
+  .sheet.leaving{opacity:0!important;transition:opacity .2s ease!important}
+
+  /* --- intestazione e navigazione --- */
+  .top,#hdr{background:var(--g-bar)!important;-webkit-backdrop-filter:var(--g-blur)!important;backdrop-filter:var(--g-blur)!important;border-bottom:1px solid var(--hair)!important}
+  body.haspic .top{background:var(--g-bar)!important}
+  .navmini{background:var(--surface)!important;border:1px solid var(--g-brd)!important;border-radius:19px!important;box-shadow:var(--g-sh)!important}
+  .navmini .ind{border-radius:14px;background:linear-gradient(135deg,var(--go),var(--go2));
+    box-shadow:0 8px 20px -6px color-mix(in srgb,var(--go) 75%,transparent),inset 0 1px 0 rgba(255,255,255,.38)}
+  .navmini button.on{background:transparent!important}
+  #hdr .ic{transition:transform .16s cubic-bezier(.22,1,.36,1),background .2s} #hdr .ic:active{transform:scale(.88)}
+  #hdr .badge.on,#hdr .ic[data-set].on{background:linear-gradient(135deg,var(--go),var(--go2))!important;box-shadow:0 8px 18px -8px var(--go)}
+
+  /* --- superfici di vetro --- */
+  .field,.amount,.rp .card,.fire .card,.mv ul.list,.flash .fcard,.prow,.pacrow,.rules li,.skel,.pat,.mv .sum{
+    background:var(--g-fill)!important;border:1px solid var(--g-brd)!important;border-radius:var(--rr)!important;box-shadow:var(--g-sh)!important}
+  .log li{background:var(--solid)!important;border:1px solid var(--g-brd)!important;border-radius:var(--rr)!important;box-shadow:var(--g-sh)!important}
+  .log li .lrow{background:var(--solid)}
+  .tile,.rechero,.recquick,.recstat div,.srrow,.srsum div,.recrow,.cqrow,.famhd .dayp,.famhd .srbtn{background:var(--g-fill);border-color:var(--g-brd);box-shadow:var(--g-sh)}
+  .tile{border-radius:var(--rr)}
+  .rp .kpi div,.trk div{background:var(--surface-2)!important}
+  .rp .mnav{background:color-mix(in srgb,var(--solid) 93%,transparent)!important;-webkit-backdrop-filter:var(--g-blur);backdrop-filter:var(--g-blur);border:1px solid var(--g-brd);box-shadow:var(--g-sh);border-radius:20px}
+  .sheet .btn,.copy,.mvfbtn,.mvs,.sugg button,.srsug button{background:var(--surface)!important;border:1px solid var(--g-brd)!important;box-shadow:var(--g-sh)!important}
+  .sheet .btn{border-radius:15px;transition:transform .16s cubic-bezier(.22,1,.36,1)} .sheet .btn:active{transform:scale(.96)}
+  .copy.wa{background:linear-gradient(135deg,#25C767,#128C4A)!important;border-color:transparent!important;box-shadow:0 10px 24px -10px #1FA855,inset 0 1px 0 rgba(255,255,255,.35)!important}
+  .seg,.seg3,.fire .modes,.fire .seg2{background:var(--surface-2)!important;border:1px solid var(--hair)}
+  .seg button.on,.fire .modes button.on,.fire .seg2 button.on,.mvgrid button.on{background:var(--solid);box-shadow:0 4px 12px -4px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.5)}
+
+  /* --- pulsanti e scelte --- */
+  .go{background:linear-gradient(135deg,var(--go),var(--go2))!important;border-radius:20px!important;
+    box-shadow:0 14px 30px -12px color-mix(in srgb,var(--go) 85%,transparent),inset 0 1px 0 rgba(255,255,255,.38)!important;position:relative;overflow:hidden}
+  .go:disabled{background:var(--surface)!important;color:var(--ink-2)!important;box-shadow:inset 0 0 0 1px var(--g-brd)!important;opacity:.75}
+  .go:active:not(:disabled){transform:scale(.97)}
+  .chips button,.chips label{background:var(--surface-2)!important;border:1px solid var(--hair)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.10)}
+  .chips .on{background:linear-gradient(135deg,var(--go),var(--go2))!important;border-color:transparent!important;
+    box-shadow:0 8px 18px -8px color-mix(in srgb,var(--go) 80%,transparent),inset 0 1px 0 rgba(255,255,255,.35)!important}
+  .pad button{background:var(--surface)!important;border:1px solid var(--g-brd)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.10)!important;border-radius:18px}
+  .pad button.ok{background:linear-gradient(135deg,var(--go),var(--go2))!important;border-color:transparent!important}
+
+  /* --- ciò che galleggia sfoca lo sfondo --- */
+  .padwrap{background:var(--g-pop)!important;-webkit-backdrop-filter:var(--g-blur)!important;backdrop-filter:var(--g-blur)!important;border-top:1px solid var(--g-brd);border-radius:26px 26px 0 0}
+  .mvfcard,.edcard,.edcc{background:var(--g-pop)!important;-webkit-backdrop-filter:saturate(180%) blur(30px);backdrop-filter:saturate(180%) blur(30px);border:1px solid var(--g-brd);border-bottom:0;
+    box-shadow:0 -24px 70px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.16)!important}
+  .edcc{border-bottom:1px solid var(--g-brd)}
+  .mvfscrim{background:rgba(4,8,16,.46);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+  .toast{background:var(--g-pop)!important;-webkit-backdrop-filter:var(--g-blur)!important;backdrop-filter:var(--g-blur)!important;border:1px solid var(--g-brd)!important;
+    box-shadow:0 18px 44px -14px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.18)!important;border-radius:18px}
+  .toast.warn{background:color-mix(in srgb,var(--warn) 88%,transparent)!important;color:#fff!important}
+  .undo,.recbar{background:var(--g-pop);-webkit-backdrop-filter:var(--g-blur);backdrop-filter:var(--g-blur);border:1px solid var(--g-brd);box-shadow:0 18px 44px -14px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.18)}
+  .mvbar,.rp .mbar{background:transparent}
+  .srch{background:color-mix(in srgb,var(--bg) 62%,transparent)}
+
+  /* --- riquadro del patrimonio: vetro colorato con luce --- */
+  .rp .hero,.fire .hero{border:1px solid rgba(255,255,255,.22);border-radius:30px!important;
+    box-shadow:0 26px 60px -24px color-mix(in srgb,var(--hero1,#1F6FD0) 80%,transparent),inset 0 1px 0 rgba(255,255,255,.4),inset 0 -30px 60px -30px rgba(0,0,0,.3)!important}
+  .rp .hero .grid3 div{background:rgba(255,255,255,.16);box-shadow:inset 0 0 0 1px rgba(255,255,255,.16),inset 0 1px 0 rgba(255,255,255,.3);border-radius:16px}
+  .fire .hero{background:linear-gradient(160deg,color-mix(in srgb,var(--a1) 55%,#0B1622),#0B1622 70%)!important}
+
+  /* --- numeri --- */
+  .rp .hero .big,.fire .hero .big,.amount .num,.recstat b,.rechero>div>b{font-family:ui-rounded,"SF Pro Rounded",-apple-system,system-ui,sans-serif;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+
+  /* --- scuro: i campi dove si scrive diventano vetro, non più bianchi --- */
+  @media (prefers-color-scheme: dark){
+    .app .field input[type=text]:not(#catSearch),.mv .field input[type=text]{background:rgba(255,255,255,.07)!important;color:var(--ink)!important;border-color:var(--g-brd)!important}
+    .amount .tap{background:rgba(255,255,255,.07);border-color:var(--g-brd)}
+    .amount .num{color:var(--ink)!important} .amount .num .ph{color:rgba(255,255,255,.26)!important} .amount .num .eur{color:var(--ink-2)!important}
+    .amount .num.in{color:#3BDA8A!important}
+    .seg button.on,.fire .modes button.on,.fire .seg2 button.on,.mvgrid button.on{background:rgba(255,255,255,.16);color:var(--ink);box-shadow:inset 0 1px 0 rgba(255,255,255,.2)}
+    .sheet .field input[type=text],.sheet .field input[type=password],.sheet textarea,.prow .in2 input,.fire .ip input[type=text]{background:rgba(255,255,255,.06)!important;border-color:var(--g-brd)!important}
+    .rp .hero,.fire .hero{border-color:rgba(255,255,255,.14)}
+  }
+  /* i pannelli nascosti sotto lo schermo non devono proiettare ombra */
+  .mvf:not(.open) .mvfcard,.edwrap:not(.open) .edcard,.padwrap:not(.open),.undo:not(.on){box-shadow:none!important}
+  .navmini button.st.new .stwrapi{background:linear-gradient(var(--solid),var(--solid)) padding-box,linear-gradient(45deg,#F9CE34,#EE2A7B,#6228D7) border-box}
+  body.mode-out .app .seg button.on,body.mode-in .app .seg button.on{background:var(--acc)!important;color:#fff!important}
+  /* --- la carta risponde al tocco --- */
+  .rp .card.sec>h3.sh:active,.tile.act:active,.recquick:active,.srrow:active{opacity:.85}
+  .tile.act{transition:transform .18s cubic-bezier(.22,1,.36,1),box-shadow .2s} .tile.act:active{transform:scale(.965)}
+  /* selettore tema */
+  .skins{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:10px}
+  .skins button{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px 2px;border-radius:16px;font-size:11.5px;font-weight:600;color:var(--ink-2);border:1px solid transparent;transition:transform .16s cubic-bezier(.22,1,.36,1),background .2s}
+  .skins button i{width:38px;height:38px;border-radius:50%;background:conic-gradient(from 200deg,var(--s1),var(--s2),var(--s3),var(--s4),var(--s1));box-shadow:inset 0 0 0 2px rgba(255,255,255,.35),0 6px 14px -6px var(--s1)}
+  .skins button.on{background:var(--surface);border-color:var(--g-brd);color:var(--ink)} .skins button.on i{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--s1)}
+  .skins button:active{transform:scale(.92)}
 </style>
-<script>try{if(localStorage.getItem("movimenti:lock"))document.documentElement.classList.add("locked")}catch(e){}</script>
+<script>try{if(localStorage.getItem("movimenti:lock"))document.documentElement.classList.add("locked");var _s=JSON.parse(localStorage.getItem("movimenti:state")||"{}");if(_s.skin)document.documentElement.dataset.skin=_s.skin}catch(e){}</script>
 </head>
 <body>
 <div id="lock" aria-live="polite"><div class="lk">
@@ -1507,6 +1638,7 @@
   </div>
 </div>
 <label id="hapt" aria-hidden="true"><input type="checkbox" switch></label>
+<div id="aurora" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
 <div id="bg"></div><div id="bgveil"></div>
 <header id="hdr" class="top"></header>
 <div class="app" id="main">
@@ -1759,6 +1891,14 @@
     <label>Aspetto</label>
     <div class="chips" id="themeSel"><button data-t="auto">Automatico</button><button data-t="light">Chiaro</button><button data-t="dark">Scuro</button></div>
     <p style="margin-top:8px">Automatico segue il tema del telefono.</p>
+    <div class="skins" id="skinSel">
+      <button data-s="oceano" style="--s1:#2F6BFF;--s2:#8B5CF6;--s3:#FF4D8D;--s4:#12C2C9"><i></i>Oceano</button>
+      <button data-s="aurora" style="--s1:#00C2A8;--s2:#7C5CFF;--s3:#3AA0FF;--s4:#2BD67B"><i></i>Aurora</button>
+      <button data-s="tramonto" style="--s1:#FF7A3D;--s2:#FF3D81;--s3:#8B5CF6;--s4:#FFB23D"><i></i>Tramonto</button>
+      <button data-s="smeraldo" style="--s1:#1FBF75;--s2:#0EA5A0;--s3:#2F6BFF;--s4:#A3E635"><i></i>Smeraldo</button>
+      <button data-s="grafite" style="--s1:#5E6C82;--s2:#39424F;--s3:#4A5568;--s4:#8492A6"><i></i>Grafite</button>
+    </div>
+    <p style="margin-top:8px">Il colore cambia le luci dello sfondo e i pulsanti in tutta l'app.</p>
   </div>
 
   <div class="field" id="lockField">
@@ -2729,7 +2869,7 @@ async function fetchPrices(){
 }
 let lastRefresh=0;
 // ---------- aggiornamento automatico: se è pubblicata una versione più nuova la carica subito ----------
-const APP_VER="116";
+const APP_VER="117";
 async function checkUpdate(){
   try{ const u=location.href.split("#")[0].split("?")[0]; if(!/^https?:/.test(u)) return;
     const t=await (await fetch(u+"?v="+Date.now(),{cache:"no-store"})).text(); const m=t.match(/const APP_VER="(\d+)"/);
@@ -5067,6 +5207,9 @@ function applyTheme(t){
   const sel=$("themeSel"); if(sel) sel.querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.t===t));
   const on=$("hdr")&&$("hdr").querySelector(".navmini button.on"); if(on) setActiveNav(on.dataset.go);
 }
+function applySkin(k){ k=k||"oceano"; if(k==="oceano") delete document.documentElement.dataset.skin; else document.documentElement.dataset.skin=k;
+  const sel=$("skinSel"); if(sel) sel.querySelectorAll("button").forEach(b=>b.classList.toggle("on",b.dataset.s===k)); }
+$("skinSel").onclick=e=>{ const b=e.target.closest("button"); if(!b) return; haptic("pop"); S.skin=b.dataset.s; save(); applySkin(S.skin); };
 $("themeSel").onclick=e=>{ const b=e.target.closest("button"); if(!b) return; haptic(); S.theme=b.dataset.t; save(); applyTheme(S.theme); };
 function paintFx(){ $("fxSel").querySelectorAll("button").forEach(b=>b.classList.toggle("on",S[b.dataset.k]!==false)); }
 function fxDiag(){ const el=$("fxInfo"); if(!el) return; const ua=navigator.userAgent, m=ua.match(/OS (\d+)_(\d+)/); const ios=m?`iOS ${m[1]}.${m[2]}`:(/Android/.test(ua)?"Android":"desktop");
@@ -5074,7 +5217,7 @@ function fxDiag(){ const el=$("fxInfo"); if(!el) return; const ua=navigator.user
   el.textContent=`app v${APP_VER} · ${ios} · audio: ${AC?AC.state==="running"?"attivo":AC.state==="interrupted"?"interrotto da iOS, riparte al prossimo tocco":"in attesa di un tocco":"non avviato"} · vibrazione: ${vib?"API vibrate":canSw?"motore aptico Safari":"non disponibile su questo iOS"}`; }
 $("fxTest").onclick=()=>{ haptic("win"); setTimeout(()=>{ haptic("warn"); fxDiag(); },500); };
 $("fxSel").onclick=e=>{ const b=e.target.closest("button"); if(!b||!b.dataset.k) return; const k=b.dataset.k; S[k]=S[k]===false?true:false; save(); paintFx(); haptic(S[k]?"ok":"light"); toast(k==="sound"?(S.sound?"Suoni attivi":"Suoni disattivati"):(S.hapt?"Vibrazione attiva":"Vibrazione disattivata")); };
-load().then(()=>{ applyTheme(S.theme||"auto"); { const fd=$("famDate"); if(fd) fd.textContent=today().toLocaleDateString("it-IT",{weekday:"long",day:"numeric",month:"long"}); } render(); renderDay(); setTimeout(flushOutbox,1500); if(S.share&&S.cache&&S.cache.coda) codaWatch(); else if(S.share&&S.cache&&Date.now()-S.cache.ts>4*3600e3) refreshExcel(false).catch(()=>{}); });
+load().then(()=>{ applyTheme(S.theme||"auto"); applySkin(S.skin); { const fd=$("famDate"); if(fd) fd.textContent=today().toLocaleDateString("it-IT",{weekday:"long",day:"numeric",month:"long"}); } render(); renderDay(); setTimeout(flushOutbox,1500); if(S.share&&S.cache&&S.cache.coda) codaWatch(); else if(S.share&&S.cache&&Date.now()-S.cache.ts>4*3600e3) refreshExcel(false).catch(()=>{}); });
 </script>
 </body>
 </html>
