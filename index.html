@@ -1474,6 +1474,11 @@
   .recact:active{transform:scale(.94)} .recact.red{color:#E4572E;background:color-mix(in srgb,#E4572E 12%,transparent)}
   .recact.done{color:#fff;background:#2FB27A;animation:popIn .35s cubic-bezier(.22,1,.36,1)} .recact.busy{opacity:.6}
   .recalign{width:100%;margin-top:10px} .recalign.done{color:#2FB27A}
+  .recquick{display:flex;align-items:center;gap:12px;width:100%;margin:2px 0 12px;padding:12px 14px;border-radius:18px;text-align:left;background:var(--surface,var(--paper));border:1px solid var(--hair);color:var(--ink);transition:transform .15s;animation:cardIn .5s .1s cubic-bezier(.22,1,.36,1) both}
+  .recquick:active{transform:scale(.98)} .recquick i{width:38px;height:38px;flex:0 0 auto;border-radius:12px;display:grid;place-items:center;background:color-mix(in srgb,#0E9AB0 16%,transparent);color:#0E9AB0}
+  .recquick i svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .recquick span{flex:1;min-width:0} .recquick b{display:block;font-size:15px} .recquick small{display:block;font-size:12.5px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .recquick em{font-style:normal;font-size:22px;color:var(--ink-2)}
   .rectodo{color:#E8890C!important;font-weight:600;text-align:center}
   body.blur .recv,body.blur .recsaldo b{filter:blur(7px)}
 </style>
@@ -2720,7 +2725,7 @@ async function fetchPrices(){
 }
 let lastRefresh=0;
 // ---------- aggiornamento automatico: se è pubblicata una versione più nuova la carica subito ----------
-const APP_VER="114";
+const APP_VER="115";
 async function checkUpdate(){
   try{ const u=location.href.split("#")[0].split("?")[0]; if(!/^https?:/.test(u)) return;
     const t=await (await fetch(u+"?v="+Date.now(),{cache:"no-store"})).text(); const m=t.match(/const APP_VER="(\d+)"/);
@@ -2986,6 +2991,7 @@ function srSuggest(){ const rows=(S.cache&&S.cache.rows)||[], t=today(), mN=MESI
   const fd={}; rows.filter(r=>r.imp<0).forEach(r=>{ const k=r.desc.toLowerCase(); fd[k]=(fd[k]||0)+1; }); const topD=Object.entries(fd).sort((a,b)=>b[1]-a[1]).slice(0,1).map(x=>x[0]);
   return [...topC.map(c=>c+" "+mN),"spese sopra 100","entrate "+t.getFullYear(),...topD,"settimana"].slice(0,6); }
 function renderSearch(){ const q=$("srQ").value, body=$("srBody"); $("srX").hidden=!q;
+  if(/^\s*(riconcil|estratt)/i.test(q)){ body.innerHTML=`<button class="recquick" id="srRec"><i>${svgG("bilancia")}</i><span><b>Riconcilia con l'estratto conto</b><small>Carica il PDF di Trade: trovo cosa manca in Excel</small></span><em>›</em></button>`; $("srRec").onclick=()=>{ closeSearch(); openRp(); setTimeout(openRec,50); }; return; }
   if(!S.cache){ body.innerHTML=`<p class="srhint">Apri prima il Riepilogo per leggere i movimenti da Excel.</p>`; return; }
   if(!q.trim()){ body.innerHTML=`<p class="srhint">Cerca in tutti i movimenti: scrivi un negozio, una categoria, un mese, un conto o un importo, anche insieme.</p><div class="srsug">${srSuggest().map(x=>`<button data-q="${esc(x)}">${esc(x)}</button>`).join("")}</div>`;
     body.querySelectorAll(".srsug button").forEach(b=>b.onclick=()=>{ haptic("light"); $("srQ").value=b.dataset.q; renderSearch(); }); return; }
@@ -3705,7 +3711,8 @@ function renderRp(){
   if(ytd!=null&&!isCur) ytd=patM-D.inizioAnno;
   if(ytd!=null) h+=`<div class="ytd">Da inizio anno <em class="${ytd<0?"neg":""}">${ytd>=0?"+":"−"}${fmtIT(Math.abs(ytd))} €</em></div>`;
   h+=`<div class="grid3"><div><small>Liquidità</small><b><span class="cnt" data-v="${P.liquidita}">${fmt0(P.liquidita)}</span> €</b>${delta(dLiq)}</div><div><small>Carte da addebitare</small><b><span class="cnt" data-v="${P.carteTot}">${fmt0(P.carteTot)}</span> €</b></div><div><small>Investimenti</small><b><span class="cnt" data-v="${P.assetTot}">${fmt0(P.assetTot)}</span> €</b>${delta(dAss)}</div>${P.trasferte.credito>0.005?`<div><small>Crediti trasferte</small><b>${fmt0(P.trasferte.credito)} €</b></div>`:""}</div></div>`;
-  h+=`<div class="sync">${R.loading?"Aggiornamento in corso…":`Letto da Excel ${ago<1?"adesso":ago<60?ago+" min fa":"alle "+pad2(when.getHours())+":"+pad2(when.getMinutes())+" del "+shortDate(when)}${S.cache.fileMod?` · file salvato ${(()=>{ const f=new Date(S.cache.fileMod); return shortDate(f)+" alle "+pad2(f.getHours())+":"+pad2(f.getMinutes()); })()}`:""}`}<button id="rpRefresh">Aggiorna</button><button id="rpToggleAll">${allClosed?"Espandi tutto":"Comprimi tutto"}</button></div>`;
+  h+=`<div class="sync">${R.loading?"Aggiornamento in corso…":`Letto da Excel ${ago<1?"adesso":ago<60?ago+" min fa":"alle "+pad2(when.getHours())+":"+pad2(when.getMinutes())+" del "+shortDate(when)}${S.cache.fileMod?` · file salvato ${(()=>{ const f=new Date(S.cache.fileMod); return shortDate(f)+" alle "+pad2(f.getHours())+":"+pad2(f.getMinutes()); })()}`:""}`}<button id="rpRefresh">Aggiorna</button><button id="rpToggleAll">${allClosed?"Espandi tutto":"Comprimi tutto"}</button></div>
+  <button class="recquick" id="rpRec"><i>${svgG("bilancia")}</i><span><b>Riconcilia con l'estratto conto</b><small>Carica il PDF di Trade: trovo cosa manca in Excel</small></span><em>›</em></button>`;
   const INS=isCur?insights(D,M,avgSp):[]; h+=insightsHTML(INS);
 
   // ===== 2. COMPOSIZIONE: torta a 4 voci + gerarchia =====
@@ -3806,7 +3813,7 @@ function renderRp(){
   stagger(body,":scope>.card,:scope>.tiles"); animateCounts(body); bindExp(body);
   const tf=$("tileFire"); if(tf) tf.onclick=()=>goTab("fire");
   const tw=$("tileWrapped"); if(tw) tw.onclick=openWrapped;
-  const tr=$("tileRec"); if(tr) tr.onclick=openRec;
+  const tr=$("tileRec"); if(tr) tr.onclick=openRec; if($("rpRec")) $("rpRec").onclick=()=>{ haptic("pop"); openRec(); };
   body.querySelectorAll(".card.sec").forEach(c=>{ const k=c.dataset.sec, hd=c.querySelector(":scope>h3.sh");
     const tog=()=>{ haptic(c.classList.contains("closed")?"pop":"close"); flipLayout(body,()=>{ c.classList.toggle("closed"); S.rpSec=S.rpSec||{}; if(c.classList.contains("closed")) S.rpSec[k]=true; else delete S.rpSec[k]; },c); save(); };
     hd.onclick=e=>{ e.stopPropagation(); tog(); }; c.onclick=()=>{ if(c.classList.contains("closed")) tog(); }; });
