@@ -2870,7 +2870,7 @@ async function fetchPrices(){
 }
 let lastRefresh=0;
 // ---------- aggiornamento automatico: se è pubblicata una versione più nuova la carica subito ----------
-const APP_VER="118";
+const APP_VER="119";
 async function checkUpdate(){
   try{ const u=location.href.split("#")[0].split("?")[0]; if(!/^https?:/.test(u)) return;
     const t=await (await fetch(u+"?v="+Date.now(),{cache:"no-store"})).text(); const m=t.match(/const APP_VER="(\d+)"/);
@@ -3272,6 +3272,8 @@ function recKind(t,holder){ const d=t.desc;
 // nome leggibile dell'esercente
 function recName(t){ let d=t.desc.replace(/\s+/g," ").trim(), m;
   if(/amzn|amazon/i.test(d)) return "Amazon"; if(/uber/i.test(d)) return "Uber";
+  if((m=d.match(/(?:bonifico|stipendi e pensioni)[^:]*\b(?:a|da):\s*(.+)$/i))) d=m[1];
+  else if((m=d.match(/^addebito diretto\s+(.+)$/i))) d=m[1];
   if((m=d.match(/direct debit transfer to (.+?)(?: \(|$)/i))) d=m[1];
   if((m=d.match(/(?:incoming transfer from|outgoing transfer for) (.+?)(?: \(|$)/i))) d=m[1];
   d=d.replace(/^(paypal|sumup|sq|sp|iz|zettle|nexi|stripe|mgp|ubr)\s*\*\s*/i,"").replace(/\*.*$/,"").replace(/\b(s\.?p\.?a\.?|s\.?r\.?l\.?|snc|sas|italia)\b\.?/gi," ").replace(/#.*$/,"").replace(/\b[A-Z0-9]*\d[A-Z0-9]*\b/g," ").replace(/[-,.]+\s*$/,"").replace(/\s+/g," ").trim();
@@ -3285,7 +3287,11 @@ function recPropose(t,kind,learnt){ const n=recName(t), k=norm(n);
   if(kind==="interessi") return {desc:"Interessi",cat:"Interessi conto deposito"};
   if(kind==="bollo") return {desc:"Imposta di bollo",cat:"Altro"};
   if(kind==="giro") return {desc:t.imp>0?"Trasferimento in entrata":"Trasferimento in uscita",cat:"Trasferimento"};
-  if(learnt[k]) return {...learnt[k],from:"le tue righe"};
+  if(learnt[k]){ const L=learnt[k]; if(L.amts&&new Set(L.amts).size===1&&!L.amts.some(a=>Math.abs(a-t.imp)<0.005)) return {desc:n,cat:"",todo:true}; // importo fisso (es. Inps, abbonamenti): se cambia, non indovino
+    // la riga già in Excel con l'importo più vicino detta categoria (e descrizione, se è praticamente lo stesso importo)
+    const nr=(L.rows||[]).slice().sort((a,b)=>Math.abs(a.imp-t.imp)-Math.abs(b.imp-t.imp))[0];
+    if(nr&&Math.abs(nr.imp-t.imp)<=Math.abs(t.imp)*.01) return {desc:nr.desc,cat:nr.cat,from:"le tue righe"};
+    return {desc:L.desc,cat:nr?nr.cat:L.cat,from:"le tue righe"}; }
   const L=S.merchMap||{}; if(L[k]) return {desc:L[k].desc,cat:L[k].cat,from:"le tue righe"};
   const g=guessMerchant(n); if(g.cat&&CATS.includes(g.cat)) return {desc:g.desc,cat:g.cat};
   for(const [re,c] of REC_KW) if(re.test(t.desc)) return {desc:n,cat:c};
@@ -3307,7 +3313,7 @@ function reconcile(st,conto){
   // addebiti che l'app modella davvero: spese del mese sulla carta, addebitate il giorno previsto
   const modeled=[]; cardsHere.forEach(c=>{ const gg=c.giorno||15, lag=MESI_RITARDO[c.name]||1, own=rows.filter(r=>r.conto===c.name);
     [...new Set(own.map(r=>r.d.slice(0,7)))].forEach(mm=>{ const [y,mo]=mm.split("-").map(Number); modeled.push({name:c.name,due:dateISO(new Date(y,mo-1+lag,gg)),amt:own.filter(r=>r.d.startsWith(mm)).reduce((x,r)=>x+r.imp,0)}); }); });
-  tx.forEach(t=>{ if(t.kind!=="addcarta") return; const md=modeled.find(q=>Math.abs(q.amt-t.imp)<0.01&&Math.abs(days(q.due,t.d))<=5); if(md) t.m={auto:md.name}; });
+  tx.forEach(t=>{ if(t.kind!=="addcarta") return; const near=modeled.filter(q=>Math.abs(days(q.due,t.d))<=5).sort((a,b)=>Math.abs(a.amt-t.imp)-Math.abs(b.amt-t.imp)), md=near[0]; if(md&&(Math.abs(md.amt-t.imp)<0.01||Math.abs(md.amt-t.imp)<=Math.max(30,Math.abs(t.imp)*.15))) t.m={auto:md.name,model:md.amt}; });
   // ...e se l'hai anche scritto in Excel a mano, quella riga conta due volte
   tx.forEach(t=>{ if(!t.m||!t.m.auto) return; let best=null; xl.forEach(x=>{ const dd=Math.abs(days(x.d,t.d)); if(!x.m&&Math.abs(x.imp-t.imp)<0.005&&dd<=5&&(!best||dd<best.dd)) best={x,dd}; }); if(best){ best.x.m={dup:t}; t.m.dup=best.x; } });
   // 1. stesso importo, data più vicina
@@ -3329,8 +3335,14 @@ function reconcile(st,conto){
   const seen={}; tx.forEach(t=>{ if(t.m&&t.m.x&&!t.m.sum&&t.kind!=="pac"){ const k=norm(recName(t)); (seen[k]=seen[k]||[]).push(t.m.x); } });
   const learnt={}; for(const k in seen){ const xs=seen[k], ds=new Set(xs.map(x=>norm(x.desc))), cc={}; xs.forEach(x=>cc[x.cat]=(cc[x.cat]||0)+1);
     const cat=Object.keys(cc).sort((a,b)=>cc[b]-cc[a])[0]; const nm=recName(tx.find(t=>t.m&&t.m.x===xs[0]));
-    learnt[k]=ds.size===1?{desc:xs[0].desc,cat:xs[0].cat}:{desc:nm,cat}; }
+    learnt[k]=ds.size===1?{desc:xs[0].desc,cat:xs[0].cat,n:xs.length,amts:xs.map(x=>x.imp),rows:xs}:{desc:nm,cat,n:xs.length,amts:xs.map(x=>x.imp),rows:xs}; }
   let miss=tx.filter(t=>!t.m).map(t=>({t,...recPropose(t,t.kind,learnt)}));
+  // soldi che entrano e riescono lo stesso giorno (es. stipendio che passa da BNL e va su Trade): per questo conto non cambiano nulla,
+  // e in Excel di solito sono già scritti sull'altro conto. Non li propongo.
+  const transit=[]; { const used=new Set(); miss.forEach((a,i)=>{ if(used.has(i)||a.t.kind==="pac"||a.t.kind==="addcarta") return;
+      const j=miss.findIndex((b,k)=>k!==i&&!used.has(k)&&b.t.kind!=="pac"&&b.t.kind!=="addcarta"&&Math.abs(b.t.imp+a.t.imp)<0.005&&Math.abs(days(a.t.d,b.t.d))<=1);
+      if(j>=0){ used.add(i); used.add(j); const [o,n]=a.t.imp<0?[a,miss[j]]:[miss[j],a]; transit.push({out:o.t,inn:n.t}); } });
+    miss=miss.filter((_,i)=>!used.has(i)); }
   // PAC mancanti: una riga per giorno, come fai tu
   const pac={}; miss=miss.filter(m=>{ if(m.t.kind!=="pac") return true; const k=m.t.d; if(!pac[k]){ pac[k]={...m,t:{...m.t,desc:"Piano di accumulo",imp:0}}; } pac[k].t.imp=Math.round((pac[k].t.imp+m.t.imp)*100)/100; return false; });
   miss=[...miss,...Object.values(pac)].sort((a,b)=>a.t.d<b.t.d?-1:a.t.d>b.t.d?1:0).map((m,i)=>({...m,i,on:true}));
@@ -3338,16 +3350,16 @@ function reconcile(st,conto){
   const auto=tx.filter(t=>t.m&&t.m.auto), ok=tx.filter(t=>t.m&&!t.m.auto&&!t.m.near).length;
   const app=contoAt(conto,last), diff=app!=null&&st.saldoFin!=null?st.saldoFin-app:null;
   const sMiss=miss.reduce((a,m)=>a+m.t.imp,0), sNear=near.reduce((a,n)=>a+(n.t.imp-n.x.imp),0), sExtra=-extra.reduce((a,x)=>a+x.imp,0), sDup=-dup.reduce((a,x)=>a+x.imp,0);
-  return {st,conto,first,last,tx,miss,near,extra,dup,auto,ok,app,diff,sMiss,sNear,sExtra,sDup,rest:diff!=null?diff-sMiss-sNear-sExtra-sDup:null}; }
+  return {st,conto,first,last,tx,miss,near,extra,dup,auto,transit,ok,app,diff,sMiss,sNear,sExtra,sDup,rest:diff!=null?diff-sMiss-sNear-sExtra-sDup:null}; }
 let REC=null;
 function openRec(){ $("sheetRp").classList.remove("open"); openSheet("sheetRec"); setActiveNav("rp"); if(!REC||REC.sent) renderRecIntro(); }
 function renderRecIntro(err){ REC=null; const conti=CONTI.filter(c=>!/amex|visa/i.test(c)&&c!=="Contanti");
   $("recBody").innerHTML=`<div class="recin"><div class="recart">${svgG("documento")}</div><b>Riconcilia l'estratto conto</b>
     <p>Carica il PDF dell'estratto conto: confronto ogni transazione con quelle in Excel e ti preparo quelle che mancano, già con descrizione e categoria. Poi le registri tutte con un tocco.</p>
     <div class="reccon"><small>Conto</small><div class="chips" id="recConto">${conti.map(c=>`<button data-c="${esc(c)}" class="${c==="Trade"?"on":""}">${logo(c)}${esc(lbl(c))}</button>`).join("")}</div></div>
-    <div class="recbtns"><label class="go recpick">Scegli il PDF<input type="file" id="recIn" accept="application/pdf,.pdf" hidden></label>
+    <div class="recbtns"><label class="go recpick">Scegli il file<input type="file" id="recIn" accept="application/pdf,.pdf,text/csv,.csv,text/plain,.txt" hidden></label>
       <button class="btn recpaste" id="recPaste">${svgG("appunti")}Incolla</button></div>
-    <p class="recnote">Per ora legge gli estratti conto di Trade Republic (in app: Profilo › Documenti › Estratti conto). Per incollarlo: tieni premuto il PDF › Copia, poi torna qui e tocca Incolla. Il PDF resta sul telefono.</p>
+    <p class="recnote">Legge l'estratto conto PDF di Trade Republic (in app: Profilo › Documenti › Estratti conto) e i file CSV con i movimenti (per BNL e gli altri conti: righe come 15/10/2026;Descrizione;-261,00). Per incollarlo: tieni premuto il PDF › Copia, poi torna qui e tocca Incolla. Il PDF resta sul telefono.</p>
     ${err?`<p class="recerr">${esc(err)}</p>`:""}</div>`;
   $("recConto").querySelectorAll("button").forEach(b=>b.onclick=()=>{ haptic("light"); $("recConto").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); });
   $("recIn").onchange=e=>{ const f=e.target.files&&e.target.files[0]; e.target.value=""; if(f) recGo(f); };
@@ -3355,24 +3367,37 @@ function renderRecIntro(err){ REC=null; const conti=CONTI.filter(c=>!/amex|visa/
 const recConto=()=>{ const b=$("recConto")&&$("recConto").querySelector("button.on"); return b?b.dataset.c:"Trade"; };
 const recIntroOpen=()=>$("sheetRec").classList.contains("open")&&!!$("recConto");
 async function isPdf(blob){ try{ const b=new Uint8Array(await blob.slice(0,5).arrayBuffer()); return String.fromCharCode(...b)==="%PDF-"; }catch(e){ return false; } }
-async function recGo(blob){ if(!(await isPdf(blob))){ haptic("warn"); return renderRecIntro("Questo non è un PDF: serve il file dell'estratto conto."); } runRec(blob,recConto()); }
+const isTextFile=f=>/^text\//.test(f.type||"")||/\.(csv|txt|tsv)$/i.test(f.name||"");
+async function recGo(blob){ if(!(await isPdf(blob))&&!isTextFile(blob)){ haptic("warn"); return renderRecIntro("Serve il PDF dell'estratto conto oppure un file CSV con i movimenti."); } runRec(blob,recConto()); }
 // Incolla: legge gli appunti (tieni premuto il PDF in File › Copia)
 async function recPasteBtn(){ haptic("light");
   if(!navigator.clipboard||!navigator.clipboard.read) return toast("Questo browser non legge i file dagli appunti: usa Scegli il PDF",true);
   try{ const items=await navigator.clipboard.read();
     for(const it of items){ const t=it.types.find(x=>/pdf/i.test(x))||it.types.find(x=>!/^text\//.test(x)&&!/^image\//.test(x)); if(t){ const b=await it.getType(t); if(await isPdf(b)) return recGo(b); } }
+    for(const it of items){ if(it.types.includes("text/plain")){ const t=await (await it.getType("text/plain")).text(); if(parseCsvStatement(t).tx.length) return recGo(new File([t],"movimenti.csv",{type:"text/csv"})); } }
     toast("Negli appunti non c'è un PDF: tieni premuto il file › Copia, poi tocca Incolla",true); }
   catch(e){ toast(e&&e.name==="NotAllowedError"?"Consenti l'accesso agli appunti, poi riprova":"Non riesco a leggere gli appunti: usa Scegli il PDF",true); } }
 // incolla con la tastiera (⌘V / Ctrl+V) o trascina il file sulla schermata
 document.addEventListener("paste",e=>{ if(!recIntroOpen()) return; const f=[...((e.clipboardData&&e.clipboardData.files)||[])].find(x=>/pdf/i.test(x.type)||/\.pdf$/i.test(x.name)); if(f){ e.preventDefault(); recGo(f); } });
 ["dragover","drop"].forEach(ev=>document.addEventListener(ev,e=>{ if(!recIntroOpen()) return; e.preventDefault();
   if(ev==="drop"){ const f=[...((e.dataTransfer&&e.dataTransfer.files)||[])][0]; if(f) recGo(f); } }));
+// File di testo (CSV): Data;Descrizione;Importo, una riga per movimento. Serve per i conti senza PDF (es. BNL dagli screenshot).
+const HOLDER_DEF="Emilio Quinto";
+function parseCsvStatement(text){ const lines=text.replace(/^\uFEFF/,"").split(/\r?\n/).filter(l=>l.trim()), tx=[];
+  const sep=lines.some(l=>l.includes(";"))?";":(lines.some(l=>l.includes("\t"))?"\t":",");
+  for(const l of lines){ const c=l.split(sep).map(x=>x.trim().replace(/^"|"$/g,"")); if(c.length<3) continue;
+    let m=c[0].match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/), d=m?`${m[3]}-${pad2(+m[2])}-${pad2(+m[1])}`:(/^\d{4}-\d{2}-\d{2}$/.test(c[0])?c[0]:null); if(!d) continue;
+    const raw=c[c.length-1].replace(/[€\s]/g,""), n=raw.includes(",")?raw.replace(/\./g,"").replace(",","."):raw, imp=Math.round(parseFloat(n)*100)/100; if(isNaN(imp)) continue;
+    tx.push({d,tipo:"",desc:c.slice(1,-1).join(" ").replace(/\s+/g," ").trim(),amt:Math.abs(imp),saldo:null,imp}); }
+  tx.sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:0);
+  return {bank:"",holder:HOLDER_DEF,period:"",saldo0:null,saldoFin:null,tx}; }
 async function runRec(file,conto){
   if(!S.cache){ renderRecIntro("Apri prima il Riepilogo: servono i movimenti letti da Excel."); return; }
   $("recBody").innerHTML=`<div class="recload"><div class="recspin"><i></i><i></i><i></i></div><b id="recStep">Leggo l'estratto conto…</b><small id="recSub"></small></div>`; haptic("pop");
   try{ try{ await refreshExcel(true); }catch(e){}
-    const st=await parseStatement(new Uint8Array(await file.arrayBuffer()),(p,n)=>{ const el=$("recSub"); if(el) el.textContent=`pagina ${p} di ${n}`; });
-    if(!st.tx.length) throw new Error("Non trovo transazioni in questo PDF: serve l'estratto conto di Trade Republic.");
+    const head=new Uint8Array(await file.slice(0,5).arrayBuffer()), isPdfF=String.fromCharCode(...head)==="%PDF-";
+    const st=isPdfF?await parseStatement(new Uint8Array(await file.arrayBuffer()),(p,n)=>{ const el=$("recSub"); if(el) el.textContent=`pagina ${p} di ${n}`; }):parseCsvStatement(await file.text());
+    if(!st.tx.length) throw new Error(isPdfF?"Non trovo transazioni in questo PDF: serve l'estratto conto di Trade Republic.":"Non trovo movimenti nel file: servono righe come 15/10/2026;Descrizione;-261,00");
     $("recStep").textContent=`Confronto ${st.tx.length} transazioni con Excel…`; await new Promise(r=>setTimeout(r,450));
     REC=reconcile(st,conto); renderRec(); haptic("ok"); }
   catch(e){ renderRecIntro(e.message||"Non sono riuscito a leggere il PDF"); haptic("warn"); } }
@@ -3394,8 +3419,9 @@ function renderRec(){ const R0=REC; if(!R0) return; const m=R0.miss, sel=m.filte
       <b class="recv ${x.t.imp>0?"in":""}">${x.t.imp>0?"+":""}${fmtIT(x.t.imp)} €</b></div>`).join("")+`</div>`; }
   if(R0.near.length) h+=`<div class="rechd"><b>Importo diverso</b></div><ul class="rows recinfo">${R0.near.map((n,k)=>`<li><span>${esc(n.x.desc)}<small>${dateIT(fromISO(n.x.d))} · in Excel ${fmtIT(n.x.imp)} €, nell'estratto ${fmtIT(n.t.imp)} € (${esc(recName(n.t))})${n.x.riga?" · riga "+n.x.riga:""}</small></span><b>${n.t.imp-n.x.imp>0?"+":"−"}${fmtIT(Math.abs(n.t.imp-n.x.imp))}</b>${recAct("near",k,n.done,"Correggi")}</li>`).join("")}</ul><p class="fn">"Correggi" scrive in Excel l'importo dell'estratto conto.</p>`;
   if(R0.extra.length) h+=`<div class="rechd"><b>Solo in Excel</b></div><ul class="rows recinfo">${R0.extra.map((x,k)=>`<li><span>${esc(x.desc)}<small>${dateIT(fromISO(x.d))} · ${esc(x.cat)}${x.riga?" · riga "+x.riga:""}</small></span><b>${fmtIT(x.imp)} €</b>${recAct("extra",k,x.done,"Elimina",1)}</li>`).join("")}</ul><p class="fn">Non le trovo nell'estratto: possibili doppioni, o spese pagate con un altro conto (in quel caso cambia il conto, non eliminarle).</p>`;
+  if(R0.transit&&R0.transit.length) h+=`<div class="rechd"><b>Passano da ${esc(lbl(R0.conto))}</b></div><ul class="rows recinfo">${R0.transit.map(x=>`<li><span>${esc(recName(x.inn))} → ${esc(recName(x.out))}<small>${dateIT(fromISO(x.inn.d))} · entrano ed escono lo stesso giorno: per questo conto non cambia nulla, non registrarli</small></span><b>${fmtIT(Math.abs(x.out.imp))} €</b></li>`).join("")}</ul>`;
   if(R0.dup.length) h+=`<div class="rechd"><b>Contati due volte</b></div><ul class="rows recinfo">${R0.dup.map((x,k)=>`<li><span>${esc(x.desc)}<small>${dateIT(fromISO(x.d))}${x.riga?" · riga "+x.riga:""} · l'app scala già da sola l'addebito della carta: questa riga lo conta due volte</small></span><b>${fmtIT(x.imp)} €</b>${recAct("dup",k,x.done,"Elimina",1)}</li>`).join("")}</ul>`;
-  if(R0.auto.length) h+=`<div class="rechd"><b>Già calcolati dall'app</b></div><ul class="rows recinfo">${R0.auto.map(t=>`<li><span>${esc(recName(t))}<small>${dateIT(fromISO(t.d))} · addebito della carta ${esc(t.m.auto)}: l'app lo scala già da sola, non registrarlo</small></span><b>${fmtIT(t.imp)} €</b></li>`).join("")}</ul>`;
+  if(R0.auto.length) h+=`<div class="rechd"><b>Già calcolati dall'app</b></div><ul class="rows recinfo">${R0.auto.map(t=>`<li><span>${esc(recName(t))}<small>${dateIT(fromISO(t.d))} · addebito della carta ${esc(t.m.auto)}: l'app lo scala già da sola, non registrarlo${t.m.model!=null&&Math.abs(t.m.model-t.imp)>=0.01?` · <b style="color:var(--warn)">in banca ${fmtIT(Math.abs(t.imp))} €, l'app calcola ${fmtIT(Math.abs(t.m.model))} €: ${Math.abs(t.imp)>Math.abs(t.m.model)?"mancano":"sono in più"} ${fmtIT(Math.abs(Math.abs(t.imp)-Math.abs(t.m.model)))} € di spese sulla carta</b>`:""}</small></span><b>${fmtIT(t.imp)} €</b></li>`).join("")}</ul>`;
   h+=`<div class="recbar"><button class="btn" id="recCopy">Copia per Excel</button><button class="go" id="recGo" ${nSel?"":"disabled"}>${nSel?`Registra ${nSel} ${nSel===1?"movimento":"movimenti"}`:"Niente da registrare"}</button></div>${todo?`<p class="fn rectodo">${todo} senza categoria: sceglila prima di registrare.</p>`:""}<div style="height:90px"></div>`;
   $("recBody").innerHTML=h; animateCounts($("recBody"));
   const ent=i=>R0.miss[i];
