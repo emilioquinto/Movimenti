@@ -1477,6 +1477,7 @@
   .recbtns{display:flex;gap:8px;width:100%;max-width:420px;margin-top:6px} .recbtns .recpick{flex:1;margin-top:0}
   .recpaste{flex:0 0 auto;display:flex;align-items:center;gap:6px;margin:0!important;padding:0 16px;border-radius:16px;font-weight:700}
   .recpaste svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .mv ul.list li.virt{background:color-mix(in srgb,var(--go) 7%,transparent)!important;border-left:3px solid var(--go)} .mv ul.list li.virt .v{color:var(--ink-2)}
   .recquick{display:flex;align-items:center;gap:12px;width:100%;margin:2px 0 12px;padding:12px 14px;border-radius:18px;text-align:left;background:var(--surface,var(--paper));border:1px solid var(--hair);color:var(--ink);transition:transform .15s;animation:cardIn .5s .1s cubic-bezier(.22,1,.36,1) both}
   .recquick:active{transform:scale(.98)} .recquick i{width:38px;height:38px;flex:0 0 auto;border-radius:12px;display:grid;place-items:center;background:color-mix(in srgb,#0E9AB0 16%,transparent);color:#0E9AB0}
   .recquick i svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
@@ -2869,7 +2870,7 @@ async function fetchPrices(){
 }
 let lastRefresh=0;
 // ---------- aggiornamento automatico: se è pubblicata una versione più nuova la carica subito ----------
-const APP_VER="117";
+const APP_VER="118";
 async function checkUpdate(){
   try{ const u=location.href.split("#")[0].split("?")[0]; if(!/^https?:/.test(u)) return;
     const t=await (await fetch(u+"?v="+Date.now(),{cache:"no-store"})).text(); const m=t.match(/const APP_VER="(\d+)"/);
@@ -5010,7 +5011,18 @@ let MV={q:"",month:null,cat:"",conto:"",tipo:"",limit:60};
 function openMv(){ closeMvF(); if(!S.cache){ toast(S.share?"Apri prima il Riepilogo per scaricare i dati":"Manca l'indirizzo del relay in ⚙︎",true); return; }
   if(MV.month===null) MV.month=dateISO(today()).slice(0,7);
   MV.limit=60; openSheet("sheetMv"); renderMv(); if(S.share) doRefresh(false).then?.(()=>{}); }
-function mvRows(){ return mvFilt("").sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:0); }
+// Addebiti delle carte sul conto collegato (es. Amex → BNL il 15): l'app li calcola già nel saldo, qui li rende visibili.
+// Sono righe "virtuali": non entrano nei totali di entrate e uscite perché le spese sono già contate quando le fai.
+function cardDebits(){ const C=S.cache, D=calc(); if(!C||!D) return []; const out=[], now=today();
+  D.carte.filter(c=>c.addebita).forEach(c=>{ const gg=c.giorno||15, lag=MESI_RITARDO[c.name]||1, own=C.rows.filter(r=>r.conto===c.name);
+    [...new Set(own.map(r=>r.d.slice(0,7)))].forEach(mm=>{ const [y,mo]=mm.split("-").map(Number), due=new Date(y,mo-1+lag,gg); if(now<due) return;
+      const amt=Math.round(own.filter(r=>r.d.startsWith(mm)).reduce((x,r)=>x+r.imp,0)*100)/100; if(Math.abs(amt)<0.005) return;
+      // se l'hai già scritto a mano in Excel (stesso conto e importo) non lo ripeto
+      if(C.rows.some(r=>r.conto===c.addebita&&Math.abs(r.imp-amt)<0.005&&Math.abs((fromISO(r.d)-due)/864e5)<=5)) return;
+      out.push({d:dateISO(due),desc:`Addebito ${c.name} · spese di ${MESI[mo-1].toLowerCase()}`,cat:"Trasferimento",conto:c.addebita,imp:amt,virt:true,carta:c.name}); }); });
+  return out; }
+function mvRows(){ const q=norm(MV.q); const v=cardDebits().filter(r=>(!MV.tipo||(MV.tipo==="in"?r.imp>0:r.imp<0))&&(!MV.month||r.d.startsWith(MV.month))&&(!MV.cat||r.cat===MV.cat)&&(!MV.conto||r.conto===MV.conto)&&(!q||norm(r.desc).includes(q)||norm(r.cat).includes(q)));
+  return [...mvFilt(""),...v].sort((a,b)=>a.d<b.d?1:a.d>b.d?-1:0); }
 function mvFilt(skip){ const rows=(S.cache&&S.cache.rows)||[], q=norm(MV.q);
   return rows.filter(r=>(skip==="tipo"||!MV.tipo||(MV.tipo==="in"?r.imp>0:r.imp<0))&&(!MV.month||r.d.startsWith(MV.month))&&(skip==="cat"||!MV.cat||r.cat===MV.cat)&&(skip==="conto"||!MV.conto||r.conto===MV.conto)&&(!q||norm(r.desc).includes(q)||norm(r.cat).includes(q))); }
 function mvSet(k,v){ haptic(k==="month"?"tick":"light"); MV[k]=v; MV.limit=60; renderMv(); }
@@ -5050,25 +5062,26 @@ function closeMvF(){ const f=$("mvF"); if(!f.classList.contains("open")) return;
 function renderMv(){
   const C=S.cache; if(!C) return;
   renderMvBar(); renderMvF();
-  const rows=mvRows(); const inTot=rows.filter(r=>r.imp>0).reduce((a,r)=>a+r.imp,0), outTot=-rows.filter(r=>r.imp<0).reduce((a,r)=>a+r.imp,0);
+  const rows=mvRows(), real=rows.filter(r=>!r.virt); const inTot=real.filter(r=>r.imp>0).reduce((a,r)=>a+r.imp,0), outTot=-real.filter(r=>r.imp<0).reduce((a,r)=>a+r.imp,0);
   const expBar=rows.length?`<div class="expbar"><button class="btn" id="mvCopy">⧉ Copia testo</button><button class="btn" id="mvShare">⇪ Esporta .txt</button></div>`:"";
-  const net=inTot-outTot, nIn=rows.filter(r=>r.imp>0).length, nOut=rows.length-nIn, mx=Math.max(inTot,outTot,1);
-  const dayTot={}; rows.forEach(r=>{ dayTot[r.d]=(dayTot[r.d]||0)+r.imp; });
+  const net=inTot-outTot, nIn=real.filter(r=>r.imp>0).length, nOut=real.length-nIn, mx=Math.max(inTot,outTot,1);
+  const dayTot={}; real.forEach(r=>{ dayTot[r.d]=(dayTot[r.d]||0)+r.imp; });
   let h=expBar+`<div class="tiles mv3"><div class="tile wide" style="--sc:#1F6FD0"><h4><i>${svgG("bilancia")}</i>Saldo${MV.month?" · "+monthLabel(MV.month):""}</h4><b class="pv ${net>=0?"up":"down"}">${net>=0?"+":"−"}<span class="cnt" data-v="${Math.abs(net)}">${fmt0(Math.abs(net))}</span> €</b><div class="duo"><i class="in" style="width:${Math.round(inTot/mx*100)}%"></i><i class="out" style="width:${Math.round(outTot/mx*100)}%"></i></div><small class="ps">${rows.length} ${rows.length===1?"movimento":"movimenti"}</small></div>
     <div class="tile" style="--sc:#2FB27A"><h4><i>${svgG("entrata")}</i>Entrate</h4><b class="pv in">+<span class="cnt" data-v="${inTot}">${fmt0(inTot)}</span> €</b><small class="ps">${nIn} ${nIn===1?"movimento":"movimenti"}</small></div>
     <div class="tile" style="--sc:#E4572E"><h4><i>${svgG("uscita")}</i>Uscite</h4><b class="pv out">−<span class="cnt" data-v="${outTot}">${fmt0(outTot)}</span> €</b><small class="ps">${nOut} ${nOut===1?"movimento":"movimenti"}</small></div></div>`;
   if(!rows.length) h+=`<div class="empty">${EMPTY_ART.list}Niente da vedere qui, <i>Leo</i> ne approva.</div>`;
   else{ let day=null;
     const shown=rows.slice(0,MV.limit);
-    for(const r of shown){ if(r.d!==day){ if(day)h+=`</ul>`; day=r.d; const dt=dayTot[r.d]||0; h+=`<div class="day"><span>${fromISO(r.d).toLocaleDateString("it-IT",{weekday:"short",day:"numeric",month:"long"})}</span><small class="${dt>=0?"in":"out"}">${dt>=0?"+":"−"}${fmt0(Math.abs(dt))} €</small></div><ul class="list">`; }
-      h+=`<li>${catGi(r.cat,"li")}<span class="txt"><b>${esc(r.desc)}</b><small>${esc(r.cat)} · ${logo(r.conto)}${esc(lbl(r.conto))}</small></span><span class="v ${r.imp>0?"in":""}">${fmtIT(r.imp)} €</span></li>`; }
+    for(const r of shown){ if(r.d!==day){ if(day)h+=`</ul>`; day=r.d; const dt=dayTot[r.d]||0; h+=`<div class="day"><span>${fromISO(r.d).toLocaleDateString("it-IT",{weekday:"short",day:"numeric",month:"long"})}</span>${r.d in dayTot?`<small class="${dt>=0?"in":"out"}">${dt>=0?"+":"−"}${fmt0(Math.abs(dt))} €</small>`:""}</div><ul class="list">`; }
+      h+=r.virt?`<li class="virt">${catGi("Trasferimento","li")}<span class="txt"><b>${esc(r.desc)}</b><small>calcolato dall'app · ${logo(r.conto)}${esc(lbl(r.conto))} · già nelle uscite</small></span><span class="v">${fmtIT(r.imp)} €</span></li>`
+        :`<li>${catGi(r.cat,"li")}<span class="txt"><b>${esc(r.desc)}</b><small>${esc(r.cat)} · ${logo(r.conto)}${esc(lbl(r.conto))}</small></span><span class="v ${r.imp>0?"in":""}">${fmtIT(r.imp)} €</span></li>`; }
     h+=`</ul>`;
     if(rows.length>MV.limit) h+=`<button class="more2" id="mvMore">Mostra altri ${Math.min(60,rows.length-MV.limit)} (di ${rows.length-MV.limit})</button>`;
   }
   $("mvBody").innerHTML=h; stagger($("mvBody"),"ul.list"); animateCounts($("mvBody"));
   const mm=$("mvMore"); if(mm) mm.onclick=()=>{ haptic(); MV.limit+=60; renderMv(); };
-  const mc=$("mvCopy"); if(mc) mc.onclick=()=>copyText(mvText(rows),`${rows.length} movimenti copiati`);
-  const ms=$("mvShare"); if(ms) ms.onclick=()=>shareText(mvText(rows),"Movimenti_"+(MV.month||"tutti")+(MV.conto?"_"+MV.conto:"")+".txt");
+  const mc=$("mvCopy"); if(mc) mc.onclick=()=>copyText(mvText(real),`${real.length} movimenti copiati`);
+  const ms=$("mvShare"); if(ms) ms.onclick=()=>shareText(mvText(real),"Movimenti_"+(MV.month||"tutti")+(MV.conto?"_"+MV.conto:"")+".txt");
 }
 $("mvQ").oninput=e=>{ MV.q=e.target.value; MV.limit=60; renderMv(); };
 $("mvTipo").onclick=e=>{ const b=e.target.closest("button"); if(!b) return; mvSet("tipo",b.dataset.t); };
