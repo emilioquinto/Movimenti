@@ -2870,7 +2870,7 @@ async function fetchPrices(){
 }
 let lastRefresh=0;
 // ---------- aggiornamento automatico: se è pubblicata una versione più nuova la carica subito ----------
-const APP_VER="119";
+const APP_VER="120";
 async function checkUpdate(){
   try{ const u=location.href.split("#")[0].split("?")[0]; if(!/^https?:/.test(u)) return;
     const t=await (await fetch(u+"?v="+Date.now(),{cache:"no-store"})).text(); const m=t.match(/const APP_VER="(\d+)"/);
@@ -3359,7 +3359,7 @@ function renderRecIntro(err){ REC=null; const conti=CONTI.filter(c=>!/amex|visa/
     <div class="reccon"><small>Conto</small><div class="chips" id="recConto">${conti.map(c=>`<button data-c="${esc(c)}" class="${c==="Trade"?"on":""}">${logo(c)}${esc(lbl(c))}</button>`).join("")}</div></div>
     <div class="recbtns"><label class="go recpick">Scegli il file<input type="file" id="recIn" accept="application/pdf,.pdf,text/csv,.csv,text/plain,.txt" hidden></label>
       <button class="btn recpaste" id="recPaste">${svgG("appunti")}Incolla</button></div>
-    <p class="recnote">Legge l'estratto conto PDF di Trade Republic (in app: Profilo › Documenti › Estratti conto) e i file CSV con i movimenti (per BNL e gli altri conti: righe come 15/10/2026;Descrizione;-261,00). Per incollarlo: tieni premuto il PDF › Copia, poi torna qui e tocca Incolla. Il PDF resta sul telefono.</p>
+    <p class="recnote">Legge l'estratto conto PDF di Trade Republic (in app: Profilo › Documenti › Estratti conto) e i file CSV con i movimenti (per BNL e gli altri conti: righe come 15/10/2026;Descrizione;-261,00; una riga Saldo;;1344,70 in fondo mostra la differenza). Per incollarlo: tieni premuto il PDF › Copia, poi torna qui e tocca Incolla. Il PDF resta sul telefono.</p>
     ${err?`<p class="recerr">${esc(err)}</p>`:""}</div>`;
   $("recConto").querySelectorAll("button").forEach(b=>b.onclick=()=>{ haptic("light"); $("recConto").querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b)); });
   $("recIn").onchange=e=>{ const f=e.target.files&&e.target.files[0]; e.target.value=""; if(f) recGo(f); };
@@ -3385,12 +3385,14 @@ document.addEventListener("paste",e=>{ if(!recIntroOpen()) return; const f=[...(
 const HOLDER_DEF="Emilio Quinto";
 function parseCsvStatement(text){ const lines=text.replace(/^\uFEFF/,"").split(/\r?\n/).filter(l=>l.trim()), tx=[];
   const sep=lines.some(l=>l.includes(";"))?";":(lines.some(l=>l.includes("\t"))?"\t":",");
-  for(const l of lines){ const c=l.split(sep).map(x=>x.trim().replace(/^"|"$/g,"")); if(c.length<3) continue;
+  let saldoFin=null; const num=r=>{ r=String(r).replace(/[€\s]/g,""); const v=parseFloat(r.includes(",")?r.replace(/\./g,"").replace(",","."):r); return isNaN(v)?null:Math.round(v*100)/100; };
+  for(const l of lines){ const c=l.split(sep).map(x=>x.trim().replace(/^"|"$/g,"")); if(c.length<2) continue;
+    if(/^saldo/i.test(c[0])){ const v=num(c[c.length-1]); if(v!=null) saldoFin=v; continue; } if(c.length<3) continue;
     let m=c[0].match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/), d=m?`${m[3]}-${pad2(+m[2])}-${pad2(+m[1])}`:(/^\d{4}-\d{2}-\d{2}$/.test(c[0])?c[0]:null); if(!d) continue;
     const raw=c[c.length-1].replace(/[€\s]/g,""), n=raw.includes(",")?raw.replace(/\./g,"").replace(",","."):raw, imp=Math.round(parseFloat(n)*100)/100; if(isNaN(imp)) continue;
     tx.push({d,tipo:"",desc:c.slice(1,-1).join(" ").replace(/\s+/g," ").trim(),amt:Math.abs(imp),saldo:null,imp}); }
   tx.sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:0);
-  return {bank:"",holder:HOLDER_DEF,period:"",saldo0:null,saldoFin:null,tx}; }
+  return {bank:"",holder:HOLDER_DEF,period:"",saldo0:null,saldoFin,tx}; }
 async function runRec(file,conto){
   if(!S.cache){ renderRecIntro("Apri prima il Riepilogo: servono i movimenti letti da Excel."); return; }
   $("recBody").innerHTML=`<div class="recload"><div class="recspin"><i></i><i></i><i></i></div><b id="recStep">Leggo l'estratto conto…</b><small id="recSub"></small></div>`; haptic("pop");
