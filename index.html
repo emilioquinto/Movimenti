@@ -1478,6 +1478,24 @@
   .recpaste{flex:0 0 auto;display:flex;align-items:center;gap:6px;margin:0!important;padding:0 16px;border-radius:16px;font-weight:700}
   .recpaste svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
   .mv ul.list li.virt{background:color-mix(in srgb,var(--go) 7%,transparent)!important;border-left:3px solid var(--go)} .mv ul.list li.virt .v{color:var(--ink-2)}
+  .pzhero{display:flex;flex-direction:column;gap:2px;padding:16px 18px;margin-bottom:12px;border-radius:26px;color:#fff;border:1px solid rgba(255,255,255,.2);
+    background:linear-gradient(150deg,var(--go),var(--go2));box-shadow:0 22px 50px -24px var(--go),inset 0 1px 0 rgba(255,255,255,.4)}
+  .pzhero small{font-size:12px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;opacity:.85} .pzhero b{font-size:32px;font-family:ui-rounded,-apple-system,system-ui,sans-serif;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+  .pzhero em{font-style:normal;font-size:13.5px;font-weight:600;opacity:.9}
+  .pzrow{padding:13px 14px;margin-bottom:10px;border-radius:var(--rr);background:var(--g-fill);border:1px solid var(--g-brd);box-shadow:var(--g-sh);transition:border-color .25s,box-shadow .25s}
+  .pzrow.ch{border-color:var(--go);box-shadow:0 0 0 1px var(--go),var(--g-sh)} .pzrow.ok{border-color:#2FB27A} .pzrow.fail{border-color:#E4572E}
+  .pzhd{display:flex;align-items:center;gap:11px} .pzhd i{flex:0 0 40px;height:40px;border-radius:13px;display:grid;place-items:center;font-style:normal;font-size:19px;font-weight:700;color:var(--pc);background:color-mix(in srgb,var(--pc) 16%,transparent)}
+  .pzhd span{flex:1;min-width:0} .pzhd b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .pzhd small{font-size:12px;color:var(--ink-2)}
+  .pzrow.ok .pzhd small{color:#2FB27A;font-weight:700} .pzrow.fail .pzhd small{color:#E4572E;font-weight:700}
+  .pzhd strong{flex:0 0 auto;text-align:right;font-size:15.5px;font-family:ui-rounded,-apple-system,system-ui,sans-serif;font-variant-numeric:tabular-nums}
+  .pzhd strong em,.pzhero em.up,.pzhero em.down{font-style:normal} .pzhd strong em{display:block;font-size:12px;font-weight:700} .pzhd strong em.up{color:#2FB27A} .pzhd strong em.down{color:#E4572E}
+  .pzin{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:11px} .pzin.one{grid-template-columns:1fr}
+  .pzin label{display:block;padding:7px 12px 8px;border-radius:14px;background:var(--surface-2);border:1px solid var(--hair);transition:border-color .2s,box-shadow .2s}
+  .pzin label:focus-within{border-color:var(--go);box-shadow:0 0 0 3px color-mix(in srgb,var(--go) 22%,transparent)}
+  .pzin small{display:block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-2)}
+  .pzin input{width:100%;border:0;background:transparent;outline:0;padding:2px 0 0;font-size:19px;font-weight:700;color:var(--ink);font-family:ui-rounded,-apple-system,system-ui,sans-serif;font-variant-numeric:tabular-nums}
+  .pzlive{margin-top:9px;font-size:13px;font-weight:700;color:var(--go);padding:6px 10px;border-radius:10px;background:color-mix(in srgb,var(--go) 11%,transparent)}
+  .pzbar .go{flex:1;height:52px;font-size:16.5px}
   .recquick{display:flex;align-items:center;gap:12px;width:100%;margin:2px 0 12px;padding:12px 14px;border-radius:18px;text-align:left;background:var(--surface,var(--paper));border:1px solid var(--hair);color:var(--ink);transition:transform .15s;animation:cardIn .5s .1s cubic-bezier(.22,1,.36,1) both}
   .recquick:active{transform:scale(.98)} .recquick i{width:38px;height:38px;flex:0 0 auto;border-radius:12px;display:grid;place-items:center;background:color-mix(in srgb,#0E9AB0 16%,transparent);color:#0E9AB0}
   .recquick i svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
@@ -1756,10 +1774,11 @@
 
 <div class="sheet" id="sheetPrezzi">
   <div class="top"><h2>Aggiorna valori</h2><button class="close" data-close="sheetPrezzi">Chiudi</button></div>
-  <p>Modifica quantità o prezzo di ogni asset e salva: i valori vengono scritti nel foglio Patrimonio e il Riepilogo si aggiorna subito.</p>
+  <div class="pzhero" id="prezziHero"></div>
   <div id="prezziRows"></div>
-  <button class="go" id="btnPrezziSave" style="width:100%">Salva in Excel</button>
-  <p id="prezziNote" style="margin-top:10px"></p>
+  <p id="prezziNote" class="fn" style="margin:10px 2px 0"></p>
+  <div class="recbar pzbar"><button class="go" id="btnPrezziSave" disabled>Nessuna modifica</button></div>
+  <div style="height:30px"></div>
 </div>
 
 <div class="sheet" id="sheetBudget">
@@ -2218,6 +2237,7 @@ function applyEntry(e,withAmt){
 // Ripeti: gli ultimi movimenti registrati e quelli più frequenti, un tocco e il modulo è compilato
 function renderQuick(){
   const box=$("quick"); if(!box) return;
+  box.hidden=true; return; // tolto su richiesta: la schermata Nuovo resta pulita
   if(F.amt||F.desc||F.cat){ box.hidden=true; return; }
   const seen=new Set(), items=[];
   const push=e=>{ const k=norm(e.desc); if(!e.desc||!e.cat||seen.has(k)) return; seen.add(k); items.push(e); };
@@ -2841,7 +2861,7 @@ function parseWorkbook(buf){
   for(const r of im.slice(0,27)){ if(r[1]) cats.push({name:String(r[1]).trim(),emoji:r[2]||"",tipo:String(r[3]||"").trim(),budget:Math.abs(+r[4]||0)}); }
   im.slice(0,9).forEach((r,i)=>{ if(r[6]&&!CONTI_NASCOSTI.has(String(r[6]).trim())) accounts.push({name:String(r[6]).trim(),saldo0:+r[7]||0,addebita:r[8]?String(r[8]).trim():"",riga:5+i}); });
   const ps=wb.Sheets["Patrimonio"]; const gv=a=>{ const c=ps[a]; return c?c.v:null; };
-  const assets=[]; for(let r=31;r<=36;r++){ const name=gv("B"+r); if(!name) continue; const qty=gv("C"+r), price=gv("D"+r); const value=(typeof qty==="number"&&typeof price==="number")?qty*price:(typeof price==="number"?price:(+gv("E"+r)||0)); assets.push({name:String(name),qty:typeof qty==="number"?qty:null,price:typeof price==="number"?price:null,value:Math.round(value*100)/100}); }
+  const assets=[]; for(let r=31;r<=36;r++){ const name=gv("B"+r); if(!name) continue; const qty=gv("C"+r), price=gv("D"+r); const value=(typeof qty==="number"&&typeof price==="number")?qty*price:(typeof price==="number"?price:(+gv("E"+r)||0)); assets.push({name:String(name),qty:typeof qty==="number"?qty:null,price:typeof price==="number"?price:null,value:Math.round(value*100)/100,riga:r}); }
   const assetDate=cellDate(gv("E4"));
   const storico=[]; for(let r=58;r<=200;r++){ const d=cellDate(gv("B"+r)); const v=gv("C"+r); if(!d||typeof v!=="number") { if(r>60&&!gv("B"+r)) break; continue; } storico.push({d,v}); }
   const pm=wb.Props&&wb.Props.ModifiedDate; const fileMod=pm?new Date(pm).getTime():null;
@@ -2870,7 +2890,7 @@ async function fetchPrices(){
 }
 let lastRefresh=0;
 // ---------- aggiornamento automatico: se è pubblicata una versione più nuova la carica subito ----------
-const APP_VER="120";
+const APP_VER="121";
 async function checkUpdate(){
   try{ const u=location.href.split("#")[0].split("?")[0]; if(!/^https?:/.test(u)) return;
     const t=await (await fetch(u+"?v="+Date.now(),{cache:"no-store"})).text(); const m=t.match(/const APP_VER="(\d+)"/);
@@ -2925,7 +2945,7 @@ function calc(){
   const carte=cards;
   const carteTot=carte.reduce((a,x)=>a+x.daAddebitare,0);
   let livePrices=false;
-  const assets=C.assets.map(a=>{ const lp=R.prices&&R.prices[a.name]; if(typeof lp==="number"&&lp>0){ livePrices=true; const value=a.qty!=null?a.qty*lp:(a.price!=null?a.value/a.price*lp:a.value); return {...a,price:lp,value:Math.round(value*100)/100,live:true}; } return a; });
+  const assets=C.assets.map(a=>{ const pin=S.pricePin&&S.pricePin[a.name], lp=pin&&Date.now()-pin<864e5?null:(R.prices&&R.prices[a.name]); if(typeof lp==="number"&&lp>0){ livePrices=true; const value=a.qty!=null?a.qty*lp:(a.price!=null?a.value/a.price*lp:a.value); return {...a,price:lp,value:Math.round(value*100)/100,live:true}; } return a; });
   const assetTot=assets.reduce((a,x)=>a+x.value,0);
   const patrimonio=liquidita+carteTot+assetTot+trasfCredito;
   const storico=mergeStorico(C.storico);
@@ -4274,37 +4294,64 @@ function openBudget(){
 }
 function numIT(v){ const n=parseFloat(String(v||"").trim().replace(/\./g,"").replace(",",".")); return isNaN(n)?0:n; }
 // ---------- aggiorna valori asset ----------
+// Ogni asset è una riga del foglio Patrimonio (C = quantità, D = prezzo o valore). Il salvataggio scrive le celle
+// una per una tramite Make (stessa strada di "modifica") e poi rilegge il file per controllare che siano arrivate.
+let PZ=null;
+const pzFmtIn=(v,dec)=>{ if(v==null) return ""; let t=(+v).toFixed(dec).replace(/0+$/,"").replace(/\.$/,""); const [a,b]=t.split("."); return a.replace(/\B(?=(\d{3})+(?!\d))/g,".")+(b?","+b:""); };
+function pzIcon(n){ return /bitcoin|btc/i.test(n)?["₿","#F7931A"]:/cronos|cro\b|eth|cripto/i.test(n)?["◈","#5B6BE8"]:/pension|allianz|tfr/i.test(n)?["☂","#0E9AB0"]:["↗","#8B5CF6"]; }
 function openPrezzi(){
   const C=S.cache; if(!C||!C.assets.length){ toast("Prima aggiorna il Riepilogo: servono gli asset dal file",true); return; }
-  const D=calc();
-  $("prezziRows").innerHTML=C.assets.map((a,i)=>{ const live=D.assets[i]&&D.assets[i].live?D.assets[i].price:null;
-    return `<div class="prow" data-i="${i}"><b>${esc(a.name)}</b><small>riga ${31+i} del foglio Patrimonio${live?` · prezzo live ${fmtIT(live)} €`:""}</small>
-    <div class="in2">
-      <div><label>Quantità</label><input inputmode="decimal" id="pq_${i}" value="${a.qty!=null?String(a.qty).replace(".",","):""}" ${a.qty==null?"disabled placeholder=\"—\"":""}></div>
-      <div><label>${a.qty!=null?"Prezzo unitario €":"Valore €"}</label><input inputmode="decimal" id="pp_${i}" value="${String(a.qty!=null?a.price:a.value).replace(".",",")}"></div>
-    </div>
-    <div class="val">Controvalore: <b id="pv_${i}">${fmtIT(a.value)} €</b>${live?` <button class="btn" data-live="${i}" style="margin:0 0 0 8px;padding:6px 10px;min-height:32px;font-size:13px">usa live</button>`:""}</div></div>`; }).join("");
-  const rec=i=>{ const a=C.assets[i]; const q=a.qty!=null?numIT($("pq_"+i).value):null, pz=numIT($("pp_"+i).value);
-    $("pv_"+i).textContent=fmtIT(q!=null?q*pz:pz)+" €"; };
-  C.assets.forEach((a,i)=>{ ["pq_","pp_"].forEach(pre=>{ const el=$(pre+i); if(el) el.oninput=()=>rec(i); }); });
-  $("prezziRows").querySelectorAll("[data-live]").forEach(b=>b.onclick=()=>{ const i=+b.dataset.live; $("pp_"+i).value=String(D.assets[i].price).replace(".",","); rec(i); });
-  $("prezziNote").textContent=S.pac?"":"Manca il webhook PAC in ⚙︎: i valori verranno aggiornati solo nell'app, non in Excel.";
-  openSheet("sheetPrezzi");
+  PZ={rows:C.assets.map(a=>({name:a.name,riga:a.riga||31+C.assets.indexOf(a),hasQ:a.qty!=null,q0:a.qty,p0:a.qty!=null?a.price:a.value,q:a.qty,p:a.qty!=null?a.price:a.value,st:""})),busy:false};
+  renderPrezzi(); openSheet("sheetPrezzi");
 }
+const pzVal=r=>Math.round((r.hasQ?(r.q||0)*(r.p||0):(r.p||0))*100)/100, pzVal0=r=>Math.round((r.hasQ?(r.q0||0)*(r.p0||0):(r.p0||0))*100)/100;
+const pzChanged=r=>(r.hasQ&&Math.abs((r.q||0)-(r.q0||0))>1e-7)||Math.abs((r.p||0)-(r.p0||0))>1e-5;
+function pzSummary(){ if(!PZ) return; const tot=PZ.rows.reduce((a,r)=>a+pzVal(r),0), tot0=PZ.rows.reduce((a,r)=>a+pzVal0(r),0), d=tot-tot0, n=PZ.rows.filter(pzChanged).length;
+  const C=S.cache; $("prezziHero").innerHTML=`<small>Investimenti${C.assetDate?` · in Excel al ${dateIT(fromISO(C.assetDate))}`:""}</small><b>${fmtIT(tot)} €</b>${Math.abs(d)>=0.005?`<em class="${d>0?"up":"down"}">${d>0?"+":"−"}${fmtIT(Math.abs(d))} € rispetto a Excel</em>`:`<em>uguale a Excel</em>`}`;
+  const b=$("btnPrezziSave"); if(!PZ.busy){ b.disabled=!n; b.textContent=n?`Salva ${n} ${n===1?"modifica":"modifiche"} in Excel`:"Nessuna modifica"; }
+  PZ.rows.forEach((r,i)=>{ const el=$("pv_"+i); if(!el) return; const v=pzVal(r), dd=v-pzVal0(r); el.innerHTML=`${fmtIT(v)} €${Math.abs(dd)>=0.005?` <em class="${dd>0?"up":"down"}">${dd>0?"+":"−"}${fmtIT(Math.abs(dd))}</em>`:""}`;
+    const card=el.closest(".pzrow"); if(card){ card.classList.toggle("ch",pzChanged(r)); } }); }
+function renderPrezzi(){ if(!PZ) return; const D=calc();
+  $("prezziRows").innerHTML=PZ.rows.map((r,i)=>{ const [ic,col]=pzIcon(r.name), live=R.prices&&typeof R.prices[r.name]==="number"?R.prices[r.name]:null;
+    return `<div class="pzrow ${r.st}" data-i="${i}" style="--pc:${col}">
+      <div class="pzhd"><i>${ic}</i><span><b>${esc(r.name)}</b><small id="pzs_${i}">${r.st==="ok"?"✓ salvato in Excel":r.st==="fail"?"non salvato: riprova":r.st==="pend"?"salvo…":`Patrimonio, riga ${r.riga}`}</small></span><strong id="pv_${i}"></strong></div>
+      <div class="pzin ${r.hasQ?"":"one"}">
+        ${r.hasQ?`<label><small>Quantità</small><input inputmode="decimal" autocomplete="off" id="pq_${i}" value="${pzFmtIn(r.q,8)}"></label>`:""}
+        <label><small>${r.hasQ?"Prezzo €":"Valore €"}</small><input inputmode="decimal" autocomplete="off" id="pp_${i}" value="${pzFmtIn(r.p,r.hasQ&&r.p<10?4:2)}"></label>
+      </div>
+      ${live?`<button class="pzlive" data-live="${i}">Usa il prezzo di oggi: ${fmtIT(live)} €</button>`:""}</div>`; }).join("");
+  PZ.rows.forEach((r,i)=>{ const q=$("pq_"+i), p=$("pp_"+i);
+    if(q){ q.oninput=()=>{ r.q=numIT(q.value); r.st=""; pzSummary(); }; q.onfocus=()=>setTimeout(()=>q.select(),0); }
+    p.oninput=()=>{ r.p=numIT(p.value); r.st=""; pzSummary(); }; p.onfocus=()=>setTimeout(()=>p.select(),0); });
+  $("prezziRows").querySelectorAll("[data-live]").forEach(b=>b.onclick=()=>{ const i=+b.dataset.live, r=PZ.rows[i]; r.p=R.prices[r.name]; $("pp_"+i).value=pzFmtIn(r.p,r.p<10?4:2); haptic("light"); pzSummary(); });
+  $("prezziNote").textContent=S.hook?"Tocca un numero per cambiarlo. Salva scrive solo le righe modificate nel foglio Patrimonio e poi controlla che Excel le abbia prese.":"Manca l'indirizzo webhook di Make in ⚙︎: senza, non posso scrivere in Excel.";
+  pzSummary(); }
 $("btnPrezziSave").onclick=async()=>{
-  const C=S.cache; if(!C) return; const btn=$("btnPrezziSave"); btn.disabled=true; btn.textContent="Salvo…";
-  const pp=new URLSearchParams({Agg:String(dateSerial(today()))}); let cambiati=0;
-  C.assets.forEach((a,i)=>{ const q=a.qty!=null?numIT($("pq_"+i).value):null, pz=numIT($("pp_"+i).value); if(pz<=0) return;
-    const n=i+1; pp.set("N"+n,a.name); pp.set("Riga"+n,String(31+i));
-    if(a.qty!=null){ pp.set("Q"+n,q.toFixed(6)); pp.set("P"+n,pz.toFixed(4)); if(Math.abs(q-a.qty)>1e-6||Math.abs(pz-a.price)>1e-4) cambiati++; a.qty=q; a.price=pz; a.value=Math.round(q*pz*100)/100; }
-    else { pp.set("P"+n,pz.toFixed(2)); if(Math.abs(pz-a.value)>0.004) cambiati++; a.price=pz; a.value=Math.round(pz*100)/100; } });
-  C.assetDate=dateISO(today()); R.prices=null; save();
-  let ok=true;
-  if(S.pac){ try{ await fetch(S.pac+(S.pac.includes("?")?"&":"?")+pp.toString(),{method:"POST",mode:"no-cors"}); }catch(e){ ok=false; } }
-  btn.disabled=false; btn.textContent="Salva in Excel";
-  $("sheetPrezzi").classList.remove("open"); renderRp();
-  toast(ok?(cambiati?`${cambiati} asset aggiornati${S.pac?", Excel in aggiornamento":""}`:"Nessuna modifica"):"Invio a Excel non riuscito: valori aggiornati solo nell'app",!ok);
-  if(S.pac&&cambiati) setTimeout(()=>doRefresh(true),6000);
+  if(!PZ||PZ.busy) return; const C=S.cache, todo=PZ.rows.filter(pzChanged); if(!todo.length) return;
+  if(todo.some(r=>!(r.p>0)||(r.hasQ&&!(r.q>=0)))){ haptic("warn"); return toast("Controlla i numeri: prezzo e valore devono essere maggiori di zero",true); }
+  if(!S.hook) return toast("Manca l'indirizzo webhook di Make in ⚙︎",true);
+  const btn=$("btnPrezziSave"); PZ.busy=true; btn.disabled=true; btn.textContent="Salvo in Excel…"; haptic("pop");
+  const mark=(r,st)=>{ r.st=st; const i=PZ.rows.indexOf(r), el=$("pzs_"+i), card=el&&el.closest(".pzrow"); if(el) el.textContent=st==="ok"?"✓ salvato in Excel":st==="fail"?"non salvato: riprova":"salvo…"; if(card){ card.classList.remove("ok","fail","pend"); card.classList.add(st); } };
+  const want=todo.map(r=>({r,q:r.hasQ?Math.round(r.q*1e8)/1e8:null,p:Math.round(r.p*1e6)/1e6}));
+  // subito nell'app, così il Riepilogo non torna indietro mentre Excel si aggiorna
+  S.pricePin=S.pricePin||{}; want.forEach(w=>{ const a=C.assets.find(x=>x.name===w.r.name); if(a){ if(w.q!=null){ a.qty=w.q; a.price=w.p; a.value=Math.round(w.q*w.p*100)/100; } else { a.price=w.p; a.value=Math.round(w.p*100)/100; } } S.pricePin[w.r.name]=Date.now(); mark(w.r,"pend"); });
+  C.assetDate=dateISO(today()); save();
+  let sent=true;
+  try{ for(const w of want){ const addr=w.q!=null?`C${w.r.riga}:D${w.r.riga}`:`D${w.r.riga}`;
+      await xlSend("modifica","PATCH",xlBase()+`/worksheets/Patrimonio/range(address='${addr}')`,JSON.stringify({values:[w.q!=null?[w.q,w.p]:[w.p]]})); await new Promise(res=>setTimeout(res,450)); }
+    await xlSend("modifica","PATCH",xlBase()+"/worksheets/Patrimonio/range(address='E4')",JSON.stringify({values:[[dateSerial(today())]]})); }
+  catch(e){ sent=false; }
+  const near=(a,b)=>Math.abs(a-b)<=Math.max(1e-6,Math.abs(b)*1e-6);
+  const landed=w=>{ const a=S.cache&&S.cache.assets.find(x=>x.name===w.r.name); return !!a&&(w.q!=null?near(a.qty,w.q)&&near(a.price,w.p):near(a.price!=null?a.price:a.value,w.p)); };
+  let okAll=false; if(sent&&S.share) okAll=await verify(()=>want.every(landed));
+  if(!PZ){ return; } PZ.busy=false;
+  if(sent&&!S.share){ want.forEach(w=>{ mark(w.r,"ok"); w.r.q0=w.r.q; w.r.p0=w.r.p; }); toast("Inviato a Excel (senza relay non posso controllare)"); }
+  else { let nOk=0; want.forEach(w=>{ const ok=sent&&landed(w); mark(w.r,ok?"ok":"fail"); if(ok){ nOk++; w.r.q0=w.r.q; w.r.p0=w.r.p; } });
+    if(!okAll){ // Excel non ha (ancora) preso tutto: tengo i valori nuovi nell'app invece di tornare ai vecchi
+      const C2=S.cache; want.filter(w=>!landed(w)).forEach(w=>{ const a=C2.assets.find(x=>x.name===w.r.name); if(a){ if(w.q!=null){ a.qty=w.q; a.price=w.p; a.value=Math.round(w.q*w.p*100)/100; } else { a.price=w.p; a.value=Math.round(w.p*100)/100; } } }); save(); }
+    haptic(okAll?"win":"warn");
+    toast(okAll?`${nOk} ${nOk===1?"valore salvato":"valori salvati"} in Excel`:(nOk?`${nOk} salvati, ${want.length-nOk} no: `:"Excel non ha confermato: ")+"guarda History in Make e riprova.",!okAll); }
+  pzSummary(); renderRp();
 };
 
 // ---------- riepilogo a comparsa dopo ogni movimento ----------
