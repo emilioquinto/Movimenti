@@ -1501,6 +1501,9 @@
   .ripbtn span{flex:1;min-width:0} .ripbtn b{display:block;font-size:14.5px} .ripbtn small{display:block;font-size:12px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .ripbtn em{font-style:normal;font-size:20px;color:var(--ink-2)}
   .quick[hidden]{display:none!important} .quick .ripbtn{flex:1 1 auto;max-width:none;width:100%;padding:8px 12px;border-radius:18px;gap:11px}
   .quick .ripbtn span{flex:1} .quick .ripbtn b{font-size:14.5px;font-weight:700} .quick .ripbtn small{font-size:12px;font-family:inherit}
+  .famhd{gap:8px} .famhd>span{white-space:nowrap} .famhd .dayp{white-space:nowrap;flex:0 0 auto}
+  .famhd .srbtn{width:34px;height:34px;margin-left:2px} .famhd .srbtn svg{width:17px;height:17px}
+  .famhd .srbtn.ripmini{margin-left:-2px;color:var(--go)}
   .riprow{width:100%;text-align:left;color:var(--ink)} .srrow.riprow .txt small{white-space:normal;line-height:1.3} .riprow:active{transform:scale(.985)}
   .recquick{display:flex;align-items:center;gap:12px;width:100%;margin:2px 0 12px;padding:12px 14px;border-radius:18px;text-align:left;background:var(--surface,var(--paper));border:1px solid var(--hair);color:var(--ink);transition:transform .15s;animation:cardIn .5s .1s cubic-bezier(.22,1,.36,1) both}
   .recquick:active{transform:scale(.98)} .recquick i{width:38px;height:38px;flex:0 0 auto;border-radius:12px;display:grid;place-items:center;background:color-mix(in srgb,#0E9AB0 16%,transparent);color:#0E9AB0}
@@ -1714,7 +1717,7 @@
     <button class="go" id="btnSend">Registra</button>
     <a class="copy wa" id="btnWa" href="#" target="_blank" rel="noopener" aria-label="Invia su WhatsApp"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.2a9.8 9.8 0 0 0-8.4 14.8L2.3 21.8l4.9-1.3A9.8 9.8 0 1 0 12 2.2zm0 17.9a8.1 8.1 0 0 1-4.1-1.1l-.3-.2-2.9.8.8-2.8-.2-.3A8.1 8.1 0 1 1 12 20.1zm4.5-6c-.2-.1-1.5-.7-1.7-.8s-.4-.1-.6.1-.6.8-.8 1c-.1.2-.3.2-.5.1a6.6 6.6 0 0 1-3.3-2.9c-.2-.4.3-.4.7-1.3.1-.2 0-.3 0-.4l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2 5.2 5.2 0 0 0 1.1 2.8 12 12 0 0 0 4.6 4c1.7.7 2.1.6 2.8.5a2.4 2.4 0 0 0 1.6-1.1 2 2 0 0 0 .1-1.1c0-.1-.2-.2-.5-.3z"/></svg></a>
   </div>
-  <div class="famhd"><img class="famav" src="icon-512.png" alt="" onerror="this.remove()"><span>Famiglia <i>Quinto</i></span><small id="famDate"></small><button class="srbtn" id="srBtn" aria-label="Cerca in tutti i movimenti"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg></button><button class="dayp" id="dayP" hidden aria-label="Quanto puoi spendere oggi"></button></div>
+  <div class="famhd"><img class="famav" src="icon-512.png" alt="" onerror="this.remove()"><span>Famiglia <i>Quinto</i></span><small id="famDate"></small><button class="srbtn" id="srBtn" aria-label="Cerca in tutti i movimenti"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg></button><button class="srbtn ripmini" id="ripBtn" aria-label="Ripeti una spesa già fatta"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4.5V9h-4.5"/></svg></button><button class="dayp" id="dayP" hidden aria-label="Quanto puoi spendere oggi"></button></div>
 </div>
 
 <div class="scrim" id="scrim"></div>
@@ -2268,9 +2271,7 @@ function closeRip(quiet){ const o=$("rip"); if(!o.classList.contains("open")) re
 function renderQuick(){
   const box=$("quick"); if(!box) return;
   // al posto del carosello: un solo pulsante che apre la ricerca delle spese già fatte
-  if(F.amt||F.desc||F.cat||!ripItems().length){ box.hidden=true; return; }
-  box.hidden=false; box.innerHTML=`<button class="ripbtn" id="ripOpen"><i>↻</i><span><b>Ripeti una spesa</b><small>cerca tra quelle già fatte, con la data di oggi</small></span><em>›</em></button>`;
-  $("ripOpen").onclick=openRip; return;
+  box.hidden=true; return; // "Ripeti una spesa" ora è il tondo ↻ accanto alla lente
   if(F.amt||F.desc||F.cat){ box.hidden=true; return; }
   const seen=new Set(), items=[];
   const push=e=>{ const k=norm(e.desc); if(!e.desc||!e.cat||seen.has(k)) return; seen.add(k); items.push(e); };
@@ -2923,7 +2924,7 @@ async function fetchPrices(){
 }
 let lastRefresh=0;
 // ---------- aggiornamento automatico: se è pubblicata una versione più nuova la carica subito ----------
-const APP_VER="122";
+const APP_VER="123";
 async function checkUpdate(){
   try{ const u=location.href.split("#")[0].split("?")[0]; if(!/^https?:/.test(u)) return;
     const t=await (await fetch(u+"?v="+Date.now(),{cache:"no-store"})).text(); const m=t.match(/const APP_VER="(\d+)"/);
@@ -3205,6 +3206,7 @@ function renderSearch(){ const q=$("srQ").value, body=$("srBody"); $("srX").hidd
   h+=`</div>`+(res.length>120?`<p class="srhint">e altri ${res.length-120}: aggiungi una parola per restringere</p>`:"");
   body.innerHTML=h; animateCounts(body); }
 let SRT=null;
+$("ripBtn").onclick=()=>{ if(!ripItems().length&&!S.share) return toast("Ancora nessun movimento da ripetere",true); openRip(); };
 $("ripQ").oninput=renderRip; $("ripX").onclick=()=>{ $("ripQ").value=""; renderRip(); $("ripQ").focus(); }; $("ripClose").onclick=()=>closeRip();
 function openSearch(q){ const o=$("srch"); haptic("pop"); o.classList.add("open"); o.setAttribute("aria-hidden","false"); $("srQ").value=q||""; renderSearch(); $("srBody").scrollTop=0; if(!q) setTimeout(()=>$("srQ").focus(),60); }
 function closeSearch(){ const o=$("srch"); if(!o.classList.contains("open")) return; haptic("close"); $("srQ").blur(); o.classList.remove("open"); o.setAttribute("aria-hidden","true"); }
