@@ -1496,6 +1496,12 @@
   .pzin input{width:100%;border:0;background:transparent;outline:0;padding:2px 0 0;font-size:19px;font-weight:700;color:var(--ink);font-family:ui-rounded,-apple-system,system-ui,sans-serif;font-variant-numeric:tabular-nums}
   .pzlive{margin-top:9px;font-size:13px;font-weight:700;color:var(--go);padding:6px 10px;border-radius:10px;background:color-mix(in srgb,var(--go) 11%,transparent)}
   .pzbar .go{flex:1;height:52px;font-size:16.5px}
+  .ripbtn{display:flex;align-items:center;gap:11px;width:100%;padding:8px 12px;border-radius:18px;text-align:left;background:var(--g-fill);border:1px solid var(--g-brd);box-shadow:var(--g-sh);color:var(--ink);transition:transform .15s}
+  .ripbtn:active{transform:scale(.98)} .ripbtn i{flex:0 0 34px;height:34px;border-radius:11px;display:grid;place-items:center;font-style:normal;font-size:19px;font-weight:700;color:var(--go);background:color-mix(in srgb,var(--go) 14%,transparent)}
+  .ripbtn span{flex:1;min-width:0} .ripbtn b{display:block;font-size:14.5px} .ripbtn small{display:block;font-size:12px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .ripbtn em{font-style:normal;font-size:20px;color:var(--ink-2)}
+  .quick[hidden]{display:none!important} .quick .ripbtn{flex:1 1 auto;max-width:none;width:100%;padding:8px 12px;border-radius:18px;gap:11px}
+  .quick .ripbtn span{flex:1} .quick .ripbtn b{font-size:14.5px;font-weight:700} .quick .ripbtn small{font-size:12px;font-family:inherit}
+  .riprow{width:100%;text-align:left;color:var(--ink)} .srrow.riprow .txt small{white-space:normal;line-height:1.3} .riprow:active{transform:scale(.985)}
   .recquick{display:flex;align-items:center;gap:12px;width:100%;margin:2px 0 12px;padding:12px 14px;border-radius:18px;text-align:left;background:var(--surface,var(--paper));border:1px solid var(--hair);color:var(--ink);transition:transform .15s;animation:cardIn .5s .1s cubic-bezier(.22,1,.36,1) both}
   .recquick:active{transform:scale(.98)} .recquick i{width:38px;height:38px;flex:0 0 auto;border-radius:12px;display:grid;place-items:center;background:color-mix(in srgb,#0E9AB0 16%,transparent);color:#0E9AB0}
   .recquick i svg{width:21px;height:21px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
@@ -1994,6 +2000,10 @@
   <div class="srbar"><label class="mvs"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg><input type="text" id="srQ" placeholder="pizza ottobre, amex sopra 100…" autocomplete="off" autocorrect="off" enterkeyhint="search"><button class="mvqx" id="srX" aria-label="Cancella" hidden>✕</button></label><button class="srclose" id="srClose">Chiudi</button></div>
   <div class="srbody" id="srBody"></div>
 </div>
+<div class="srch" id="rip" aria-hidden="true">
+  <div class="srbar"><label class="mvs"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></svg><input type="text" id="ripQ" placeholder="mutuo, palestra, netflix…" autocomplete="off" autocorrect="off" enterkeyhint="search"><button class="mvqx" id="ripX" aria-label="Cancella" hidden>✕</button></label><button class="srclose" id="ripClose">Chiudi</button></div>
+  <div class="srbody" id="ripBody"></div>
+</div>
 <div class="scan" id="scan" aria-hidden="true"><div class="scbox"><div class="scimg" id="scImg"><i class="c1"></i><i class="c2"></i><i class="c3"></i><i class="c4"></i><b class="laser"></b><b class="ok"></b></div>
   <div class="sct" id="scT">Leggo lo scontrino<span class="dots"><i>.</i><i>.</i><i>.</i></span></div><div class="scs" id="scS">negozio, totale e data</div>
   <button class="srclose" id="scCancel">Annulla</button></div></div>
@@ -2234,10 +2244,33 @@ function applyEntry(e,withAmt){
   F.sign=IN_CATS.has(e.cat)?1:-1;
   haptic(); render();
 }
+// Ripeti una spesa: i movimenti già fatti, raggruppati quando sono identici (stessa descrizione, categoria, conto e importo).
+// Toccandone uno il modulo si compila con la data di oggi; resta da premere Registra.
+let RIP_C=null;
+function ripItems(){ const rows=(S.cache&&S.cache.rows)||[], log=S.log||[], key=rows.length+"|"+log.length+"|"+(S.cache&&S.cache.t||"");
+  if(RIP_C&&RIP_C.key===key) return RIP_C.items; const g={};
+  const add=(d,desc,cat,conto,imp)=>{ if(!desc||!cat||!imp) return; const k=norm(desc)+"|"+cat+"|"+conto+"|"+Number(imp).toFixed(2); const x=g[k]||(g[k]={desc,cat,conto,imp,n:0,last:"",days:new Set()}); if(x.days.has(d)) return; x.days.add(d); x.n++; if(d>x.last){ x.last=d; x.desc=desc; } };
+  rows.forEach(r=>add(r.d,r.desc,r.cat,r.conto,r.imp)); log.forEach(e=>add(e.DataISO,e.Descrizione,e.Categoria,e.Conto,e.Importo));
+  const items=Object.values(g).map(x=>({...x,q:norm(x.desc+" "+x.cat+" "+lbl(x.conto)),days:null})).sort((a,b)=>b.n-a.n||(a.last<b.last?1:-1));
+  RIP_C={key,items}; return items; }
+function renderRip(){ const q=$("ripQ").value, body=$("ripBody"), toks=norm(q).split(/\s+/).filter(Boolean); $("ripX").hidden=!q;
+  const all=ripItems(); let list=toks.length?all.filter(x=>toks.every(t=>x.q.includes(t))):all.filter(x=>x.n>=2);
+  const tot=list.length; list=list.slice(0,60);
+  if(!list.length){ body.innerHTML=`<p class="srhint">${toks.length?"Nessun movimento con queste parole. Prova con il nome del negozio o la categoria.":"Scrivi cosa cerchi: appena hai qualche movimento ripetuto, lo trovi qui."}</p>`; return; }
+  body.innerHTML=`<p class="srhint">${toks.length?`${tot} ${tot===1?"risultato":"risultati"}`:"Le tue spese e entrate che si ripetono uguali"} · tocca per riproporla con la data di oggi</p>`+
+    list.map((x,i)=>`<button class="srrow riprow" data-i="${i}" style="--i:${Math.min(i,12)}">${catGi(x.cat,"li")}<span class="txt"><b>${esc(x.desc)}</b><small>${esc(x.cat)} · ${logo(x.conto)}${esc(lbl(x.conto))} · ${x.n>1?x.n+" volte, ":""}ultima ${shortDate(fromISO(x.last))}</small></span><span class="v ${x.imp>0?"in":""}">${fmtIT(x.imp)} €</span></button>`).join("");
+  body.querySelectorAll(".riprow").forEach(b=>b.onclick=()=>{ const x=list[+b.dataset.i]; closeRip(true);
+    F.amt=""; F.dOff=0; F.dCustom=""; applyEntry({desc:x.desc,cat:x.cat,conto:x.conto||S.defConto,imp:Math.abs(x.imp)},true); F.sign=x.imp>0?1:-1; render();
+    haptic("ok"); toast(`${x.desc}: pronta con la data di oggi, tocca Registra`); if(typeof sendReadyFx==="function") try{ sendReadyFx(); }catch(e){} }); }
+function openRip(){ const o=$("rip"); haptic("pop"); o.classList.add("open"); o.setAttribute("aria-hidden","false"); $("ripQ").value=""; renderRip(); $("ripBody").scrollTop=0; setTimeout(()=>$("ripQ").focus(),60); if(S.share&&!S.cache) refreshExcel(false).then(renderRip).catch(()=>{}); }
+function closeRip(quiet){ const o=$("rip"); if(!o.classList.contains("open")) return; if(!quiet) haptic("close"); $("ripQ").blur(); o.classList.remove("open"); o.setAttribute("aria-hidden","true"); }
 // Ripeti: gli ultimi movimenti registrati e quelli più frequenti, un tocco e il modulo è compilato
 function renderQuick(){
   const box=$("quick"); if(!box) return;
-  box.hidden=true; return; // tolto su richiesta: la schermata Nuovo resta pulita
+  // al posto del carosello: un solo pulsante che apre la ricerca delle spese già fatte
+  if(F.amt||F.desc||F.cat||!ripItems().length){ box.hidden=true; return; }
+  box.hidden=false; box.innerHTML=`<button class="ripbtn" id="ripOpen"><i>↻</i><span><b>Ripeti una spesa</b><small>cerca tra quelle già fatte, con la data di oggi</small></span><em>›</em></button>`;
+  $("ripOpen").onclick=openRip; return;
   if(F.amt||F.desc||F.cat){ box.hidden=true; return; }
   const seen=new Set(), items=[];
   const push=e=>{ const k=norm(e.desc); if(!e.desc||!e.cat||seen.has(k)) return; seen.add(k); items.push(e); };
@@ -2890,7 +2923,7 @@ async function fetchPrices(){
 }
 let lastRefresh=0;
 // ---------- aggiornamento automatico: se è pubblicata una versione più nuova la carica subito ----------
-const APP_VER="121";
+const APP_VER="122";
 async function checkUpdate(){
   try{ const u=location.href.split("#")[0].split("?")[0]; if(!/^https?:/.test(u)) return;
     const t=await (await fetch(u+"?v="+Date.now(),{cache:"no-store"})).text(); const m=t.match(/const APP_VER="(\d+)"/);
@@ -3172,6 +3205,7 @@ function renderSearch(){ const q=$("srQ").value, body=$("srBody"); $("srX").hidd
   h+=`</div>`+(res.length>120?`<p class="srhint">e altri ${res.length-120}: aggiungi una parola per restringere</p>`:"");
   body.innerHTML=h; animateCounts(body); }
 let SRT=null;
+$("ripQ").oninput=renderRip; $("ripX").onclick=()=>{ $("ripQ").value=""; renderRip(); $("ripQ").focus(); }; $("ripClose").onclick=()=>closeRip();
 function openSearch(q){ const o=$("srch"); haptic("pop"); o.classList.add("open"); o.setAttribute("aria-hidden","false"); $("srQ").value=q||""; renderSearch(); $("srBody").scrollTop=0; if(!q) setTimeout(()=>$("srQ").focus(),60); }
 function closeSearch(){ const o=$("srch"); if(!o.classList.contains("open")) return; haptic("close"); $("srQ").blur(); o.classList.remove("open"); o.setAttribute("aria-hidden","true"); }
 $("srBtn").onclick=()=>openSearch(""); $("srClose").onclick=closeSearch;
