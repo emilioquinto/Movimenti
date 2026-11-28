@@ -1835,6 +1835,8 @@
     <label>Apple Pay e Siri</label>
     <p id="codaInfo"></p>
     <ol class="cqsteps" id="codaSteps" hidden></ol>
+    <div class="chips" id="codaAutoSel" style="margin:4px 0 8px"><button data-v="1">Registra da sola</button><button data-v="0">Chiedi sempre</button></div>
+    <p id="codaAutoInfo" style="margin:0 0 10px"></p>
     <div><button class="btn" id="btnCodaSetup">Prepara la coda in Excel</button></div>
     <div class="cqcopy"><button class="btn" id="btnCodaA">Copia pezzo 1</button><button class="btn" id="btnCodaB">Copia pezzo 2</button></div>
     <details class="cqhow"><summary>Come creare i due comandi rapidi</summary>
@@ -2768,6 +2770,28 @@ function codaMark(it,stato){ S.codaFatti=[...(S.codaFatti||[]).filter(x=>x!==it.
 function codaTake(r){ if(!CQ||!CQ.cur) return null; const it=codaItems().find(x=>x.id===CQ.cur); CQ.cur=null; if(!it) return null;
   if(it.src==="pay"){ S.merchMap=S.merchMap||{}; S.merchMap[norm(it.merchant)]={desc:r.Descrizione,cat:r.Categoria}; if(it.card){ S.cardMap=S.cardMap||{}; S.cardMap[norm(it.card)]=r.Conto; } }
   codaMark(it,"registrato"); return it; }
+// Registrazione automatica: un pagamento Apple Pay va in Excel da solo quando non c'è niente da decidere, cioè
+// l'esercente l'hai già confermato una volta (so descrizione e categoria) e la carta pure (so il conto).
+// Tutto il resto resta in coda e ti viene proposto come prima.
+function codaSure(it){ if(it.src!=="pay"||!it.amt) return null; const m=(S.merchMap||{})[norm(it.merchant)], c=(S.cardMap||{})[norm(it.card||"")];
+  if(!m||!m.desc||!CATS.includes(m.cat)||!c||!CONTI.includes(c)) return null;
+  const d=it.dISO?fromISO(it.dISO):today(), imp=Math.round((IN_CATS.has(m.cat)?1:-1)*it.amt*100)/100;
+  return {Data:dateIT(d),DataISO:dateISO(d),DataSeriale:dateSerial(d),Descrizione:cleanTxt(m.desc),Categoria:m.cat,Conto:c,Importo:imp,ImportoIT:fmtIT(imp)}; }
+async function codaAuto(){ if(!CQ||CQ.autoBusy||S.codaAuto===false||!S.hook||PEND) return;
+  const todo=codaItems().filter(it=>it.id!==CQ.cur).map(it=>({it,r:codaSure(it)})).filter(x=>x.r); if(!todo.length) return;
+  CQ.autoBusy=true; const done=[]; let off=0;
+  try{ for(const {it,r} of todo){
+      S.codaFatti=[...(S.codaFatti||[]).filter(x=>x!==it.id),it.id].slice(-400); CQ.memo=null; save();
+      const url=hookUrl(r), ok=await postHook(url,false); if(!ok) off++;
+      S.log.unshift({...r,ts:Date.now(),ok,auto:true,...(ok?{}:{outbox:url})}); S.log=S.log.slice(0,60); learn(r); codaMark(it,"registrato"); done.push(r);
+      await new Promise(res=>setTimeout(res,350)); } }
+  finally{ CQ.autoBusy=false; }
+  if(!done.length){ paintCoda(); return; }
+  save(); haptic("win"); render(); renderDay(true); if($("sheetLog").classList.contains("open")) renderLog();
+  const tot=done.reduce((a,r)=>a+r.Importo,0);
+  toast(done.length===1?`Apple Pay registrato da solo: ${done[0].Descrizione} ${done[0].ImportoIT} €`:`${done.length} pagamenti Apple Pay registrati da soli (${fmtIT(tot)} €)`+(off?" · alcuni partono appena torna la rete":""));
+  if(done.some(r=>r.Importo<0)) moneyAway(Math.abs(done.reduce((a,r)=>a+Math.min(0,r.Importo),0)));
+  if(S.share) setTimeout(()=>refreshExcel(true).catch(()=>{}),2500); }
 // compila con la prossima voce se il modulo è vuoto (force: subito dopo Registra/Scarta, anche se avevi detto "Dopo")
 function codaNext(force){ if(!CQ) return; const items=codaItems();
   if(items.length&&!CQ.cur&&!F.amt&&!F.desc&&!F.cat&&(force||(CQ.fresh&&!CQ.snooze))&&!sheetOpen()&&!document.hidden&&!document.body.classList.contains("padopen")) codaFill(items[0],true);
@@ -2775,6 +2799,7 @@ function codaNext(force){ if(!CQ) return; const items=codaItems();
 // dopo ogni lettura di Excel: se la voce in compilazione è stata gestita altrove (es. sull'altro telefono) libera il modulo
 function codaCheck(){ if(!CQ) return; CQ.memo=null; const items=codaItems();
   if(CQ.cur&&!items.some(x=>x.id===CQ.cur)){ const untouched=formSig()===CQ.fill; CQ.cur=null; if(untouched){ resetForm(); toast("Movimento già registrato dall'altro telefono"); } }
+  if(S.codaAuto!==false&&items.some(it=>it.id!==CQ.cur&&codaSure(it))){ codaAuto().then(()=>codaNext(false)); return; }
   codaNext(false); }
 // all'apertura rilegge la coda; se è vuota riprova due volte (il pagamento può arrivare qualche secondo dopo)
 function codaWatch(){ if(!CQ||!S.share||!(S.cache&&S.cache.coda)) return; if(Date.now()-CQ.t<4000) return; CQ.t=Date.now();
@@ -2783,7 +2808,7 @@ function codaResume(){ if(Date.now()-(CQ.hid||0)>60000) CQ.snooze=false; CQ.trie
 // ---------- impostazioni: prepara la coda e i pezzi per i comandi rapidi ----------
 function codaPrefix(){ return S.hook+(S.hook.includes("?")?"&":"?")+"Azione=coda&Metodo=POST&Percorso="+encodeURIComponent(xlBase()+"/tables/Coda/rows/add")+"&Corpo="+encodeURIComponent('{"values":[["'); }
 const CODA_FINE=encodeURIComponent('"]]}');
-function codaSettings(){ const el=$("codaInfo"); if(!el) return; const c=S.cache&&S.cache.coda, ready=!!(c&&c.tab&&c.tab.name==="Coda"), n=ready?codaItems().length:0;
+function codaSettings(){ const el=$("codaInfo"); if(!el) return; paintCodaAuto(); const c=S.cache&&S.cache.coda, ready=!!(c&&c.tab&&c.tab.name==="Coda"), n=ready?codaItems().length:0;
   el.innerHTML=!S.hook?"Serve prima l'indirizzo webhook di Make, qui sopra."
     :!S.share?"Serve il relay per leggere Excel (più sotto)."
     :ready?`<b class="okc">Coda pronta</b> · ${n?`${n} da registrare`:"nessun movimento in attesa"}. Paghi con Apple Pay o lo dici a Siri: all'apertura trovi Nuovo già compilato.`
@@ -2817,6 +2842,10 @@ async function codaSetup(){
   }catch(e){ toast(e.message||"Qualcosa non ha funzionato",true); }
   finally{ btn.disabled=false; codaSettings(); } }
 $("btnCodaSetup").onclick=codaSetup;
+function paintCodaAuto(){ const on=S.codaAuto!==false; $("codaAutoSel").querySelectorAll("button").forEach(b=>b.classList.toggle("on",(b.dataset.v==="1")===on));
+  const nm=Object.keys(S.merchMap||{}).length, nc=Object.keys(S.cardMap||{}).length;
+  $("codaAutoInfo").textContent=on?`Un pagamento Apple Pay va in Excel da solo, appena apri l'app, se conosco già il negozio e la carta (finora ${nm} ${nm===1?"negozio":"negozi"}, ${nc} ${nc===1?"carta":"carte"}). Un negozio nuovo te lo propongo: lo confermi una volta, poi fa da sé. Lo trovi in Inviati, dove puoi correggerlo o eliminarlo.`:"Ogni pagamento Apple Pay ti viene proposto già compilato e lo confermi tu."; }
+$("codaAutoSel").onclick=e=>{ const b=e.target.closest("button"); if(!b) return; haptic(); S.codaAuto=b.dataset.v==="1"; save(); paintCodaAuto(); if(S.codaAuto) codaCheck(); };
 $("btnCodaA").onclick=()=>{ if(!S.hook) return toast("Manca l'indirizzo webhook di Make",true); haptic(); copyText(codaPrefix(),"Pezzo 1 copiato: incollalo nel campo URL"); };
 $("btnCodaB").onclick=()=>{ haptic(); copyText(CODA_FINE,"Pezzo 2 copiato: incollalo dopo la variabile"); };
 
@@ -2924,7 +2953,7 @@ async function fetchPrices(){
 }
 let lastRefresh=0;
 // ---------- aggiornamento automatico: se è pubblicata una versione più nuova la carica subito ----------
-const APP_VER="123";
+const APP_VER="124";
 async function checkUpdate(){
   try{ const u=location.href.split("#")[0].split("?")[0]; if(!/^https?:/.test(u)) return;
     const t=await (await fetch(u+"?v="+Date.now(),{cache:"no-store"})).text(); const m=t.match(/const APP_VER="(\d+)"/);
